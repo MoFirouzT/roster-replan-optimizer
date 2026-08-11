@@ -1,0 +1,6 @@
+[project]
+name = "roster-replan-optimizer"
+version = "0.0.0"
+description = "Minimum-disruption shift-roster replanning under labour constraints."
+requires-python = ">=3.11"
+dependencies = ["ortools>=9.14"]
