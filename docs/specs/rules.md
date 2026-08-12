@@ -345,12 +345,17 @@ The same convention makes `d` a *worked day* for `R-CONSEC-DAYS` and leaves `d +
 the intended reading: the night worker's Tuesday is mostly rest, and it is `R-REST-GAP` that protects
 it, not a fractional day count.
 
-**Gross versus net duration.** `hours(d, s) = end(d, s) − start(d, s)` is the *gross* span. Statutory
-rest breaks are not working time, so the two can differ — art. 38quater entitles a worker exceeding
-six hours to a break. Whether the caller supplies spans gross or net of breaks is an **input-contract
-question owned by `model.md`**, not a rule question, and it must be answered before `R-MAX-WEEKLY` has
-a defined meaning. Recorded here because both readings are defensible and silently picking one is how
-a checker and a model end up disagreeing by 15 minutes per shift.
+**Gross span and net working time are different symbols, and the rules disagree on which they want.**
+Art. 38quater entitles a worker exceeding six hours to a break, and a break is not working time, so a
+shift's `span` and its `work_hours` differ:
+
+- `R-MIN-SHIFT` reads **`span`** — art. 21 governs the *work period*, and a "prestatie" may contain
+  short meal or coffee breaks without becoming two periods.
+- `R-MAX-WEEKLY` and `R-MAX-DAILY` read **`work_hours`** — they are working-time ceilings.
+
+There is deliberately no single `hours(d, s)`. One symbol would make one of those rules wrong by about
+a break per shift, in a direction no test would notice until a checker and a model disagreed over
+fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notation).
 
 ### `R-MIN-SHIFT` — minimum work period
 
@@ -369,10 +374,11 @@ a checker and a model end up disagreeing by 15 minutes per shift.
 - **Predicate.** Over the profile rather than over a roster — for every shift type `s`:
 
   ```
-  hours(d, s)  ≥  min_period_hours   for every d with (d, s) ∈ O
+  span(d, s)  ≥  min_period_hours   for every d with (d, s) ∈ O
   ```
 
-  Checked once at profile load and on every profile change, not per solve.
+  Gross span, not net — a work period interrupted by a coffee break is still one period. Checked once at
+  profile load and on every profile change, not per solve.
 - **Class.** Input validation. **Becomes structural in T5 generation mode**, where shift boundaries
   become decision variables rather than data — at which point it needs a real encoding and a checker
   entry. Recorded here so that transition is a known cost rather than a discovery.
@@ -444,10 +450,11 @@ a checker and a model end up disagreeing by 15 minutes per shift.
 - **Predicate.** For every `e ∈ E`:
 
   ```
-  Σ_{(d, s) ∈ O} hours(d, s) · x[e, d, s]  ≤  max_hours_this_week[e]
+  Σ_{(d, s) ∈ O} work_hours(d, s) · x[e, d, s]  ≤  max_hours_this_week[e]
   ```
 
-  Pinned past shifts are inside this sum, not exempt from it.
+  Net working time, not span — breaks are not working time. Pinned past shifts are inside this sum, not
+  exempt from it.
 - **Class.** Hard.
 - **Parameters.** `max_hours_this_week[e]`, hours, caller-supplied and mandatory. No default: a missing
   budget is a malformed payload, because the safe fallback — some fixed weekly ceiling — is precisely
@@ -491,10 +498,10 @@ a checker and a model end up disagreeing by 15 minutes per shift.
 - **Predicate.** For every `e ∈ E` and `d ∈ D`:
 
   ```
-  Σ_{s : (d, s) ∈ O} hours(d, s) · x[e, d, s]  ≤  max_daily_hours[e]
+  Σ_{s : (d, s) ∈ O} work_hours(d, s) · x[e, d, s]  ≤  max_daily_hours[e]
   ```
 
-  Under the start-day attribution convention above.
+  Net working time, under the start-day attribution convention above.
 - **Class.** Hard. The derogation ladder is a parameter change, not a relaxation of the rule.
 - **Parameters.** `max_daily_hours[e]`, default **8** (art. 19). The lawful ladder, each step requiring
   its own recorded basis:
@@ -515,7 +522,7 @@ a checker and a model end up disagreeing by 15 minutes per shift.
   satisfy `R-REST-GAP` while their sum binds here. Encoding it costs one inequality per employee-day,
   and the checker needs it independently regardless of what the model happens to make unreachable.
 - **Model encoding.** One linear inequality per `(employee, day)`.
-- **Checker encoding.** Group the employee's assignments by start day, sum gross hours per group.
+- **Checker encoding.** Group the employee's assignments by start day, sum `work_hours` per group.
 - **Explainer text.** `Emma is assigned 12h on Wed; her contract allows 8h.`
 - **Provenance.** Arbeidswet art. 19; derogations art. 20 §1, art. 20 §2, art. 20bis, art. 22 1°–2°,
   art. 23–26.
@@ -740,6 +747,31 @@ on a computation this service does not perform.**
 
 ## Independence rule
 
-The model and the checker are two readings of this document. **They share no code** — not a
-constants module, not a helper. The duplication is deliberate: it is what makes the differential
-harness meaningful. Enforced by an import-linter contract in CI.
+The model and the checker are two readings of this document. **They share no rule logic** — not a
+constants module, not a predicate helper. The duplication is deliberate: it is what makes the
+differential harness meaningful. Enforced by an import-linter contract in CI.
+
+### Where the line falls
+
+The original phrasing was "they share no code", which is unimplementable as written: the differential
+harness must feed *the identical instance* to both readings, so both must be able to parse an instance,
+so something is shared. The line is drawn by what a shared item could hide:
+
+**Shared — the payload schema.** Data containers describing employees, shift instances, demand, skills,
+intervals, and the returned roster. A bug here corrupts both readings identically and the harness cannot
+see it — but neither can it hide a *rule* bug, which is what the harness exists to catch. Sharing is
+also the only way the two readings are comparable at all.
+
+**Shared — the stated conventions.** Half-open interval overlap, start-day attribution,
+`work_hours = span − break_hours`. These are definitions this document fixes, not readings of it. Two
+independent implementations of *the same convention* would add no signal, and a disagreement between
+them would be a bug in neither model nor checker.
+
+**Never shared — rule predicates and rule parameters.** Which slot pairs conflict, how a streak is
+counted, how a rest window is found, and every numeric threshold: 11 hours, 35 hours, 3 hours, 6 days.
+No default for any of these lives in shared code, which is why the payload carries every rule parameter
+explicitly rather than defaulting it centrally. A shared threshold is precisely the bug the brute-force
+and differential layers cannot detect, because both readings would be wrong in the same direction.
+
+The import-linter contract enforces the module boundary; **the parameter discipline is a review
+obligation**, since no linter can tell a shared constant from a coincidentally equal one.

@@ -62,9 +62,13 @@ The credibility layer. Everything downstream is worthless without it.
 - `docs/specs/model.md`, `docs/specs/validation.md`
 - Full rule set from the registry encoded in the model
 - Independent checker, no solver import — enforced by an import-linter rule in CI
-- Brute-force ground truth: ~20 committed micro-instances (N≤6, 3 days), solver objective **equals**
-  enumerated optimum
-- Differential harness: random rosters, `model_feasible ⟺ checker_feasible`, mismatch prints the
+- Brute-force ground truth: ~20 committed micro-instances (N≤6, 3 days), in two stages —
+  **(a)** enumerated hard-feasible set **equals** model feasible set, available as soon as the checker
+  exists; **(b)** solver objective **equals** enumerated optimum, which needs the disruption metric and
+  therefore lands with it. The gate as originally written depended on an artifact this tier scheduled
+  after it.
+- Differential harness: random rosters, **violation sets equal** — not `model_feasible ⟺
+  checker_feasible`, which is vacuous once a coverage shortfall is representable — mismatch prints the
   rule ID
 - Property tests: idempotence, seed determinism, monotonicity under relaxation, past shifts immutable
 - Metamorphic tests: employee relabelling leaves the objective invariant

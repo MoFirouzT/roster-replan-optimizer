@@ -64,3 +64,9 @@ present tense squeezes rationale out.
 | D-034 | `R-FLEXI-ELIG` and `R-DIMONA-FLX` kept as separate IDs — different operator actions | T1 |
 | D-035 | Conservative Dimona reading for same-day replan — only filed `OK` counts | T1 |
 | D-036 | Asymmetric administrative disruption by contract type as input to the D0–D4 study | T2 |
+| D-037 | `span` and `work_hours` as separate symbols — no single `hours(d, s)` | T1 |
+| D-038 | Independence scoped to rule logic; payload schema and stated conventions shared | T1 |
+| D-039 | Rule thresholds never defaulted in shared code — payload carries every parameter | T1 |
+| D-040 | Input validation and roster checking as separate layers with separate result types | T1 |
+| D-041 | Differential harness compares violation sets, not feasibility bits | T1 |
+| D-042 | Brute-force layer split into feasible-set and objective stages | T1 |

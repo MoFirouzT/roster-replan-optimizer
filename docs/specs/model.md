@@ -28,7 +28,9 @@ the full payload schema are still `[TODO]`; the symbols below are settled and in
 | `req_skills[d, s] ⊆ K` | set, data | Skills a shift instance requires of **each** assignee |
 | `skill_mix[d, s]` | entry set, data | `(skill, minimum, class, provenance)` composition requirements |
 | `eligible ⊆ E × O` | derived | Pairs surviving domain presolve — see [Presolve](#presolve) |
-| `hours(d, s)` | hours | `end(d, s) − start(d, s)`, the gross span. See below on gross vs. net |
+| `span(d, s)` | hours | `end(d, s) − start(d, s)` — the **gross** span, breaks included |
+| `break_hours(s)` | hours, data | Statutory break falling inside the span |
+| `work_hours(d, s)` | hours | `span(d, s) − break_hours(s)` — **net** working time |
 | `u[d, s]` | int ≥ 0 | Coverage shortfall — `R-COVER`'s slack |
 | `v[d, s, k]` | int ≥ 0 | Qualified-coverage shortfall — `R-SKILL-MIX`'s slack, soft entries only |
 | `w[e, d]` | bool | `1` iff `e` works at all on day `d`. Reified from `x` for `R-CONSEC-DAYS` |
@@ -37,10 +39,18 @@ Three further caller-supplied quantities — `max_hours_this_week[e]`,
 `consecutive_days_worked_before_horizon[e]` and `last_shift_end_before_horizon[e]` — are defined under
 [Caller-computed quantities](#caller-computed-quantities) below.
 
-**Gross versus net duration is an open input-contract question.** Statutory rest breaks are not
-working time, so a shift's paid span and its span-minus-breaks differ. `R-MAX-WEEKLY` and
-`R-MAX-DAILY` have no defined meaning until this file states which one `hours(d, s)` denotes, and the
-checker must read the same answer. `[TODO]` — decide with the payload schema.
+**Gross and net are both carried, because different rules need different ones.** Statutory rest breaks
+are not working time, so a shift's span and its working time differ — and the rules do not agree on
+which they mean:
+
+- `R-MIN-SHIFT` tests art. 21's *work period*, and a "prestatie" is a continuous period that may
+  contain short meal or coffee breaks. It reads **`span`**.
+- `R-MAX-WEEKLY` and `R-MAX-DAILY` are working-time ceilings, and breaks are not working time. They
+  read **`work_hours`**.
+
+Collapsing the two into one symbol would therefore make one of those rules wrong, silently, by roughly
+a break per shift. The payload carries `span` and `break_hours` and derives `work_hours`; there is no
+single `hours(d, s)`.
 
 Shift instances are `(day, shift type)` pairs, not calendar dates: `end(d, s)` may fall on `d + 1`
 when a shift crosses midnight. Rule predicates are written over timestamps rather than day indices

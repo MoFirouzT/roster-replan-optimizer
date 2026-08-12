@@ -1,33 +1,116 @@
 # Validation
 
-> **Status: outline.** Spec-first component — fill before implementing (T1).
+Two independent layers, often confused, with different jobs:
+
+- **Input validation** — is this payload well-formed and lawful *as a request*? Runs before any solve.
+- **The checker** — does this roster satisfy the rules? Runs on every solution the suite produces.
+
+Conflating them is how a caller's arithmetic error gets reported as a solver defect. The dividing
+question is whether the fault could be fixed by a different roster. If no roster could fix it, it is
+input validation.
+
+## Input validation
+
+`validate_instance(instance) -> list[InputDefect]`. Runs at profile load and at the head of every
+solve. A non-empty result rejects the request; it never degrades into a best-effort solve, because a
+request that is not well-formed has no meaningful optimum.
+
+What lands here, and why each is *not* a roster property:
+
+| Check | Why not the checker |
+|---|---|
+| `R-MIN-SHIFT` — every shift type meets the minimum period | No reachable roster can violate it; the catalogue either does or does not. See `rules.md` |
+| `max_hours_this_week[e]` within the absolute weekly ceiling | A too-large budget is a bad payload. Reporting it as `R-MAX-WEEKLY` blames the solver for the caller's arithmetic |
+| `max_daily_hours[e]` within the lawful derogation ladder | Same shape: the ceiling is a property of the contract, not of the assignment |
+| A derogated parameter carries a non-empty `derogation_basis` | A legality claim with no source is the thing `rules.md` exists to prevent |
+| A legal `R-SKILL-MIX` entry carries a provenance string | As above, per entry |
+| `now` and the incumbent are both present, or both absent | A replan missing either is malformed, not defaulted — see `R-PIN-PAST` |
+| `flexi_eligible` / `dimona_ok` present for every flexi employee | Absence must never default to `true`; that would invent an eligibility the NSSO did not grant |
+| Every rule parameter is supplied explicitly | The independence rule forbids central defaults for rule thresholds |
+| Horizon begins at or after `now` on a cold solve | Otherwise `R-PIN-PAST` has past shifts and no incumbent to pin them to |
+
+`InputDefect` carries the offending field path, the observed value, and the constraint it broke. It is a
+distinct type from `Violation`: the two are never mixed in one list, because they have different
+audiences — a caller fixes a defect, a planner reads a violation.
 
 ## The independent checker
 
-`(roster, context) -> list[Violation]`. Plain Python. **Imports no solver.** Stateless.
+`check(roster, instance) -> list[Violation]`. Plain Python. **Imports no solver.** Stateless.
 
 A second reading of [`rules.md`](rules.md), written without reference to the model implementation.
-Shares no code with it — enforced by an import-linter contract in CI.
+Shares the payload schema and the stated conventions with the model, and **shares no rule predicate or
+threshold** — see [the independence rule](rules.md#independence-rule) for exactly where that line falls
+and why it is not "shares no code". Enforced by an import-linter contract in CI, plus a review
+obligation the linter cannot discharge.
 
-Structurally required, not a nice-to-have: under any formulation without hard-constraint
-guarantees (penalties inside a local search, or a time-boxed solve accepting a gap), feasibility is
-not guaranteed by construction. Independent verification is the only thing that makes a legality
-claim true rather than assumed.
+Structurally required, not a nice-to-have: under any formulation without hard-constraint guarantees
+(penalties inside a local search, or a time-boxed solve accepting a gap), feasibility is not guaranteed
+by construction. Independent verification is the only thing that makes a legality claim true rather
+than assumed.
 
 `Violation` carries: rule ID, employee, day, shift, and the observed vs. required values.
+
+### Soft violations are still violations
+
+With `R-COVER`'s floor soft and some `R-SKILL-MIX` entries soft, a returned roster can be *optimal* and
+still carry violations. The checker reports them, flagged `soft`, and does not treat them as failures.
+
+This changes what the differential harness may assert. `checker_feasible` is nearly always true once a
+coverage shortfall is representable — the empty roster satisfies every hard rule — so an
+`is_feasible ⟺ is_feasible` assertion would be vacuous. **The harness compares violation sets.**
+
+### What the checker must not do
+
+Three prohibitions, each corresponding to a way a well-meaning checker becomes a test of something
+other than the roster:
+
+1. **Never recompute a caller-supplied quantity.** Not `max_hours_this_week`, not
+   `consecutive_days_worked_before_horizon`, not `flexi_eligible`. A checker that derives its own budget
+   from a reference period it cannot see is testing the caller, and will disagree with the model for
+   reasons that are defects in neither.
+2. **Never read the solver's own slack.** `R-COVER`'s shortfall is recounted from the roster, not read
+   from `u`. A checker that trusts the solver's arithmetic is verifying addition.
+3. **Never consume the model's eligibility mask.** `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and
+   `R-DIMONA-FLX` are all enforced by presolve elimination, so the mask *is* the thing under test.
 
 ## Test layers
 
 | Layer | Asserts |
 |---|---|
-| Brute force | N≤6, 3 days, ≤2 shift types: exhaustive enumeration → solver objective **equals** true optimum, on ~20 committed micro-instances |
-| Differential | Random rosters (mostly infeasible): `model_feasible(r) ⟺ checker_feasible(r)`; mismatch prints the rule ID |
+| Input validation | Malformed payloads rejected with the right field path; a valid payload produces no defects |
+| Brute force **(a)** | N≤6, 3 days, ≤2 shift types: enumerate every roster, `checker` hard-feasible set **equals** model feasible set |
+| Brute force **(b)** | Same instances: solver objective **equals** enumerated optimum. *Blocked on the shipped disruption metric — see below* |
+| Differential | Random rosters (mostly infeasible): `checker_violations(r)` **equals** `model_violations(r)`, as sets of `(rule, coordinates)`; mismatch prints the rule ID |
 | Property | Idempotent replan on a no-change input · byte-identical output under a fixed seed · monotone objective under constraint relaxation · past shifts never modified |
 | Metamorphic | Employee relabelling leaves the objective invariant; day permutation stays structure-consistent |
 | Golden | Committed scenarios with committed objective values; a diff fails CI until a `decisions.md` entry justifies it |
 
-**Suite-wide invariant:** every test that produces a solution asserts zero checker violations on it.
-Not a separate test — a property of the harness.
+**Suite-wide invariant:** every test that produces a solution asserts zero **hard** checker violations on
+it. Not a separate test — a property of the harness. Soft violations are recorded, not asserted away.
 
-Feasibility-checking a fixed roster in CP-SAT is fixing all variables and solving, so the
-differential harness is small. Build it early.
+### Brute force lands in two stages
+
+The gate in `PLAN.md` reads "solver objective equals enumerated optimum", which needs an objective — and
+the disruption metric is specified late in T1. As written the gate depends on an artifact scheduled after
+it.
+
+Rather than pull the metric forward, the layer splits. **(a)** compares *feasible sets* and needs only
+the checker, so it is available immediately and catches the large majority of encoding errors: a wrong
+threshold, an inverted inequality, a forgotten horizon boundary. **(b)** adds one assertion once D2
+ships. Stage (a) is not a weaker version of the gate; it is the half that does not need preference to be
+defined.
+
+### Building the differential harness
+
+Feasibility-checking a fixed roster in CP-SAT is fixing all variables and solving, so the harness is
+small. Build it early.
+
+`model_violations(r)` needs the model to *report* rather than merely refuse. Fix all assignment
+variables to `r`, solve, and read which assumption literals appear in the infeasibility core — the same
+machinery the T4 explainer uses, which is the second reason the assumption literals in `rules.md` are
+not optional. A model that only answers `INFEASIBLE` can be differentially tested against a checker's
+feasibility bit and nothing more, and that comparison is the vacuous one.
+
+Random roster generation should be biased toward *nearly* feasible rosters. Uniformly random assignments
+violate `R-COVER` immediately and never exercise the interesting rules, so generate by perturbing solved
+rosters: swap two assignments, move one shift, drop a person.

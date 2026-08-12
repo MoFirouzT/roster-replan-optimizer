@@ -1,0 +1,200 @@
+"""Input validation: defects the checker must never report as roster violations.
+
+The dividing question throughout is whether a different roster could fix the fault. If
+none could, it belongs here, and asserting that the checker stays quiet about it is as
+much the point as catching it.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+
+from conftest import MORNING
+
+from roster_replan.checker import check
+from roster_replan.domain import OpenShift, ShiftType, SkillMixEntry
+from roster_replan.validation import validate_instance
+
+
+def fields(defects) -> list[str]:
+    return [d.field for d in defects]
+
+
+def test_a_well_formed_instance_has_no_defects(make_instance, person, one_shift):
+    assert validate_instance(make_instance([person], [one_shift])) == []
+
+
+# --- R-MIN-SHIFT ------------------------------------------------------------------
+
+
+def test_min_shift_rejects_a_short_shift_type(make_instance, person, one_shift):
+    instance = make_instance([person], [one_shift])
+    stumpy = dataclasses.replace(
+        instance,
+        shift_types=(ShiftType(label="X", start_hour=7.0, span_hours=2.0, break_hours=0.0),)
+        + instance.shift_types[1:],
+    )
+    (defect,) = validate_instance(stumpy)
+    assert defect.field == "shift_types[0].span_hours"
+    assert (defect.observed, defect.required) == (2.0, 3.0)
+
+
+def test_min_shift_is_not_a_roster_violation(make_instance, person, one_shift):
+    """No reachable roster can violate it, so the checker must be silent -- the reason
+    the rule was reclassified out of the checker entirely."""
+    instance = make_instance([person], [one_shift])
+    stumpy = dataclasses.replace(
+        instance,
+        shift_types=(ShiftType(label="X", start_hour=7.0, span_hours=2.0, break_hours=0.0),)
+        + instance.shift_types[1:],
+    )
+    assert "R-MIN-SHIFT" not in [v.rule for v in check(frozenset({(0, 0, MORNING)}), stumpy)]
+
+
+def test_min_shift_reads_span_not_net(make_instance, person, one_shift):
+    """A 3h period containing a 30-minute break is still a 3h work period: art. 21
+    governs the period, and a prestatie may contain short breaks."""
+    instance = make_instance([person], [one_shift])
+    exact = dataclasses.replace(
+        instance,
+        shift_types=(ShiftType(label="X", start_hour=7.0, span_hours=3.0, break_hours=0.5),)
+        + instance.shift_types[1:],
+    )
+    assert validate_instance(exact) == []
+
+
+# --- Derogations ------------------------------------------------------------------
+
+
+def test_derogation_below_statute_needs_a_basis(make_instance, person, one_shift, params):
+    instance = make_instance([person], [one_shift])
+    lax = dataclasses.replace(instance, params=dataclasses.replace(params, min_rest_hours=9.0))
+    assert fields(validate_instance(lax)) == ["params.derogation_basis['min_rest_hours']"]
+
+
+def test_derogation_with_a_basis_is_accepted(make_instance, person, one_shift, params):
+    instance = make_instance([person], [one_shift])
+    documented = dataclasses.replace(
+        instance,
+        params=dataclasses.replace(
+            params,
+            min_rest_hours=9.0,
+            derogation_basis={"min_rest_hours": "art. 38ter §2, shift-change derogation"},
+        ),
+    )
+    assert validate_instance(documented) == []
+
+
+def test_stricter_than_statute_needs_nothing(make_instance, person, one_shift, params):
+    instance = make_instance([person], [one_shift])
+    strict = dataclasses.replace(instance, params=dataclasses.replace(params, min_rest_hours=12.0))
+    assert validate_instance(strict) == []
+
+
+# --- Budgets ----------------------------------------------------------------------
+
+
+def test_missing_budget_is_a_defect(make_instance, person, one_shift):
+    unbudgeted = dataclasses.replace(person, max_hours_this_week=None)
+    instance = make_instance([unbudgeted], [one_shift])
+    assert "employees[0].max_hours_this_week" in fields(validate_instance(instance))
+
+
+def test_budget_over_the_absolute_ceiling_is_a_defect(make_instance, person, one_shift):
+    """Locally verifiable, unlike the reference-period average -- and a payload defect
+    rather than an R-MAX-WEEKLY violation, since no roster could repair it."""
+    generous = dataclasses.replace(person, max_hours_this_week=60.0)
+    instance = make_instance([generous], [one_shift])
+    (defect,) = validate_instance(instance)
+    assert defect.field == "employees[0].max_hours_this_week"
+    assert defect.required == 50.0
+
+
+def test_daily_maximum_over_the_ladder_is_a_defect(make_instance, person, one_shift):
+    generous = dataclasses.replace(person, max_daily_hours=14.0)
+    instance = make_instance([generous], [one_shift])
+    assert "employees[0].max_daily_hours" in fields(validate_instance(instance))
+
+
+# --- Replan pairing ---------------------------------------------------------------
+
+
+def test_now_without_incumbent_is_a_defect(make_instance, person, one_shift):
+    instance = make_instance([person], [one_shift], now=9.0)
+    assert fields(validate_instance(instance)) == ["incumbent"]
+
+
+def test_incumbent_without_now_is_a_defect(make_instance, person, one_shift):
+    instance = make_instance([person], [one_shift], incumbent=frozenset())
+    assert fields(validate_instance(instance)) == ["now"]
+
+
+def test_cold_solve_needs_neither(make_instance, person, one_shift):
+    assert validate_instance(make_instance([person], [one_shift])) == []
+
+
+# --- Eligibility gates ------------------------------------------------------------
+
+
+def test_flexi_without_gates_is_a_defect(make_instance, person, one_shift):
+    """Absence must never default to eligible -- that would invent an eligibility the
+    NSSO did not grant."""
+    flexi = dataclasses.replace(person, contract="flexi")
+    instance = make_instance([flexi], [one_shift])
+    assert fields(validate_instance(instance)) == [
+        "employees[0].flexi_eligible",
+        "employees[0].dimona_ok",
+    ]
+
+
+def test_flexi_with_empty_gates_is_accepted(make_instance, person, one_shift):
+    """An explicit empty set is a caller saying "eligible on no day", which is a
+    meaningful and lawful answer -- distinct from having said nothing."""
+    flexi = dataclasses.replace(
+        person, contract="flexi", flexi_eligible=frozenset(), dimona_ok=frozenset()
+    )
+    assert validate_instance(make_instance([flexi], [one_shift])) == []
+
+
+# --- Skill-mix provenance ---------------------------------------------------------
+
+
+def test_hard_skill_mix_entry_needs_provenance(make_instance, person):
+    shift = OpenShift(
+        day=0,
+        shift=MORNING,
+        required=1,
+        skill_mix=(SkillMixEntry(skill="nurse", minimum=1, hard=True),),
+    )
+    instance = make_instance([person], [shift])
+    assert fields(validate_instance(instance)) == [
+        "open_shifts[0].skill_mix[0].provenance"
+    ]
+
+
+def test_soft_skill_mix_entry_needs_none(make_instance, person):
+    shift = OpenShift(
+        day=0,
+        shift=MORNING,
+        required=1,
+        skill_mix=(SkillMixEntry(skill="first-aid", minimum=1, hard=False),),
+    )
+    assert validate_instance(make_instance([person], [shift])) == []
+
+
+# --- Catalogue integrity ----------------------------------------------------------
+
+
+def test_open_shift_outside_the_horizon_is_a_defect(make_instance, person):
+    instance = make_instance([person], [OpenShift(day=9, shift=MORNING, required=1)])
+    assert "open_shifts[0].day" in fields(validate_instance(instance))
+
+
+def test_duplicate_open_shift_is_a_defect(make_instance, person, one_shift):
+    instance = make_instance([person], [one_shift, one_shift])
+    assert "open_shifts[1]" in fields(validate_instance(instance))
+
+
+def test_unknown_shift_type_is_a_defect(make_instance, person):
+    instance = make_instance([person], [OpenShift(day=0, shift=99, required=1)])
+    assert "open_shifts[0].shift" in fields(validate_instance(instance))
