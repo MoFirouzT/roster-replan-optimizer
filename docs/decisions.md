@@ -70,3 +70,9 @@ present tense squeezes rationale out.
 | D-040 | Input validation and roster checking as separate layers with separate result types | T1 |
 | D-041 | Differential harness compares violation sets, not feasibility bits | T1 |
 | D-042 | Brute-force layer split into feasible-set and objective stages | T1 |
+| D-043 | `R-COVER` ceiling gated as `o == 0` so overstaffing is reportable, not merely rejected | T1 |
+| D-044 | Model violations enumerated by maximising gate literals, not by iterating cores | T1 |
+| D-045 | Presolve retains exclusion reasons; unrepresentable rosters compared on eligibility only | T1 |
+| D-046 | `R-CONSEC-DAYS` compared at `(rule, employee)` granularity in the harness | T1 |
+| D-047 | Soft coverage floor collapses the infeasibility surface to pins and impossible parameters | T1 |
+| D-048 | Infeasibility core is sufficient, not minimal; minimisation deferred to T4 | T1 |

@@ -178,6 +178,17 @@ own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
 - **Explainer text.** `Sat 15:00–23:00 (Evening) is 1 short of its 3 required staff.`
 - **Provenance.** Operational.
 
+> **Consequence: this rule collapses the infeasibility surface.** Once the floor is soft, the empty
+> roster satisfies every hard rule, so a **cold solve is essentially never infeasible** — a shift nobody
+> can staff comes back as a priced shortfall rather than as a refusal. What remains able to produce
+> infeasibility is narrow: an incumbent whose past already breaks a rule (`R-PIN-PAST`), and a parameter
+> that cannot be satisfied by any roster at all, such as a weekly rest window wider than the horizon.
+>
+> This is the intended product behaviour, and it re-scopes T4. The explainer's ordinary job is
+> explaining **shortfalls and their cost**, not explaining infeasibility; infeasibility is the rare case
+> and both of its causes are structural rather than combinatorial. An explainer built for the rare case
+> first would be built for the wrong one.
+
 ### `R-AVAIL` — availability
 
 - **Statement.** Nobody is assigned to a shift that overlaps a declared absence or a period they

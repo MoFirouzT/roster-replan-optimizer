@@ -7,9 +7,46 @@ dependencies = ["ortools>=9.14"]
 
 [dependency-groups]
 dev = [
+    "import-linter>=2.13",
     "pytest>=9.1.1",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tests"]
+
+# The independence rule from docs/specs/rules.md, mechanised. The module boundary is
+# enforceable; the no-shared-thresholds half is a review obligation no linter can
+# discharge, since none can tell a shared constant from a coincidentally equal one.
+[tool.importlinter]
+root_package = "roster_replan"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The checker is an independent reading: it never reaches the model or a solver"
+type = "forbidden"
+source_modules = ["roster_replan.checker"]
+forbidden_modules = ["roster_replan.model", "ortools"]
+
+[[tool.importlinter.contracts]]
+name = "The model never reaches the checker"
+type = "forbidden"
+source_modules = ["roster_replan.model"]
+forbidden_modules = ["roster_replan.checker"]
+
+[[tool.importlinter.contracts]]
+name = "Input validation is independent of both readings"
+type = "forbidden"
+source_modules = ["roster_replan.validation"]
+forbidden_modules = ["roster_replan.checker", "roster_replan.model", "ortools"]
+
+[[tool.importlinter.contracts]]
+name = "The shared schema depends on nothing"
+type = "forbidden"
+source_modules = ["roster_replan.domain"]
+forbidden_modules = [
+    "roster_replan.checker",
+    "roster_replan.model",
+    "roster_replan.validation",
+    "ortools",
+]

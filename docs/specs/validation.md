@@ -114,3 +114,27 @@ feasibility bit and nothing more, and that comparison is the vacuous one.
 Random roster generation should be biased toward *nearly* feasible rosters. Uniformly random assignments
 violate `R-COVER` immediately and never exercise the interesting rules, so generate by perturbing solved
 rosters: swap two assignments, move one shift, drop a person.
+
+### Two stated comparison rules
+
+The two readings do not report at identical granularity everywhere, and pretending otherwise would
+either weaken the harness to rule-level or produce failures that are not defects. Both narrowings are
+recorded here with their cost, and neither may be widened without a `decisions.md` entry.
+
+**`R-CONSEC-DAYS` is compared at `(rule, employee)`, dropping the day.** The checker names the first
+breaching day of a run; the model gates every sliding window that breaches, so a long run produces one
+finding on one side and several on the other. *Cost:* a day-coordinate error in this one rule is not
+caught by the harness.
+
+**Rosters that assign a presolved-away pair are compared on eligibility findings only.** This is the
+larger of the two and it took a failing test to state correctly. Presolve *removes* ineligible pairs, so
+such an assignment is not representable in the model at all — and the consequence is broader than
+coverage. The model cannot count that body toward headcount, toward the employee's weekly or daily
+hours, toward a consecutive-day streak, or toward a rest gap. Every aggregating rule is affected. The
+only thing the model has an opinion about is *why the pair was excluded*.
+
+*Cost:* nothing aggregate is compared on those rosters. It is bought back by comparing the two
+eligibility derivations directly — pair by pair, over every instance variant, for `R-AVAIL`, `R-SKILL`,
+`R-FLEXI-ELIG` and `R-DIMONA-FLX`. That is a stronger test than a headcount comparison would have been,
+because it localises a disagreement to the eligibility rule that caused it rather than surfacing it as a
+coverage mismatch three rules away.

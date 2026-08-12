@@ -1,6 +1,8 @@
 # Model
 
-> **Status: outline.** Spec-first component — fill before implementing (T1).
+> **Status: reconciled with `model.py`.** Index sets, decision variables, the gate mechanism, presolve
+> and symmetry describe what is built. Still outline: the full payload schema (`[TODO]` under Input
+> contract) and the forecast seam, which is interface-only by design.
 
 The CP-SAT formulation. Rule semantics live in [`rules.md`](rules.md); this file defines the index
 sets, variables and encodings those rules are expressed over.
@@ -90,16 +92,60 @@ would disagree with the model for reasons that are not defects in either.
 
 ## Decision variables
 
-`[TODO]` Assignment booleans (employee × day × shift), and their alternatives.
+Assignment booleans `x[e, d, s]`, one per pair that survives presolve — plus the slacks and indicators
+the rules need:
+
+| Variable | Domain | Owner |
+|---|---|---|
+| `x[e, d, s]` | bool | assignment |
+| `u[d, s]` | `0..req[d, s]` | `R-COVER` shortfall, priced |
+| `o[d, s]` | `0..` | `R-COVER` overage, gated to zero |
+| `v[d, s, k]` | `0..m` | `R-SKILL-MIX` shortfall, soft entries only |
+| `w[e, d]` | bool | worked-day indicator, reified for `R-CONSEC-DAYS` |
+| `r[e, j]` | bool | `R-WEEKLY-REST` candidate-window selector |
+
+**A variable exists** for every eligible pair, and additionally for an *ineligible* pair the incumbent
+already assigned to a past shift. Without that second case an already-illegal past cannot be
+represented, and "the past itself is illegal" becomes indistinguishable from a clean solve.
+
+**Durations are carried in minutes.** CP-SAT is integral and `work_hours` is not. The conversion is
+arithmetic rather than a rule threshold, so it lives in the model rather than in the shared schema.
 
 - **Rejected/deferred:** pattern/column variables — dramatically stronger formulations, evaluated
   as a T2 study at these instance sizes. Record the outcome even if null.
 
 ## Constraints
 
-One subsection per rule ID from the registry. Each states the encoding and why it was chosen over
-the alternatives — in particular the `regular`/automaton constraint for legal shift sequences
-versus its linear expansion.
+Per-rule encodings and their rationale live in [`rules.md`](rules.md), one *Model encoding* bullet per
+rule, and are deliberately not restated here. This section owns only what cuts across them.
+
+### Assumption literals
+
+**Every hard constraint instance is gated on an assumption literal.** Not decoration — three separate
+things depend on it:
+
+1. A failed solve returns the conflicting rule instances rather than a bare `INFEASIBLE`.
+2. The differential harness needs the model to *report* violations, not merely refuse rosters. With all
+   assignments fixed, each gate can be true exactly when its constraint holds, so **maximising the
+   number of true gates leaves precisely the violated constraints false** — one solve enumerates them
+   all, where a core would explain one conflict and hide the rest.
+3. The *monotone objective under relaxation* property test needs relaxation to be expressible.
+
+`R-COVER`'s ceiling is gated as `o[d, s] == 0` rather than folded into the slack's domain, so that an
+overstaffed roster can be reported instead of silently rejected.
+
+**Sufficient, not minimal.** CP-SAT returns a set of assumptions that explains the infeasibility, with
+no guarantee it is the smallest. T4's explainer is specified against a *minimal* core, which needs
+iterative deletion on top — solve, drop a gate, re-solve, keep what stays necessary. That reduction
+belongs with the explainer; the gap is recorded here so it is not discovered there.
+
+### The `regular` automaton
+
+`R-CONSEC-DAYS` and `R-WEEKLY-REST` are both sequence rules, and both currently use the naive encoding —
+sliding-window sums and candidate windows respectively. The automaton expresses both in one propagator
+and is the textbook choice, which is exactly why it is a **T2 study rather than a T1 assumption**: at a
+seven-day horizon the window count is trivially small, and the study should confirm the automaton wins
+rather than take it on faith.
 
 ## Objective
 
@@ -110,11 +156,27 @@ Defined in [`replan.md`](replan.md). This file owns feasibility; that file owns 
 Most (employee, shift) pairs are impossible: unavailable, wrong skill, wrong contract, Dimona gate.
 Eliminate them before the solver sees them. Often the largest single win, and free.
 
+`R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX` are enforced *entirely* this way — by removing
+variables, not by adding rows.
+
+**The exclusion reasons must be retained.** A removed pair can never be reported by a constraint that
+does not exist, so presolve keeps a map from excluded pair to the rules that excluded it. Without it an
+assignment to an ineligible person would be invisible rather than rejected.
+
+This has a consequence for the differential harness that is easy to get wrong: an assignment to an
+excluded pair is not representable, so the model cannot count that body toward *anything* — headcount,
+weekly or daily hours, a consecutive-day streak, a rest gap. See the stated comparison rules in
+[`validation.md`](validation.md#two-stated-comparison-rules).
+
 ## Symmetry
 
 Interchangeable employees create exponentially many equivalent solutions. Lexicographic ordering
 constraints, and the interaction with the disruption objective (which partially breaks symmetry on
 its own — quantify this rather than assuming it).
+
+**Not implemented.** No symmetry breaking is in the model, deliberately: the disruption objective
+already breaks symmetry partially, and adding lexicographic constraints before measuring how much would
+be optimising against a guess. T2 study.
 
 ## The forecast seam `[interface only, not implemented]`
 

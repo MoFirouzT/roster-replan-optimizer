@@ -8,6 +8,7 @@ assert on the *whole* violation set rather than on the presence of one rule ID.
 from __future__ import annotations
 
 import dataclasses
+import pathlib
 
 from conftest import EVENING, MORNING, NIGHT, hours, unavailable
 
@@ -312,16 +313,24 @@ def test_empty_instance_has_no_violations(make_instance):
     assert check(frozenset(), make_instance([], [])) == []
 
 
-def test_no_shared_rule_thresholds_with_the_model():
-    """The independence rule as a test: the checker must not reach a solver, and the
-    model must not reach the checker. A weaker but real proxy for the import-linter
-    contract, and it runs today.
-    """
-    import roster_replan.checker as module
+def test_independence_contracts_hold():
+    """The independence rule, mechanised. Runs the import-linter contracts from
+    pyproject.toml so a boundary violation fails the suite and not only CI.
 
-    source = open(module.__file__).read()
-    assert "ortools" not in source
-    assert "from .model" not in source and "import model" not in source
+    Only the module boundary is enforceable this way. The no-shared-thresholds half
+    stays a review obligation, because no linter distinguishes a shared constant from a
+    coincidentally equal one.
+    """
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-m", "importlinter.cli", "lint-imports"],
+        capture_output=True,
+        text=True,
+        cwd=pathlib.Path(__file__).parent.parent,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_interval_overlap_is_half_open():

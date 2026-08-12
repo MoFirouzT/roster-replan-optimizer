@@ -476,12 +476,16 @@ def _consec_days(roster: Roster, instance: Instance) -> list[Violation]:
         person = instance.employees[employee]
         worked = {day for day, _ in shifts}
         streak = person.consecutive_days_worked_before_horizon
+        reported = False
         for day in range(instance.days):
             if day not in worked:
-                streak = 0
+                streak, reported = 0, False
                 continue
             streak += 1
-            if streak == limit + 1:
+            # The first breaching day of a run, not `streak == limit + 1`: a prior
+            # streak already past the limit jumps the equality and would go unreported.
+            if streak > limit and not reported:
+                reported = True
                 before = person.consecutive_days_worked_before_horizon
                 prior = f" already worked {before} days before the horizon and" if before else ""
                 out.append(
