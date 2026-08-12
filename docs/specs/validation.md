@@ -79,7 +79,7 @@ other than the roster:
 |---|---|
 | Input validation | Malformed payloads rejected with the right field path; a valid payload produces no defects |
 | Brute force **(a)** | N≤6, 3 days, ≤2 shift types: enumerate every roster, `checker` hard-feasible set **equals** model feasible set |
-| Brute force **(b)** | Same instances: solver objective **equals** enumerated optimum. *Blocked on the shipped disruption metric — see below* |
+| Brute force **(b)** | Same instances: solver objective **equals** enumerated optimum, for every metric D0–D4. The enumeration is scored by `scoring.py`, never by the model |
 | Differential | Random rosters (mostly infeasible): `checker_violations(r)` **equals** `model_violations(r)`, as sets of `(rule, coordinates)`; mismatch prints the rule ID |
 | Property | Idempotent replan on a no-change input · byte-identical output under a fixed seed · monotone objective under constraint relaxation · past shifts never modified |
 | Metamorphic | Employee relabelling leaves the objective invariant; day permutation stays structure-consistent |
@@ -91,14 +91,26 @@ it. Not a separate test — a property of the harness. Soft violations are recor
 ### Brute force lands in two stages
 
 The gate in `PLAN.md` reads "solver objective equals enumerated optimum", which needs an objective — and
-the disruption metric is specified late in T1. As written the gate depends on an artifact scheduled after
-it.
+the disruption metric is specified late in T1. As written the gate depended on an artifact scheduled
+after it.
 
 Rather than pull the metric forward, the layer splits. **(a)** compares *feasible sets* and needs only
-the checker, so it is available immediately and catches the large majority of encoding errors: a wrong
-threshold, an inverted inequality, a forgotten horizon boundary. **(b)** adds one assertion once D2
-ships. Stage (a) is not a weaker version of the gate; it is the half that does not need preference to be
-defined.
+the checker, so it was available as soon as the checker existed and catches the large majority of
+encoding errors: a wrong threshold, an inverted inequality, a forgotten horizon boundary. **(b)** adds
+the objective assertion. Stage (a) is not a weaker version of the gate; it is the half that does not need
+preference to be defined.
+
+**Both stages are now in.** Stage (b) requires a second, independent reading of the *objective* for the
+same reason stage (a) needs one of the rules: an enumeration that asks the model what a roster is worth
+proves only that the model agrees with itself. `scoring.py` evaluates `replan.md` directly and is
+forbidden by contract from importing the model's encoding.
+
+**Stage (b) needs an instance whose incumbent contains a presolved-away pair**, and did not have one at
+first. Because presolve removes ineligible pairs, an employee who *became* unavailable has no variable —
+so the drop that the replan exists to perform was invisible to the objective, and the model understated
+it. Every micro-instance happened to have a clean incumbent, so the layer passed while the bug was live.
+The regression case is committed; the general lesson is that a ground-truth layer only covers the
+structures its instances contain.
 
 ### Building the differential harness
 

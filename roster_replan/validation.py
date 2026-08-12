@@ -20,6 +20,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .domain import FLEXI, Instance
+from .scoring import max_change_weight
 
 # Statutory baselines, used only to decide whether a supplied parameter is a derogation
 # needing a recorded basis. Arbeidswet art. 19 and art. 21; art. 38ter §1 and §3.
@@ -56,7 +57,38 @@ def validate_instance(instance: Instance) -> list[InputDefect]:
     defects += _shift_catalogue(instance)
     defects += _employees(instance)
     defects += _skill_mix_provenance(instance)
+    defects += _weight_domination(instance)
     return defects
+
+
+# --- The domination bound -----------------------------------------------------------
+# Understaffing reduces disruption: an unstaffed shift is a shift nobody was moved onto.
+# So a shortfall weight that is too low lets the optimiser buy stability by leaving
+# shifts empty -- a failure that looks like a tuning problem and is an ordering error.
+#
+# `replan.md` derives the bound rather than choosing it, which makes it checkable, so it
+# is checked. A weight scale that violates it is a malformed request, not a preference.
+
+
+def _weight_domination(instance: Instance) -> list[InputDefect]:
+    params = instance.disruption
+    if params is None or not instance.open_shifts:
+        return []
+
+    largest_demand = max(o.required for o in instance.open_shifts)
+    bound = largest_demand * max_change_weight(instance)
+    if params.shortfall_weight > bound:
+        return []
+    return [
+        InputDefect(
+            field="disruption.shortfall_weight",
+            message=f"shortfall_weight of {params.shortfall_weight} does not dominate the "
+            f"{bound} of disruption that leaving one shift unstaffed can avoid, so the "
+            f"optimiser could buy stability by understaffing",
+            observed=params.shortfall_weight,
+            required=f"> {bound}",
+        )
+    ]
 
 
 # --- R-MIN-SHIFT --------------------------------------------------------------------

@@ -110,6 +110,92 @@ class Employee:
     flexi_eligible: frozenset[int] | None = None
     dimona_ok: frozenset[int] | None = None
 
+    # Cost, in currency units per hour. None means a uniform rate: the cost model is a
+    # placeholder until T2 supplies wage data -- see replan.md.
+    hourly_rate: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class NoticeBand:
+    """`multiplier` applies when notice is strictly less than `within_hours`.
+
+    Bands are tested in order, so the last should be unbounded (`inf`).
+    """
+
+    within_hours: float
+    multiplier: int
+
+
+@dataclass(frozen=True, slots=True)
+class Disruption:
+    """Objective parameters. `replan.md` owns the semantics; nothing here is a rule.
+
+    Weights are integers in "disruption points" -- CP-SAT is integral, and rounding a
+    float weight at build time is a silent way for the model and an independent scorer
+    to disagree about the optimum.
+    """
+
+    metric: str  # "D0" | "D1" | "D2" | "D3" | "D4"
+
+    # D1: publication state. `draft_weight` is small but never zero -- see replan.md.
+    published_weight: int
+    draft_weight: int
+
+    # D2: notice horizon.
+    notice_bands: tuple[NoticeBand, ...]
+
+    # D3: change type, applied per (employee, day).
+    move_weight: int
+    cancel_weight: int
+    call_in_weight: int
+
+    # D4: convex concentration. `tiers` is K in `t >= k*n - k(k-1)/2`.
+    concentration_weight: int
+    concentration_tiers: int
+
+    # Commensuration. `shortfall_weight` must satisfy the domination bound in
+    # replan.md, which `validation.py` checks rather than trusts.
+    shortfall_weight: int
+    mix_shortfall_weight: int
+    cost_weight: int
+    peak_weight: int
+
+    def notice_multiplier(self, notice_hours: float) -> int:
+        for band in self.notice_bands:
+            if notice_hours < band.within_hours:
+                return band.multiplier
+        return self.notice_bands[-1].multiplier if self.notice_bands else 1
+
+
+def shipped_d2(**overrides) -> Disruption:
+    """The shipped default profile, as specified in `replan.md`.
+
+    This is **data**, not a rule threshold: both readings receive it through the payload
+    and neither derives anything from it, so a shared default cannot hide an encoding
+    disagreement the way a shared `min_rest_hours` could. `req[d, s]` is shared for the
+    same reason.
+
+    The exchange rate embedded here -- one published change at short notice against two
+    hours of overtime premium -- is a stated hypothesis awaiting T2 calibration, not a
+    measurement.
+    """
+    defaults = dict(
+        metric="D2",
+        published_weight=10,
+        draft_weight=1,
+        notice_bands=(NoticeBand(24.0, 4), NoticeBand(float("inf"), 1)),
+        move_weight=6,
+        cancel_weight=10,
+        call_in_weight=14,
+        concentration_weight=2,
+        concentration_tiers=4,
+        shortfall_weight=100_000,
+        mix_shortfall_weight=100_000,
+        cost_weight=0,
+        peak_weight=1,
+    )
+    return Disruption(**(defaults | overrides))
+
 
 @dataclass(frozen=True, slots=True)
 class RuleParams:
@@ -134,6 +220,22 @@ class Instance:
     now: float | None = None
     incumbent: Roster | None = None
 
+    # A slot is published iff its start is before this. Parallel to `now`, and the
+    # special case of a general `published ⊆ O` -- see replan.md.
+    published_through: float | None = None
+    disruption: Disruption | None = None
+
+    def is_published(self, day: int, shift: int) -> bool:
+        published = self.published_through
+        return published is not None and self.window(day, shift).start < published
+
+    def notice_hours(self, day: int, shift: int) -> float:
+        """Hours between `now` and the slot's start. Infinite on a cold solve, where
+        there is no `now` and therefore no notice to give."""
+        if self.now is None:
+            return float("inf")
+        return self.window(day, shift).start - self.now
+
     def window(self, day: int, shift: int) -> Interval:
         """Absolute hours from the horizon start. Start-day attribution: a span may
         run past midnight into `day + 1`, and it still belongs to `day`."""
@@ -142,6 +244,18 @@ class Instance:
 
     def horizon(self) -> Interval:
         return Interval(0.0, self.days * 24.0)
+
+    def day_anchor(self, day: int) -> int:
+        """The shift type anchoring publication state and notice for a whole day.
+
+        A `replan.md` convention, shared for the same reason half-open overlap is: D3
+        prices changes per (employee, day), so it needs one slot per day to read `P` and
+        `N` from. It must be **solution-independent** -- anchoring on the earliest
+        *affected* slot would make the weight depend on which slots changed, which is
+        both non-linear and unmatchable between the two readings.
+        """
+        candidates = [o.shift for o in self.open_shifts if o.day == day]
+        return min(candidates, key=lambda s: self.window(day, s).start)
 
     def is_past(self, day: int, shift: int) -> bool:
         """A shift in progress is past: the boundary is `start < now`, strictly."""

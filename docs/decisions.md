@@ -76,3 +76,15 @@ present tense squeezes rationale out.
 | D-046 | `R-CONSEC-DAYS` compared at `(rule, employee)` granularity in the harness | T1 |
 | D-047 | Soft coverage floor collapses the infeasibility surface to pins and impossible parameters | T1 |
 | D-048 | Infeasibility core is sufficient, not minimal; minimisation deferred to T4 | T1 |
+| D-049 | Weighted commensuration, not lexicographic — lexicographic collapses the Pareto frontier | T1 |
+| D-050 | Exchange rate swept to trace the frontier rather than fixed by assertion | T1 |
+| D-051 | Publication state as a `published_through` timestamp, not a per-slot set | T1 |
+| D-052 | `draft_weight` non-zero, for stable output and warm starts that resemble their hint | T1 |
+| D-053 | D3 pairs drops with adds per (employee, day) so a move is one event | T1 |
+| D-054 | D3 weights read from the day's anchor slot — solution-independent by necessity | T1 |
+| D-055 | D4 as convex lower bounds rather than a max-term or a piecewise construction | T1 |
+| D-056 | `extend` dropped from D3 — not representable with fixed shift instances | T1 |
+| D-057 | Shortfall-weight domination bound derived and validated, not chosen | T1 |
+| D-058 | Variables exist for every incumbent pair, so deviations are always countable | T1 |
+| D-059 | Eligibility fixings gated, so an ineligible assignment is reportable | T1 |
+| D-060 | Metric divergence requires slack — coverage tightness is T2's decisive generator knob | T2 |

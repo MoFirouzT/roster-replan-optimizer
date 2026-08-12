@@ -19,7 +19,14 @@ import pytest
 from conftest import EVENING, MORNING, NIGHT
 
 from roster_replan.checker import check, is_feasible
-from roster_replan.domain import Employee, Instance, OpenShift, RuleParams, ShiftType
+from roster_replan.domain import (
+    Employee,
+    Instance,
+    OpenShift,
+    RuleParams,
+    ShiftType,
+    shipped_d2,
+)
 from roster_replan.model import exclusions, solve, violations
 
 # R-CONSEC-DAYS is compared at (rule, employee) rather than including the day. The two
@@ -112,6 +119,7 @@ def micro(**overrides) -> Instance:
         employees=people,
         open_shifts=shifts,
         params=params,
+        disruption=shipped_d2(),
     )
     return Instance(**(base | overrides))
 
@@ -241,7 +249,14 @@ def week(**overrides) -> Instance:
         for day in range(7)
         for shift in (MORNING, EVENING, NIGHT)
     )
-    base = dict(days=7, shift_types=shift_types, employees=people, open_shifts=shifts, params=params)
+    base = dict(
+        days=7,
+        shift_types=shift_types,
+        employees=people,
+        open_shifts=shifts,
+        params=params,
+        disruption=shipped_d2(),
+    )
     return Instance(**(base | overrides))
 
 

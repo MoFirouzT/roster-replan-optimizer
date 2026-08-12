@@ -25,22 +25,8 @@ from dataclasses import dataclass, field
 
 from ortools.sat.python import cp_model
 
+from .disruption import objective_terms
 from .domain import FLEXI, Instance, Roster
-
-# --- Provisional objective weights --------------------------------------------------
-# `replan.md` owns the objective and is still an outline: D2 is not shipped, so nothing
-# here is decided. The soft-shortfall terms are forced by `rules.md` (a soft floor that
-# is not priced is not a floor), but the scale and the disruption term are placeholders.
-#
-# DISRUPTION_WEIGHT prices a raw count of changed assignments -- the D0 that `replan.md`
-# explicitly rejects. It is here so a replan has *an* objective, and it must be replaced
-# when D2 lands. Grep D0_PLACEHOLDER before believing any objective value from this file.
-D0_PLACEHOLDER = True
-COVER_SHORTFALL_WEIGHT = 1000
-MIX_SHORTFALL_WEIGHT = 1000
-DISRUPTION_WEIGHT = 1
-PEAK_WEIGHT = 1
-
 
 def _minutes(hours: float) -> int:
     return int(round(hours * 60))
@@ -121,16 +107,20 @@ def build(instance: Instance) -> Built:
     excluded = exclusions(instance)
     incumbent = instance.incumbent or frozenset()
 
-    # A variable exists for every eligible pair, and additionally for an *ineligible*
-    # pair the incumbent already assigned to a past shift. Without the second case an
-    # already-illegal past could not be represented, and "the past itself is illegal"
-    # would be indistinguishable from a clean solve.
+    # A variable exists for every eligible pair, and additionally for any pair the
+    # **incumbent** assigned, eligible or not. Two things need the second case:
+    #
+    #  - An already-illegal past must be representable, or "the past itself is illegal"
+    #    is indistinguishable from a clean solve.
+    #  - A deviation from the incumbent must be *countable*. An employee who became
+    #    unavailable has to be dropped, and that drop is disruption. Without a variable
+    #    the objective never sees it, and the model silently understates the cost of
+    #    exactly the change the replan exists to make.
     keys = [
         (e, o.day, o.shift)
         for e in range(len(instance.employees))
         for o in instance.open_shifts
-        if (e, o.day, o.shift) not in excluded
-        or (instance.is_past(o.day, o.shift) and (e, o.day, o.shift) in incumbent)
+        if (e, o.day, o.shift) not in excluded or (e, o.day, o.shift) in incumbent
     ]
 
     built = Built(
@@ -142,10 +132,13 @@ def build(instance: Instance) -> Built:
         excluded=excluded,
     )
 
-    # An ineligible pair that only exists to carry a pin is still ineligible.
+    # An ineligible pair that exists only to carry a pin or a deviation is still
+    # ineligible. Gated rather than fixed outright, so that a roster which assigns one can
+    # be *reported* by `violations()` instead of making the model infeasible.
     for key in keys:
-        if key in excluded:
-            model.add(built.x[key] == 0)
+        for rule in excluded.get(key, ()):
+            literal = built.gate(model, Gate(rule, key[0], key[1], key[2]))
+            model.add(built.x[key] == 0).only_enforce_if(literal)
 
     _cover(built, instance)
     _skill_mix(built, instance)
@@ -471,30 +464,14 @@ def solve(
 
 
 def _objective(built: Built, instance: Instance) -> None:
-    """Provisional. `replan.md` owns this and has not shipped D2 -- see the weights."""
-    model = built.model
-    terms = []
-
-    # Historical shortfall is excluded: no replan can repair a shift that has started,
-    # and leaving it in makes two runs with different `now` values incomparable.
-    for (day, shift), slack in built.shortfall.items():
-        if not instance.is_past(day, shift):
-            terms.append(COVER_SHORTFALL_WEIGHT * slack)
-    for (day, shift, _), slack in built.mix_shortfall.items():
-        if not instance.is_past(day, shift):
-            terms.append(MIX_SHORTFALL_WEIGHT * slack)
-
-    if instance.incumbent is not None:
-        # D0_PLACEHOLDER: a raw count of changed assignments, which `replan.md` rejects.
-        for key, var in built.x.items():
-            terms.append(DISRUPTION_WEIGHT * (1 - var if key in instance.incumbent else var))
-    else:
-        peak = model.new_int_var(0, len(instance.open_shifts), "peak")
-        for employee in range(len(instance.employees)):
-            model.add(peak >= sum(v for k, v in built.x.items() if k[0] == employee))
-        terms.append(PEAK_WEIGHT * peak)
-
-    model.minimize(sum(terms))
+    """Delegated to `disruption.py`, which owns the model's reading of `replan.md`."""
+    built.model.minimize(
+        sum(
+            objective_terms(
+                built.model, instance, built.x, built.shortfall, built.mix_shortfall
+            )
+        )
+    )
 
 
 # --- The differential reporting surface ---------------------------------------------

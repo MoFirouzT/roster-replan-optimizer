@@ -1,40 +1,281 @@
 # Replan
 
-> **Status: outline.** The thesis document. Must be complete before T2 opens — golden test
-> objective values come from here.
+The objective. [`rules.md`](rules.md) owns what is *legal*; this file owns what is *preferable*.
 
-## The disruption metric
+> **Status: D0–D4 defined, D2 shipped.** The remaining `[TODO]`s are the cost model, which is a
+> deliberate placeholder until T2 supplies real wage data, and calibration of the exchange rate, which
+> cannot be done from first principles — see [Commensuration](#commensuration-with-cost-and-coverage).
 
-Five definitions, escalating. All are defensible; they produce different rosters, and that fact is
-the point.
+## What disruption is a function of
+
+Disruption compares the roster being produced against the one people were already told about. It is a
+function of three things, and forgetting the third is the usual mistake:
+
+1. **The incumbent** `x̄` — what the roster was.
+2. **The publication state** — how much of it people actually know. An unpublished draft can be churned
+   freely; a published week cannot.
+3. **`now`** — how much notice a change gives. The same change is cheap a fortnight out and expensive
+   tonight.
+
+The atomic unit is a **changed assignment**: a pair `(e, d, s)` where `x[e, d, s] ≠ x̄[e, d, s]`. Two
+kinds exist, and they are not equivalent:
+
+- **drop** — `x̄ = 1, x = 0`. Someone was told they would work and now will not.
+- **add** — `x̄ = 0, x = 1`. Someone is asked to work when they had been told they were free.
+
+An add is *not* free merely because nothing was un-promised. A published roster communicates rest as
+well as work, and being called in on a day off is among the most disruptive things a replan can do.
+This is why publication state attaches to **slots rather than to assignments**: what was published is
+the whole plan for that slot, including its emptiness.
+
+### Publication state, concretely
+
+`published_through` — a timestamp, supplied by the caller, exactly parallel to `now`. A slot `(d, s)` is
+published iff `start(d, s) < published_through`. One number, easy for a caller to get right, and it
+matches the dominant real pattern: *"the schedule is out through Sunday the 14th."*
+
+**Limitation, stated:** a wave-published roster — some shifts announced, others held back within the
+same horizon — is not representable. The general form is a set `published ⊆ O`, deferred until a tenant
+actually needs it. `published_through` is a special case of it, so the generalisation is additive.
+
+## The five definitions
+
+All five are defensible. They produce different rosters, and **that fact is the deliverable** — the T2
+study exists to show it rather than to assert it.
+
+> **They only diverge where there is slack, and this constrains T2's generator.** On a tightly covered
+> instance there is exactly one legal repair, so every metric returns it and the choice of metric is
+> invisible. An instance generator that does not vary **coverage tightness** would therefore report "the
+> metrics agree" — as a property of the instances, not of the metrics. The generator's tightness
+> parameter is not one knob among several; it is the one that decides whether the study can see anything
+> at all.
+>
+> A worked divergence, small enough to check by hand and used as a test: Ana holds a morning and Bram the
+> evening of the same day; Ana becomes unavailable in the morning only. D2 counts changed slots and calls
+> a third person in for the morning (two changes). D3 pairs changes per person and instead moves Ana to
+> the evening and Bram to the morning (four slots, but two *moves*). Both are defensible answers to the
+> same disruption, which is the whole claim.
 
 | ID | Definition | Status |
 |---|---|---|
 | D0 | Count of changed assignments | rejected — a published cancellation and an unpublished move score alike |
-| D1 | Weighted by publication state (unpublished ≈ free, published costs, past pinned) | superseded |
-| D2 | D1 + weighted by notice horizon, with a step at 24h | **shipped default** |
-| D3 | D2 + weighted by change type (cancel / extend / shift / newly called in) | configurable |
-| D4 | D3 + concentration penalty — five changes to one person is worse than one change to five | configurable |
+| D1 | D0 weighted by publication state | superseded |
+| D2 | D1 × notice multiplier, with a step at 24h | **shipped default** |
+| D3 | D2 with paired changes recognised as one move, priced by change type | configurable |
+| D4 | D3 + convex per-employee concentration penalty | configurable |
 
-`[TODO]` Exact formulation of each. D4 needs a max-term or convex per-employee penalty, not a sum.
+Each nests the one before it, which is what makes the study a clean comparison: D1 with both weights
+equal *is* D0, D2 with a flat multiplier *is* D1. The escalation is not five unrelated ideas.
+
+### D0 — count
+
+```
+D0 = |{ (e, d, s) : x[e, d, s] ≠ x̄[e, d, s] }|
+```
+
+**Rejected**, and retained only as the study's baseline. It scores a cancellation of a published shift
+tonight identically to a swap inside next month's draft, which is not a rounding error — it is the
+entire question the project is about.
+
+### D1 — weighted by publication state
+
+```
+D1 = Σ_{changed (e,d,s)}  P(d, s)
+
+P(d, s) = published_weight   if start(d, s) < published_through
+          draft_weight       otherwise
+```
+
+`draft_weight` is small but **not zero**. Zero would leave the optimiser indifferent among draft
+rosters, and indifference costs two things worth keeping: stable output across runs, and a warm start
+that resembles its hint. A small weight buys both and distorts nothing, because the number of
+assignments is pinned by coverage rather than chosen freely.
+
+### D2 — weighted by notice `[shipped]`
+
+```
+D2 = Σ_{changed (e,d,s)}  P(d, s) × N(d, s)
+
+notice(d, s) = start(d, s) − now
+N(d, s)      = the multiplier of the first band whose threshold notice falls within
+```
+
+Default bands: **notice < 24h → ×4**, otherwise **×1**. A step rather than a smooth decay, for two
+reasons: contractual and statutory notice periods are themselves steps (`R-PUB-NOTICE`), and a step is
+explicable to a planner where a decay curve invites argument about its shape. The band table is a
+parameter, so a tenant that wants a second step at 72h configures one.
+
+**D2 depends on `now`.** The same pair of rosters scores differently at different times of day, which is
+correct and worth stating: golden tests must therefore pin `now`, not only the instance.
+
+### D3 — change type, and moves counted once
+
+D0–D2 all count a moved shift twice — once as a drop, once as an add. Experientially it is one event:
+*"your Saturday moved from the morning to the evening."* D3 is the definition that notices.
+
+Per `(employee, day)`, let `drops` and `adds` be the counts of changed slots of each kind. Then:
+
+```
+moves            = min(drops, adds)
+residual_drops   = drops − moves
+residual_adds    = adds − moves
+
+D3 = Σ_{e,d}  P(d) × N(d) × ( W_move·moves + W_cancel·residual_drops + W_callin·residual_adds )
+```
+
+Default ordering **`W_callin > W_cancel > W_move`**: being newly called in imposes most, losing an
+expected shift next, having one moved within a day least.
+
+**That ordering is a hypothesis about human preference, not a measurement**, and it is the single most
+falsifiable claim in this file. T2's capture-and-replay work can test it directly: real planners
+resolving real disruptions reveal which trade they actually make. If the corpus contradicts the
+ordering, the ordering changes and this paragraph becomes a `decisions.md` entry.
+
+**Simplification, stated:** `P` and `N` are evaluated per **day** here rather than per slot, read from
+the day's **anchor slot** — its earliest *open* shift. A change is communicated about a day, and pairing
+drops with adds requires a common granularity.
+
+The anchor is deliberately the earliest open shift and **not** the earliest *affected* one, which is the
+more intuitive choice and is wrong twice over: the weight would depend on which slots the solution
+changed, making the objective non-linear, and it would be unmatchable between the model's encoding and
+an independent scorer, since one iterates variables and the other iterates changes. Solution-independence
+is not a nicety here — it is what makes the two readings comparable at all.
+
+The cost is that a move from an early shift to a late one inside a long day is priced by the day's
+earliest notice rather than by the affected shift's.
+
+**`extend` is not in D3, and cannot be.** The outline listed extending a shift as a change type; with
+fixed shift instances a shift's boundaries are data, so there is no roster the model can express in
+which one is extended. It becomes representable in T5's generation mode and is a change type only there.
+
+### D4 — concentration
+
+Five changes to one person is worse than one change to five, and any **sum** over changes is blind to
+the difference. D4 adds a convex penalty on each employee's event count:
+
+```
+events_e = Σ_d ( moves + residual_drops + residual_adds )
+D4       = D3 + concentration_weight × Σ_e f(events_e)
+```
+
+`f` is convex with escalating marginal cost — `f(0)=0, f(1)=1, f(2)=3, f(3)=6`, the triangular numbers,
+so the *n*-th change to one person costs *n*.
+
+**Encoding.** A convex piecewise-linear function of an integer variable needs no piecewise machinery
+when it is being minimised: introduce `t_e` and lower-bound it by every segment's line.
+
+```
+t_e ≥ k · events_e − k(k−1)/2     for k = 1 … concentration_tiers
+minimise Σ_e t_e
+```
+
+Because `f` is convex and the objective pushes `t_e` down, `t_e` settles at `max_k(...) = f(events_e)`
+exactly. Linear, no products, no auxiliary booleans. This is why D4 does not need the max-term the
+outline reached for: a max-term is the `concentration_tiers = 1` special case, and it is insensitive to
+everything below the maximum.
 
 ## Commensuration with cost and coverage
 
-`[TODO — decision required]` Lexicographic (feasibility → disruption → cost) or weighted. If
-weighted, state the exchange rate explicitly — *one published-shift change ≈ €X overtime* — rather
-than tuning weights until the output looks reasonable.
+**Decision: weighted, not lexicographic** — and the reason is that the frontier is the deliverable.
+
+Lexicographic ordering (feasibility → disruption → cost) guarantees disruption is never traded away, but
+it also means no cost saving however large buys one unit of disruption. That collapses the
+disruption/cost Pareto frontier to a single point, and that frontier is the headline chart in
+[`benchmarks.md`](../benchmarks.md). An objective that makes the money chart trivial is the wrong
+objective.
+
+So the objective is a weighted sum, and the exchange rate `cost_weight` is **swept** to trace the
+frontier rather than fixed by assertion. The honest claim is not "here is the correct exchange rate" but
+*"we cannot know your exchange rate; here is the frontier, and here is our default and why."*
+
+### The four levels, and why only two of them trade
+
+| Level | Mechanism |
+|---|---|
+| Hard rules | Constraints. Not in the objective at all — see `rules.md` |
+| Coverage and qualification shortfall | Priced, and **must dominate** — see below |
+| Disruption | D2 by default |
+| Cost | Traded against disruption at `cost_weight` |
+
+### The domination bound is derivable, not chosen
+
+Understaffing reduces disruption: an unstaffed shift is a shift nobody was moved onto. So if the
+shortfall weight is too low, **the optimiser buys stability by leaving shifts empty** — a failure mode
+that would look like a tuning problem and is actually an ordering error.
+
+The bound is computable. Leaving one shift instance unstaffed avoids at most `req[d, s]` changed
+assignments, each worth at most the largest per-change weight the metric can produce:
+
+```
+shortfall_weight  >  max_{(d,s)} req[d, s]  ×  max_change_weight
+```
+
+where `max_change_weight = published_weight × max(band multipliers)`, further multiplied by
+`W_callin` and the top concentration tier under D3 and D4.
+
+**This is validated at profile load rather than trusted** — `validation.md` owns the check. A weight
+scale that violates it is a malformed request, not a preference.
+
+### The default exchange rate is a hypothesis
+
+Default: **one published change at short notice ≈ two hours of overtime premium.** Written down so it
+can be argued with, which is the whole point of stating an exchange rate instead of tuning until the
+output looks reasonable.
+
+It is not a measurement. Calibrating it needs the T2 corpus — real planners choosing between paying
+overtime and moving someone reveal their own rate. `[TODO]` after capture.
+
+### The cost model is a placeholder
+
+`cost = Σ work_minutes × hourly_rate(e)`, with a uniform rate when none is supplied.
+
+Deliberately thin. Overtime premiums, flexi-job rates — the horeca flexi wage cap is a real constraint
+on this — weekend and night differentials, and the difference between marginal and sunk labour cost all
+belong here and none are modelled. **`[TODO]` T2**, alongside the wage data that would make them
+meaningful. Until then, cost differences between two rosters of equal hours are zero, which is honest
+but blunt, and the frontier's cost axis should be read as *paid hours* rather than as euros.
 
 ## Understaffing: hard or soft
 
-`[TODO — decision required]` If `R-COVER` is soft, its penalty sits on the same scale as disruption
-and coverage has been priced against stability. That is a defensible choice and an explicit one.
+Settled in [`rules.md`](rules.md#r-cover--coverage): **hard ceiling, soft floor**, provisional under
+`D-008`. The consequence for this file is the domination bound above, and one more worth naming: with a
+soft floor, coverage has been *priced against stability*. That is a real choice. A planner who would
+always rather be short than move someone is expressing an exchange rate, and this model lets them
+configure it instead of pretending the question does not arise.
+
+Historical shortfall — on a shift that has already started — is excluded from the objective. No replan
+can repair it, and including it adds a constant that makes two runs with different `now` incomparable.
 
 ## Warm starting
 
-Tomorrow's roster is ~95% of today's. Hints from the previous solution, and the measured speedup —
-isolated from the objective effect by the cold disruption-objective baseline in `benchmarks.md`.
+Tomorrow's roster is ~95% of today's, so the previous solution is a strong hint: `add_hint` on every
+assignment variable from the incumbent.
+
+**The measurement is T2's, and it must isolate two effects that are easy to conflate.** A warm-started
+replan is faster than a cold *cost-objective* solve for two independent reasons: the hint, and the fact
+that a disruption objective has its optimum near the incumbent. Only the cold
+*disruption-objective* baseline separates them. Without that baseline a warm-start speedup claim is
+measuring the objective, not the hint.
+
+**File the null.** If hinting does not beat the disruption objective alone, that result goes in
+`benchmarks.md` as a null. It is a genuinely useful finding — it would say the objective is doing the
+work — and burying it would be the kind of quiet omission this project's documentation methodology
+exists to prevent.
 
 ## Generation as cold start
 
-Generation is a replan from an empty roster: nothing is published, nothing is pinned, disruption is
-zero for every assignment. No separate formulation.
+Generation is a replan from an empty incumbent. No separate formulation, and now the reason can be
+stated rather than asserted:
+
+With `x̄ = ∅` every assignment is an add on an unpublished slot, so every change carries the same weight
+`draft_weight`, and the number of changes equals the number of assignments — which coverage pins.
+Disruption is therefore **constant across all rosters achieving the same coverage**, and the objective
+reduces to cost. The metric does not need a special case because it degenerates into one.
+
+One caveat, since the constancy is not quite unconditional: rosters with *different* coverage outcomes
+have different assignment counts, so a shortfall would reduce disruption. The domination bound above is
+what stops that mattering, which is the same bound for the same reason.
+
+A cold solve also needs a tie-breaker, because cost is indifferent to *who* works. A small
+peak-workload term serves: it is a tie-breaker for plausibility, explicitly **not** a fairness model.
+Fairness objectives are T5.

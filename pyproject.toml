@@ -38,7 +38,32 @@ forbidden_modules = ["roster_replan.checker"]
 name = "Input validation is independent of both readings"
 type = "forbidden"
 source_modules = ["roster_replan.validation"]
-forbidden_modules = ["roster_replan.checker", "roster_replan.model", "ortools"]
+forbidden_modules = [
+    "roster_replan.checker",
+    "roster_replan.model",
+    "roster_replan.disruption",
+    "ortools",
+]
+
+# The same independence, applied to the objective. Brute-force stage (b) compares the
+# optimum `disruption` encodes against the minimum `scoring` measures, so a shared helper
+# would turn that comparison into an identity.
+[[tool.importlinter.contracts]]
+name = "The objective scorer is an independent reading: no solver, no model encoding"
+type = "forbidden"
+source_modules = ["roster_replan.scoring"]
+forbidden_modules = [
+    "roster_replan.disruption",
+    "roster_replan.model",
+    "roster_replan.checker",
+    "ortools",
+]
+
+[[tool.importlinter.contracts]]
+name = "The objective encoding never reaches the scorer"
+type = "forbidden"
+source_modules = ["roster_replan.disruption"]
+forbidden_modules = ["roster_replan.scoring", "roster_replan.checker", "roster_replan.model"]
 
 [[tool.importlinter.contracts]]
 name = "The shared schema depends on nothing"
@@ -48,5 +73,7 @@ forbidden_modules = [
     "roster_replan.checker",
     "roster_replan.model",
     "roster_replan.validation",
+    "roster_replan.scoring",
+    "roster_replan.disruption",
     "ortools",
 ]

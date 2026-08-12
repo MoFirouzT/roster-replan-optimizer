@@ -17,6 +17,7 @@ from roster_replan.domain import (
     OpenShift,
     RuleParams,
     ShiftType,
+    shipped_d2,
 )
 
 MORNING, EVENING, NIGHT = 0, 1, 2
@@ -63,6 +64,7 @@ def make_instance(shift_types, params):
             employees=tuple(employees),
             open_shifts=tuple(open_shifts),
             params=params,
+            disruption=kwargs.pop("disruption", shipped_d2()),
             **kwargs,
         )
 
