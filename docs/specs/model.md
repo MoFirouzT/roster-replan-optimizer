@@ -7,10 +7,47 @@ sets, variables and encodings those rules are expressed over.
 
 ## Index sets and notation
 
-Notation table first, every symbol defined before use, dimensions annotated. `[TODO]`
+Every symbol used by a rule predicate in [`rules.md`](rules.md) is defined here. Contract types and
+the full payload schema are still `[TODO]`; the symbols below are settled and in use.
 
-- employees, days, shift types, skills, contract types
-- the eligible (employee, shift) pairs surviving domain presolve
+| Symbol | Type | Meaning |
+|---|---|---|
+| `E`, `e` | index set | Employees in the tenant |
+| `D`, `d` | index set | Days in the horizon, `0`-indexed from its start |
+| `T`, `s` | index set | Shift types (a start time and a length, per tenant) |
+| `O ⊆ D × T` | index set | **Open shift instances** — the `(d, s)` pairs with `req[d, s] > 0` |
+| `K`, `k` | index set | Skills |
+| `x[e, d, s]` | bool | `1` iff employee `e` is assigned shift instance `(d, s)` |
+| `x̄[e, d, s]` | bool, data | The **incumbent** published roster. Absent on a cold solve |
+| `req[d, s]` | int ≥ 0, data | Required headcount for a shift instance |
+| `start(d, s)`, `end(d, s)` | timestamp | Absolute bounds of a shift instance, `[start, end)` |
+| `now` | timestamp, data | The replan instant. Required for a replan, absent on a cold solve |
+| `absences[e]` | interval set, data | Periods `e` cannot work as a matter of fact |
+| `unavailability[e]` | interval set, data | Periods `e` declared they will not work |
+| `skills[e] ⊆ K` | set, data | Skills `e` holds |
+| `req_skills[d, s] ⊆ K` | set, data | Skills a shift instance requires of **each** assignee |
+| `skill_mix[d, s]` | entry set, data | `(skill, minimum, class, provenance)` composition requirements |
+| `eligible ⊆ E × O` | derived | Pairs surviving domain presolve — see [Presolve](#presolve) |
+| `hours(d, s)` | hours | `end(d, s) − start(d, s)`, the gross span. See below on gross vs. net |
+| `u[d, s]` | int ≥ 0 | Coverage shortfall — `R-COVER`'s slack |
+| `v[d, s, k]` | int ≥ 0 | Qualified-coverage shortfall — `R-SKILL-MIX`'s slack, soft entries only |
+| `w[e, d]` | bool | `1` iff `e` works at all on day `d`. Reified from `x` for `R-CONSEC-DAYS` |
+
+Three further caller-supplied quantities — `max_hours_this_week[e]`,
+`consecutive_days_worked_before_horizon[e]` and `last_shift_end_before_horizon[e]` — are defined under
+[Caller-computed quantities](#caller-computed-quantities) below.
+
+**Gross versus net duration is an open input-contract question.** Statutory rest breaks are not
+working time, so a shift's paid span and its span-minus-breaks differ. `R-MAX-WEEKLY` and
+`R-MAX-DAILY` have no defined meaning until this file states which one `hours(d, s)` denotes, and the
+checker must read the same answer. `[TODO]` — decide with the payload schema.
+
+Shift instances are `(day, shift type)` pairs, not calendar dates: `end(d, s)` may fall on `d + 1`
+when a shift crosses midnight. Rule predicates are written over timestamps rather than day indices
+wherever that distinction can change an answer.
+
+Intervals are half-open throughout, in both this spec and the checker. Two shifts where one ends
+exactly as the other begins do not overlap.
 
 ## Input contract
 

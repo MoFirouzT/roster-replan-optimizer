@@ -6,9 +6,14 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 
 `model.md` and `validation.md` reference IDs from this file and do not restate rule semantics.
 
-> **Status: outline.** Each rule below needs: exact predicate, parameters and their per-tenant
-> configurability, hard/soft classification, provenance for legal rules, and the failure message
-> the explainer renders.
+> **Status: T1 set complete.** Specified below: the operational rules `R-COVER`, `R-AVAIL`, `R-SKILL`,
+> `R-SKILL-MIX`, `R-PIN-PAST`; the structural legal rules `R-MIN-SHIFT`, `R-REST-GAP`, `R-MAX-WEEKLY`,
+> `R-MAX-DAILY`, `R-CONSEC-DAYS`, `R-WEEKLY-REST`; and the eligibility gates `R-FLEXI-ELIG`,
+> `R-DIMONA-FLX`.
+>
+> Still outline: the five profile-gated T2 rules. Each needs exact predicate, parameters and their
+> per-tenant configurability, hard/soft classification, provenance, and the failure message the
+> explainer renders.
 
 ## Classification
 
@@ -20,18 +25,19 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 
 | ID | Rule | Class | Parameters | Provenance |
 |---|---|---|---|---|
-| `R-COVER` | Each open shift is staffed to its requirement | hard *(soft variant TBD — see `replan.md`)* | per shift | operational |
-| `R-AVAIL` | No assignment against declared unavailability or absence | hard | per employee/day | operational |
+| `R-COVER` | Each open shift is staffed to its requirement | hard ceiling, soft floor *(provisional — `D-008`)* | per shift | operational |
+| `R-AVAIL` | No assignment overlapping a declared absence or unavailability | hard | per employee, interval | operational |
 | `R-SKILL` | Assigned employee holds the shift's required skill | hard | per shift/employee | operational |
+| `R-SKILL-MIX` | A shift's roster holds at least *m* people with a given skill | hard or soft, **per entry** | per shift/skill | operational, or legal per entry `[CITE]` |
 | `R-PIN-PAST` | Shifts starting before `now` are immutable | pinned | `now` | operational |
-| `R-MIN-SHIFT` | Minimum shift length — 2h horeca, 3h general | hard | hours, per tenant | labour law `[CITE]` |
-| `R-REST-GAP` | Minimum rest between consecutive shifts | hard | hours | labour law `[CITE]` |
-| `R-MAX-WEEKLY` | Maximum hours this week, as a supplied per-employee budget | hard | hours, per employee | labour law `[CITE]` |
-| `R-MAX-DAILY` | Maximum hours per day | hard | hours, per contract | labour law `[CITE]` |
-| `R-CONSEC-DAYS` | Maximum consecutive working days | hard | days | labour law `[CITE]` |
-| `R-WEEKLY-REST` | Minimum uninterrupted weekly rest | hard | hours | labour law `[CITE]` |
-| `R-FLEXI-ELIG` | Flexi-job eligibility conditions | hard | per employee | labour law `[CITE]` |
-| `R-DIMONA-FLX` | Same-day `FLX` Dimona filing as an eligibility gate | hard | filing state | labour law `[CITE]` |
+| `R-MIN-SHIFT` | Minimum shift length — 2h horeca, 3h general | **input validation** — not roster-violable, see below | hours, per tenant | Arbeidswet art. 21; KB 18 June 1990; PC 302 CBA `[CITE]` |
+| `R-REST-GAP` | Minimum rest between consecutive shifts | hard | hours | Arbeidswet art. 38ter §1; WTD art. 3 |
+| `R-MAX-WEEKLY` | Maximum hours this week, as a supplied per-employee budget | hard | hours, per employee | Arbeidswet art. 19, 26bis; WTD art. 6, 16(b) |
+| `R-MAX-DAILY` | Maximum hours per day | hard | hours, per contract | Arbeidswet art. 19, 20, 20bis, 22 |
+| `R-CONSEC-DAYS` | Maximum consecutive working days | hard | days | **not statutory** — operational/CBA, see below |
+| `R-WEEKLY-REST` | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
+| `R-FLEXI-ELIG` | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1 |
+| `R-DIMONA-FLX` | `FLX` Dimona filing as an eligibility gate | hard, **resolved upstream** | filing state, per employee/day | NSSO Dimona instructions; Wet 16 Nov 2015 |
 | `R-STUDENT-QUOTA` | Student-worker hour quota | hard, optional | hours/year | labour law `[CITE]` |
 | `R-SUNDAY` | Sunday and public-holiday work restriction | hard, optional | derogation set | labour law `[CITE]` |
 | `R-BREAK` | In-shift break entitlement | hard, optional | minutes per hours worked | labour law `[CITE]` |
@@ -40,11 +46,32 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 
 `R-MAX-DAILY`, `R-CONSEC-DAYS` and `R-WEEKLY-REST` land in T1 — they are structural, cheap, and
 belong in the checker before it is written rather than bolted on after.
-The four rules marked *optional* are profile-gated and land in T2;
+The five rules marked *optional* are profile-gated and land in T2;
 a tenant that does not enable them never pays for them.
 
 `[CITE]` — every legal rule needs a named source before T1 closes. A legality claim without
 provenance is a guess, and the checker is the component whose whole value is that it is not one.
+The T1 set is now sourced. The remaining `[CITE]`s are on the profile-gated T2 rules, plus three open
+items inside T1 rules: the horeca limb of `R-MIN-SHIFT`, the amending instrument behind the
+1 July 2026 flexi changes, and the Dimona filing deadline.
+
+## Legal sources
+
+Cited in short form throughout. Both instruments are consolidated and publicly available.
+
+| Short form | Instrument |
+|---|---|
+| **Arbeidswet** | Arbeidswet van 16 maart 1971 / Loi du 16 mars 1971 sur le travail (BS 30 March 1971), as amended |
+| **WTD** | Directive 2003/88/EC of 4 November 2003 concerning certain aspects of the organisation of working time |
+
+Belgium transposes the WTD, and in several places transposes it *more strictly*. **Where the two
+differ, this project implements the Belgian rule** — it is the binding one for the target tenants, and
+the stricter of the two cannot produce a WTD violation. Each rule below records where that happens.
+
+The relevant provisions are widely restated by third parties and often restated incorrectly; article
+numbers here were checked against the consolidated statute rather than against summaries. One
+concrete instance: the FPS Employment summary page attributes the three-hour minimum work period to
+art. 19, and the statute puts it in art. 21.
 
 ## The reference period, and why `R-MAX-WEEKLY` is a budget
 
@@ -69,6 +96,31 @@ not perform.** Two consequences follow, and both are binding.
 - The checker verifies assignments against the *supplied* budget. It must not recompute it from a
   period it cannot see — a checker that invents its own budget is testing the caller, not the roster.
 
+## How a rule is classified
+
+Classification is not a preference. It is settled by one question:
+
+> When the only otherwise-legal roster violates this rule, what should the service return?
+
+**"Nothing, and an explanation"** → hard. Infeasibility is a legitimate, actionable answer.
+**"The best compromise, priced and flagged"** → soft. There is a real-world price, and it can be named.
+
+Hard does not mean unrelaxable. Every hard constraint instance is gated on an assumption literal, so
+a failed solve yields a minimal core over rule instances rather than a bare `INFEASIBLE`. Relaxation
+is therefore explicit, per-instance and reportable — never smeared into a weight. This is the same
+machinery the T4 explainer and the *monotone objective under relaxation* property test both need.
+
+Two failure modes this avoids, recorded because both are tempting:
+
+- **Everything soft.** `checker_feasible` becomes universally true, which makes the differential
+  harness assert `true ⟺ true`, and moves every semantic claim into a weight nobody can falsify.
+- **Everything hard.** No shortfall is representable, so there is no cost axis to trade disruption
+  against and no Pareto frontier — and the service answers only "infeasible" to a planner who is one
+  person short, which is a product failure rather than a correct solve.
+
+Where a rule is soft, the checker still reports it. **The differential harness compares violation
+sets, not a feasibility bit** — see `validation.md`.
+
 ## Per rule (template)
 
 ### `R-EXAMPLE` — short name
@@ -81,6 +133,610 @@ not perform.** Two consequences follow, and both are binding.
 - **Checker encoding.** How it is verified independently. Must not reference the model encoding.
 - **Explainer text.** What the planner sees when this rule blocks a solve.
 - **Provenance.** Source for legal rules.
+
+---
+
+## Operational rules
+
+These rules carry no legal provenance, which is why they were specified first: nothing in them waited
+on a `[CITE]`. The one exception is a `R-SKILL-MIX` entry that declares itself legal, which carries its
+own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
+
+`t0.py` is superseded by these sections, not extended by them. It has no `R-SKILL` and no
+`R-PIN-PAST`, and its `R-AVAIL` is day-granular where this spec is interval-granular.
+
+### `R-COVER` — coverage
+
+- **Statement.** Each open shift is staffed to its required headcount. Falling short is permitted and
+  priced; exceeding it is not permitted.
+- **Predicate.** For every `(d, s) ∈ O`, with shortfall `u[d, s] ≥ 0`:
+
+  ```
+  Σ_{e ∈ E} x[e, d, s] + u[d, s] = req[d, s]
+  ```
+
+  Feasibility requires `Σ_e x[e, d, s] ≤ req[d, s]`. Each unit of `u[d, s]` is priced in the
+  objective.
+- **Class.** Split — **hard ceiling, soft floor**. *Provisional for T1; ratified under `D-008` in T2.*
+
+  The ceiling is free: the all-zero roster satisfies it, so a hard upper bound can never be the sole
+  cause of infeasibility. The floor must be soft because a disruption often has no legal repair, and
+  "one short on Saturday, here is what it costs" is the answer a planner can act on. In the
+  unconstrained case the optimum still lands exactly on `req[d, s]`, so the equality behaviour of the
+  walking skeleton is preserved rather than abandoned.
+- **Parameters.** `req[d, s]`, integer ≥ 0, per shift instance, caller-supplied. The shortfall weight
+  lives in `replan.md` and must dominate every other soft term. Overstaffing is rejected outright in
+  T1; an `allow_overstaffing` tenant flag is deferred to the T2 profile schema.
+- **Model encoding.** One equality per shift instance with an explicit slack variable
+  `u[d, s] ∈ [0, req[d, s]]`, rather than two inequalities. The equality gives CP-SAT the tighter
+  linear relaxation, and `u` is directly the coordinate the explainer reports — no reconstruction
+  from a headcount difference.
+- **Checker encoding.** Recount assignees per shift instance from the returned roster. Emit a
+  violation for any instance over `req`, and a shortfall record carrying `(observed, required)` for
+  any instance under it. **The checker must not read `u` from the solver** — a checker that trusts the
+  solver's own slack is verifying arithmetic, not coverage.
+- **Explainer text.** `Sat 15:00–23:00 (Evening) is 1 short of its 3 required staff.`
+- **Provenance.** Operational.
+
+### `R-AVAIL` — availability
+
+- **Statement.** Nobody is assigned to a shift that overlaps a declared absence or a period they
+  declared unavailable.
+- **Predicate.** For every `e ∈ E` and `(d, s) ∈ O`, writing
+  `blocked[e] = absences[e] ∪ unavailability[e]`:
+
+  ```
+  [start(d, s), end(d, s)) ∩ blocked[e] ≠ ∅   ⟹   x[e, d, s] = 0
+  ```
+
+  **Interval intersection, not day equality.** This is the substantive correction to `t0.py`, which
+  blocks an employee for a whole day. A shift crossing midnight belongs partly to the next day, and an
+  unavailability of `Sat 09:00–12:00` must not block `Sat Evening`.
+- **Class.** Hard, and split by provenance:
+  - `absences[e]` — hard, **never relaxable**. Sickness is a fact about the world; no assumption
+    literal is attached, because there is no meaningful core containing "Ana is ill".
+  - `unavailability[e]` — hard in T1, carrying an assumption literal so it can appear in a core.
+    Tenant-configurable to soft in T2, since some operations do assign over a stated preference.
+
+  The distinction is invisible to the solved model and visible to the explainer, which is the point:
+  a core that blames a declared preference is actionable, one that blames an illness is noise.
+- **Parameters.** `absences[e]` and `unavailability[e]`, sets of half-open intervals, both
+  caller-supplied. No defaults — an absent key means the empty set, and never means "unknown".
+- **Model encoding.** Domain presolve, not a constraint: an ineligible `(e, d, s)` variable is never
+  created. Where the variable must exist anyway — a past shift under `R-PIN-PAST` — it is fixed to
+  `0` instead. Removing variables is strictly cheaper than adding rows, and this rule plus `R-SKILL`
+  eliminate most of the grid.
+- **Checker encoding.** Intersect the raw interval lists against shift bounds recomputed from
+  timestamps. **Must not consume an eligibility mask from the model** — the mask is the thing under
+  test.
+- **Explainer text.** `Ana declared unavailable Sat 09:00–18:00, which overlaps Sat Evening (15:00–23:00).`
+- **Provenance.** Operational. Sick leave has legal dimensions, but none that this rule encodes.
+
+### `R-SKILL` — skill match
+
+- **Statement.** Every assigned employee holds every skill the shift requires.
+- **Predicate.** For every `e ∈ E` and `(d, s) ∈ O`:
+
+  ```
+  x[e, d, s] = 1   ⟹   req_skills[d, s] ⊆ skills[e]
+  ```
+
+  Set containment, not a single skill — a shift may require several, and each assignee needs all of
+  them.
+- **Class.** Hard, non-relaxable. A skill an employee does not hold is not a preference, and a core
+  containing "Bram lacks forklift" is not actionable in the way a relaxable rule's core is. No
+  assumption literal.
+- **Parameters.** `skills[e] ⊆ K` per employee and `req_skills[d, s] ⊆ K` per shift instance, both
+  caller-supplied. No tenant override.
+- **Model encoding.** Domain presolve, the same mechanism as `R-AVAIL`. Both feed one joint
+  eligibility filter — `eligible ⊆ E × O` in `model.md` — evaluated once at build time.
+- **Checker encoding.** Independent set containment against the raw skill lists.
+- **Explainer text.** `Wed 23:00–07:00 (Night) requires forklift; Bram does not hold it.`
+
+  In practice `R-SKILL` surfaces through `R-COVER`: scarcity shows up as a priced shortfall, so the
+  useful line is usually `only 1 of the 3 staff required for Wed Night hold forklift`. The explainer
+  reports the skill scarcity alongside the shortfall rather than as a separate finding.
+- **Provenance.** Operational.
+
+### `R-SKILL-MIX` — qualified coverage
+
+- **Statement.** A shift may require that a minimum number of the people on it hold a given skill —
+  "at least one first-aider among the three".
+- **Predicate.** For every `(d, s) ∈ O` and every entry `(k, m) ∈ skill_mix[d, s]`, with shortfall
+  `v[d, s, k] ≥ 0`:
+
+  ```
+  Σ_{e ∈ E : k ∈ skills[e]} x[e, d, s] + v[d, s, k] ≥ min(m, req[d, s] − u[d, s])
+  ```
+
+  The right-hand side is clamped to the headcount actually rostered. Demanding two first-aiders on a
+  shift that only got one body is not a violation of this rule — the missing person is already
+  reported once by `R-COVER`, and reporting it twice makes shortfalls uncomparable across instances.
+- **Class.** **Per entry.** Each `skill_mix` entry declares its own class, because the two cases are
+  genuinely different rules wearing one shape:
+  - *"at least one first-aider"* — operational, **soft**. A covered shift where nobody can do first
+    aid is a real, priced operational state, and a planner must be shown it rather than handed an
+    infeasibility.
+  - *"at least one licensed nurse"* — legal, **hard**, non-relaxable. Running the ward without one is
+    not an expensive option, it is a prohibited one.
+
+  Applying the classification test rule-by-rule would force one answer for both; applying it
+  entry-by-entry is the only way it comes out right. Legal entries carry a provenance string,
+  validated as non-empty at profile load.
+- **Why not fold this into `R-SKILL`.** `R-SKILL` is per-assignee and is enforced by *deleting*
+  variables in presolve. `R-SKILL-MIX` constrains a shift's composition and needs a counting
+  constraint over surviving variables — it cannot presolve away. `R-SKILL` is formally the special
+  case `m = req[d, s]`, and unifying them anyway would trade the cheapest constraint in the model for
+  the more expensive encoding. Two IDs, two encodings, one vocabulary.
+- **Parameters.** `skill_mix[d, s]`, a set of `(skill, minimum, class, provenance)` entries per shift
+  instance, caller-supplied, default empty. Weight for soft entries lives in `replan.md` and must sit
+  at or above the `R-COVER` shortfall weight — an unqualified shift is at least as bad as a short one.
+- **Model encoding.** One linear inequality per `(shift instance, skill)` entry over the eligible
+  employees holding that skill, with a slack variable for soft entries and none for hard ones.
+- **Checker encoding.** Recount holders per shift instance from the raw skill lists and the returned
+  roster. Independent of `R-SKILL`'s check, even though both read `skills[e]`.
+- **Interaction with `R-PIN-PAST`.** Mix shortfalls on shift instances that have already started are
+  historical: excluded from the objective, reported separately, for the same reason as coverage
+  shortfall.
+- **Explainer text.** `Sat 15:00–23:00 (Evening) has 3 of 3 staff but no first-aider; 1 required.`
+- **Provenance.** Operational by default; per-entry legal provenance where an entry is declared hard.
+  Sector-specific minimum-qualification rules are `[CITE]` and land with the T2 profile schema.
+
+### `R-PIN-PAST` — the immutable past
+
+- **Statement.** A shift that has already started cannot be changed. The replan may not add to it,
+  remove from it, or move it.
+- **Predicate.** For every `e ∈ E` and `(d, s) ∈ O` with `start(d, s) < now`:
+
+  ```
+  x[e, d, s] = x̄[e, d, s]
+  ```
+
+  The boundary is `start(d, s) < now`, strictly — **a shift in progress is past.** Three hours of a
+  night shift already worked cannot be un-worked, so pinning on `end(d, s) ≤ now` would be wrong.
+- **Class.** Pinned — fixes variables rather than constraining them.
+- **Parameters.** `now`, timestamp, caller-supplied. `x̄`, the incumbent roster. Neither is derived:
+  the checker receives both and **must not infer `now`** from the data, or it will disagree with the
+  model whenever a horizon happens to start late.
+- **Preconditions.** A cold solve supplies no `x̄`; the pin set is then empty and the horizon must
+  begin at or after `now`. A replan with `x̄` but no `now`, or the reverse, is a malformed payload
+  rather than a defaulted one.
+- **Pinning is not exemption.** Pinned assignments count toward **every** other rule. A pinned night
+  shift ending at 07:00 constrains the following morning through `R-REST-GAP`; pinned hours consume
+  the `R-MAX-WEEKLY` budget; pinned days count toward `R-CONSEC-DAYS`. Treating the past as though it
+  did not happen is the classic bug in this rule, and it produces rosters that are illegal precisely
+  at the seam nobody inspects.
+- **Interaction with `R-COVER`.** A past shift that was understaffed stays understaffed, and nothing
+  in the horizon can fix it. Its shortfall is therefore **excluded from the objective** and reported
+  separately as historical. Leaving it in adds a constant that cannot be optimised away and makes two
+  runs with different `now` values incomparable.
+- **Model encoding.** Equalities carrying assumption literals, not constant substitution. Substituting
+  constants at build time is cheaper and makes *pinning is not exemption* automatic, but it destroys
+  the explainer's ability to name the past as the source of a conflict. CP-SAT's presolve folds these
+  equalities well, so the cost is expected to be small — **measured, not assumed, in the T2 presolve
+  study.**
+- **Why that matters.** Because pins are equalities, an incumbent that already violates a rule makes
+  the entire solve infeasible with no repair available. This is a real production scenario: rules
+  changed, or the roster was hand-edited. The assumption literals let the service distinguish **"the
+  past itself is illegal"** from **"no legal future exists"** — two different messages, two different
+  operator responses, and the first is invisible without them.
+- **Checker encoding.** Verify equality against the supplied `x̄` for every shift instance starting
+  before the supplied `now`.
+- **Explainer text.** `Thu 23:00–07:00 (Night) has already started; Driss cannot be removed from it.`
+- **Provenance.** Operational.
+
+---
+
+## Structural legal rules
+
+The five rules T1 encodes from labour law. Every one is **hard** — a roster that breaks one is not a
+worse roster, it is an unlawful one, and "cheaply illegal" is not a state this service may return.
+Each carries an assumption literal anyway, so a failed solve names the conflicting rule instances
+instead of returning a bare `INFEASIBLE`; the literal is a diagnostic channel, not a licence to relax.
+
+### Two conventions these rules share
+
+**Hours attribution.** A shift instance's hours are attributed **entirely to its start day**, never
+split at midnight. A `23:00–07:00` night shift is eight hours on `d`, zero on `d + 1`. This follows
+from shift instances being indexed by start day, and it must be stated because a checker that split at
+midnight would disagree with the model on every night shift while both looked correct in isolation.
+
+The same convention makes `d` a *worked day* for `R-CONSEC-DAYS` and leaves `d + 1` unworked, which is
+the intended reading: the night worker's Tuesday is mostly rest, and it is `R-REST-GAP` that protects
+it, not a fractional day count.
+
+**Gross versus net duration.** `hours(d, s) = end(d, s) − start(d, s)` is the *gross* span. Statutory
+rest breaks are not working time, so the two can differ — art. 38quater entitles a worker exceeding
+six hours to a break. Whether the caller supplies spans gross or net of breaks is an **input-contract
+question owned by `model.md`**, not a rule question, and it must be answered before `R-MAX-WEEKLY` has
+a defined meaning. Recorded here because both readings are defensible and silently picking one is how
+a checker and a model end up disagreeing by 15 minutes per shift.
+
+### `R-MIN-SHIFT` — minimum work period
+
+> **Class correction.** The registry carried this as a hard constraint. **With fixed shift instances it
+> cannot be one.** Shift types have durations defined by the tenant profile, and `x[e, d, s]` either
+> assigns a whole instance or none of it; no roster the model can express contains a work period the
+> catalogue does not already contain. A too-short shift is therefore a **defect in the profile, not in
+> the roster** — and a constraint that no reachable solution can violate is not a constraint, it is
+> validation wearing one.
+>
+> Reclassified: **input validation**, owned by `validation.md`. The roster checker does not implement
+> it, which is the one intended exception to *every rule gets a checker encoding*.
+
+- **Statement.** Every work period in the tenant's shift catalogue lasts at least the applicable
+  minimum.
+- **Predicate.** Over the profile rather than over a roster — for every shift type `s`:
+
+  ```
+  hours(d, s)  ≥  min_period_hours   for every d with (d, s) ∈ O
+  ```
+
+  Checked once at profile load and on every profile change, not per solve.
+- **Class.** Input validation. **Becomes structural in T5 generation mode**, where shift boundaries
+  become decision variables rather than data — at which point it needs a real encoding and a checker
+  entry. Recorded here so that transition is a known cost rather than a discovery.
+- **Parameters.** `min_period_hours`, default **3** (art. 21). Horeca derogation to **2**, available
+  only under two cumulative conditions: a motivated notification to the chair of the joint committee
+  (required since 1 January 2018), and a registered cash-register system (GKS) in the establishment.
+  Several worker categories fall outside art. 21 entirely — domestic staff, commercial
+  representatives, management and confidential posts, family businesses — plus the five categories of
+  the Royal Decree of 18 June 1990.
+- **Validation encoding.** Reject the profile with the offending shift type named. A derogated minimum
+  requires a non-empty `derogation_basis`, as with `R-REST-GAP`.
+- **Explainer text.** Not an explainer case — a profile is rejected at load, before any solve exists to
+  explain. `validation.md` owns the message.
+- **Provenance.** Arbeidswet art. 21 — the statute, *not* art. 19; the FPS Employment summary page
+  misattributes this one. Exempt categories: Royal Decree of 18 June 1990. Horeca limb: CBA of
+  25 June 1997 in joint committee 302, with the notification and GKS conditions above `[CITE]`.
+
+  **One unresolved claim.** A secondary source asserts a change effective 1 June 2026 — minimum
+  contracts of 3h48 per week with performances of at least 3 hours per day — which would contradict
+  the 2-hour horeca figure. It could not be confirmed against the CBA or any primary source and is
+  **not** encoded here. Someone must read the current PC 302 text before the horeca limb ships. `[CITE]`
+
+### `R-REST-GAP` — daily rest
+
+- **Statement.** At least eleven consecutive hours of rest between the end of one shift and the start
+  of the next.
+- **Predicate.** For every `e ∈ E` and every ordered pair of distinct shift instances `a, b ∈ O` with
+  `start(b) ≥ end(a)`:
+
+  ```
+  start(b) − end(a) < min_rest_hours   ⟹   x[e, a] + x[e, b] ≤ 1
+  ```
+
+  And across the horizon boundary, for every `(d, s) ∈ O`:
+
+  ```
+  start(d, s) − last_shift_end_before_horizon[e] < min_rest_hours   ⟹   x[e, d, s] = 0
+  ```
+
+  Overlap is the degenerate case rather than a separate rule: two overlapping instances have a negative
+  gap and are excluded by the same inequality.
+- **Class.** Hard. Art. 38ter §2 does permit derogations — force majeure, split shifts, team changes in
+  shift work — so the *parameter* is tenant-configurable downward against a recorded derogation basis.
+  The rule itself is never dropped.
+- **Parameters.** `min_rest_hours`, default **11**. A tenant may lower it only with a non-empty
+  `derogation_basis` string, validated at profile load. There is no upward cap — a stricter tenant is
+  always lawful.
+- **Model encoding.** Pairwise `≤ 1` over the conflicting-pair set, per employee. At T1 instance sizes
+  the pair set is small and the encoding is transparently the same object the checker walks, which is
+  worth more here than tightness.
+
+  **Alternative, deferred to a T2 study:** one optional interval variable per `(employee, shift
+  instance)` inflated by `min_rest_hours`, under a single `add_no_overlap` per employee. It scales as
+  the horizon grows where the pairwise set grows quadratically, and it gives CP-SAT a global propagator
+  instead of many local ones. Measured there, not assumed here.
+- **Checker encoding.** Sort the employee's assigned instances by start time, walk consecutive pairs,
+  compare each gap against the parameter. `last_shift_end_before_horizon[e]` is the predecessor of the
+  first instance — **not a special case, just the zeroth element**, which is the framing that stops the
+  boundary being forgotten.
+- **Explainer text.** `Ana finishes Fri 23:00 and would start Sat 07:00 — 8h rest, 11h required.`
+- **Provenance.** Arbeidswet art. 38ter §1: a worker is entitled, per 24-hour period between the end
+  and resumption of work, to at least eleven consecutive hours of rest. Transposes **WTD art. 3**,
+  which sets the same eleven hours.
+
+### `R-MAX-WEEKLY` — the weekly budget
+
+- **Statement.** An employee's assigned hours this week do not exceed the budget the caller supplied
+  for them.
+- **Predicate.** For every `e ∈ E`:
+
+  ```
+  Σ_{(d, s) ∈ O} hours(d, s) · x[e, d, s]  ≤  max_hours_this_week[e]
+  ```
+
+  Pinned past shifts are inside this sum, not exempt from it.
+- **Class.** Hard.
+- **Parameters.** `max_hours_this_week[e]`, hours, caller-supplied and mandatory. No default: a missing
+  budget is a malformed payload, because the safe fallback — some fixed weekly ceiling — is precisely
+  the wrong model this rule exists to avoid (see [the reference period](#the-reference-period-and-why-r-max-weekly-is-a-budget)).
+- **What the caller is actually computing.** The section above says the caller resolves the reference
+  period into one number. Naming its three components makes that auditable, because all three are
+  legally distinct and only one of them is an average:
+
+  1. **The residual average allowance** — art. 19 sets 8h/day and 40h/week in the statute, reduced to
+     **38h/week** since 1 January 2003; art. 26bis §1 measures it as an average over a reference period
+     that is the calendar quarter by default and extendable to at most one year by royal decree,
+     sectoral or company CBA, or work-rules amendment.
+  2. **The internal limit** — art. 26bis §1bis: at no moment in the reference period may cumulative
+     hours worked exceed the permitted average, times the weeks elapsed, by more than **143 hours**.
+     This is the provision that makes a single-week budget coherent at all: without a bound on
+     cumulative excess, no week could be assessed locally.
+  3. **The absolute weekly ceiling** — the derogation ladder caps any individual week regardless of the
+     average: generally **50h**, and **45h** under art. 20bis flexible schedules.
+
+  The budget is the minimum of the three. **WTD art. 6** independently caps average weekly working time
+  at 48h over a reference period of up to four months (art. 16(b)); the Belgian computation is stricter
+  in the ordinary case and the caller owns reconciling them.
+- **Model encoding.** One linear inequality per employee over eligible pairs.
+- **Checker encoding.** Sum `hours(d, s)` over the employee's assignments and compare to the supplied
+  budget. **The checker never recomputes the budget** — restating the constraint from `rules.md`,
+  because this is the single place a well-meaning checker most reliably goes wrong. A checker that
+  reaches for the reference period is testing the caller, and it will disagree with the model for
+  reasons that are defects in neither.
+- **Payload validation, distinct from roster checking.** That the supplied budget does not exceed the
+  absolute weekly ceiling *is* locally verifiable, and it is worth verifying — but as **input
+  validation**, not as a roster violation. A too-large budget is a bad payload; it is not a property of
+  the roster, and reporting it as an `R-MAX-WEEKLY` violation would blame the solver for the caller's
+  arithmetic. `validation.md` owns the input-validation layer.
+- **Explainer text.** `Hugo is budgeted 32h this week and this roster assigns him 40h.`
+- **Provenance.** Arbeidswet art. 19 and art. 26bis §1, §1bis. **WTD art. 6** and art. 16(b).
+
+### `R-MAX-DAILY` — daily maximum
+
+- **Statement.** An employee's hours on any single day do not exceed the daily maximum for their
+  contract.
+- **Predicate.** For every `e ∈ E` and `d ∈ D`:
+
+  ```
+  Σ_{s : (d, s) ∈ O} hours(d, s) · x[e, d, s]  ≤  max_daily_hours[e]
+  ```
+
+  Under the start-day attribution convention above.
+- **Class.** Hard. The derogation ladder is a parameter change, not a relaxation of the rule.
+- **Parameters.** `max_daily_hours[e]`, default **8** (art. 19). The lawful ladder, each step requiring
+  its own recorded basis:
+
+  | Hours | Basis |
+  |---|---|
+  | 9 | art. 20 §1 — schedule giving at least a half-day's rest beyond the weekly rest day |
+  | 9 | art. 20bis — flexible schedules (paired with a 45h weekly ceiling) |
+  | 10 | art. 20 §2 — worker away from home more than 14h/day for distance reasons |
+  | 11 | art. 22 1° — successive shift work |
+  | 12 | art. 22 2° — continuous processes |
+
+  Further derogations exist under art. 23–26 and by sectoral CBA; the profile schema stores the basis
+  as an opaque string and does not attempt to model the ladder's own preconditions.
+- **Honest note on redundancy.** At one shift per day with 8h shifts this rule is nearly implied by
+  `R-REST-GAP`, which already forbids most same-day pairs. It is **not** redundant in general: split
+  shifts are lawful and common in horeca — two short periods in one day, separated by enough rest to
+  satisfy `R-REST-GAP` while their sum binds here. Encoding it costs one inequality per employee-day,
+  and the checker needs it independently regardless of what the model happens to make unreachable.
+- **Model encoding.** One linear inequality per `(employee, day)`.
+- **Checker encoding.** Group the employee's assignments by start day, sum gross hours per group.
+- **Explainer text.** `Emma is assigned 12h on Wed; her contract allows 8h.`
+- **Provenance.** Arbeidswet art. 19; derogations art. 20 §1, art. 20 §2, art. 20bis, art. 22 1°–2°,
+  art. 23–26.
+
+### `R-CONSEC-DAYS` — consecutive working days
+
+> **Provenance correction.** The registry originally carried this as `labour law [CITE]`. **That is
+> wrong, and the citation search is what surfaced it.** Belgian law sets no general cap on consecutive
+> working days for adult workers. The commonly quoted figure of six derives from art. 16, which
+> requires compensatory rest for Sunday work *within the six days following that Sunday* — a rule about
+> where compensatory rest lands, not a ceiling on consecutive days. The binding legal guarantee is
+> `R-WEEKLY-REST` (art. 38ter §3), and it belongs there.
+>
+> The rule stays in the registry, reclassified: **operational and CBA-derived**, not statutory.
+> Planners want it, sectoral agreements impose it, and it is cheap. But the legality claim moves out.
+> Youth workers under 18 do have explicit statutory limits; they are out of scope for T1 and are not
+> this rule.
+
+- **Statement.** An employee does not work more than `max_consecutive_days` days in a row.
+- **Predicate.** With the worked-day indicator `w[e, d] = ⋁_{s} x[e, d, s]` and `L =
+  max_consecutive_days`, for every window of `L + 1` consecutive days starting at `d₀ ∈
+  {−p, …, |D| − L − 1}`, where `p = consecutive_days_worked_before_horizon[e]`:
+
+  ```
+  Σ_{d = d₀}^{d₀ + L} w[e, d]  ≤  L
+  ```
+
+  Days with `d < 0` are pre-horizon and are **constants**, set to worked for the `p` days immediately
+  preceding the horizon. Starting windows at `−p` rather than `0` is the whole boundary treatment: an
+  employee who worked the six days before Monday is out of days on Monday, and a model whose windows
+  begin at `0` silently grants them a fresh streak.
+- **Class.** Hard, in the sense that the model enforces it — but the provenance is contractual, so a
+  tenant may disable it entirely rather than only loosen it. This is the one rule in this section that
+  may legitimately be switched off.
+- **Parameters.** `max_consecutive_days`, default **6**, tenant-configurable including *off*.
+  `consecutive_days_worked_before_horizon[e]`, caller-supplied, mandatory when the rule is enabled.
+- **Model encoding.** Sliding-window sums — `|D| − L + p` inequalities per employee, each over `L + 1`
+  booleans, plus one reification per `(employee, day)` for `w`.
+
+  **Alternative, deferred to the T2 study already named in `model.md`:** a `regular` automaton over the
+  worked/not-worked sequence, whose states count the current streak. It expresses this rule and
+  `R-WEEKLY-REST` in one propagator and is the textbook encoding for sequence rules — which is exactly
+  why the study should confirm it beats the naive form here rather than assume it, at horizons of seven
+  days where the window count is trivially small.
+- **Checker encoding.** Walk days in order tracking a streak counter initialised to
+  `consecutive_days_worked_before_horizon[e]`, reset on any unworked day.
+- **Explainer text.** `Finn already worked 4 days before Monday and this roster adds 3 more — 7 consecutive, 6 allowed.`
+- **Provenance.** **Operational / sectoral CBA.** No general statutory basis for adult workers; see the
+  correction above.
+
+### `R-WEEKLY-REST` — weekly rest
+
+- **Statement.** Every employee gets at least one uninterrupted block of 35 hours' rest in the week.
+- **Predicate.** Let `A(e)` be the intervals of the shifts assigned to `e`. The rule requires some
+  window `[t, t + min_weekly_rest_hours)` inside the horizon that no assigned shift intersects:
+
+  ```
+  ∃ t :  [t, t + min_weekly_rest_hours) ∩ ⋃ A(e)  =  ∅
+  ```
+
+  Existential, which is why this is the only rule here that is not a sum over assignments.
+- **Class.** Hard. Art. 38ter §2's derogations reach §1, and this project does not relax §3.
+- **Parameters.** `min_weekly_rest_hours`, default **35**. Window: the horizon, for a seven-day
+  horizon.
+- **Model encoding.** Candidate windows plus at-least-one. Introduce `r[e, j]` for each candidate
+  window `j`, require `Σ_j r[e, j] ≥ 1`, and for each shift instance overlapping window `j` add
+  `r[e, j] ⟹ x[e, instance] = 0` — a reified implication CP-SAT handles natively.
+
+  **Candidates are bounded, which is what makes this tractable:** it suffices to anchor windows at
+  `end(d, s)` for each shift instance, plus the horizon start. Any feasible rest window can be slid
+  later until its left edge meets the end of some shift without shrinking below the threshold, so an
+  anchored candidate exists whenever any window does. The candidate count is therefore `|O| + 1`, not a
+  function of time granularity — no discretisation, no chosen minute resolution.
+- **Checker encoding.** Sort the employee's assigned intervals, prepend
+  `last_shift_end_before_horizon[e]`, and take the maximum gap between consecutive intervals within the
+  horizon. Compare to the parameter. Independent of the candidate-window construction, which is the
+  point — the model searches, the checker measures.
+- **Known conservatism, stated rather than hidden.** The rest window is required to lie **within** the
+  horizon. A lawful roster whose 35-hour block straddles the horizon's end is therefore rejected. On a
+  seven-day horizon this is nearly harmless — one such block must exist inside any week — and it bites
+  on shorter horizons. The fix is a caller-supplied forward-looking commitment, symmetric with
+  `last_shift_end_before_horizon`, and it is **deferred**: it would oblige the caller to promise
+  something about a week it has not planned yet, which is a heavier contract than the conservatism costs.
+  Revisit if short horizons become a real use case.
+- **Interaction with `R-SUNDAY`.** Art. 38ter §3 builds the 35 hours by adding art. 38ter §1's eleven
+  hours to *either* Sunday rest (art. 11) or compensatory rest for Sunday work (art. 16); art. 17 gives
+  shift workers a distinct form — 24 uninterrupted hours weekly with at least 18 of them falling on
+  Sunday. This rule encodes only the 35-hour block, which is the part that binds regardless of which
+  limb applies. Sunday placement is `R-SUNDAY`, profile-gated, T2.
+- **Explainer text.** `Gita's longest rest this week is 27h; 35h uninterrupted is required.`
+- **Provenance.** Arbeidswet art. 38ter §3, reading with art. 11, art. 16 and art. 17.
+
+  **Stricter than the WTD, deliberately.** WTD art. 5 requires 24 uninterrupted hours plus the eleven
+  of art. 3, and art. 16(a) permits averaging that over a 14-day reference period. Belgium requires 35
+  *consecutive* hours and does not average. Implementing the Belgian rule satisfies both; implementing
+  the WTD rule would not.
+
+---
+
+## Eligibility gates
+
+`R-FLEXI-ELIG` and `R-DIMONA-FLX` share an architecture, and it is the one already established for
+`R-MAX-WEEKLY` under `D-014`: **the condition is resolved upstream and enters the solve as data.**
+
+Not by preference — by necessity. Between them these two rules depend on employment at *other*
+employers, on quarters that ended before the horizon began, on year-to-date earnings, on sectoral
+opt-outs, and on a response the NSSO returns from its own records. A one-week payload contains none of
+it, and no amount of solver cleverness recovers it. What reaches the model is a per-employee, per-day
+boolean, and the checker verifies against that boolean rather than re-deriving it.
+
+The cost is the same one the reference period carries and is stated the same way: **correctness depends
+on a computation this service does not perform.**
+
+### `R-FLEXI-ELIG` — flexi-job eligibility
+
+- **Statement.** Only an employee the caller has certified as flexi-eligible for the quarter containing
+  a shift may be assigned that shift under a flexi contract.
+- **Predicate.** For every `e` with `contract(e) = flexi` and every `(d, s) ∈ O`:
+
+  ```
+  x[e, d, s] = 1   ⟹   flexi_eligible[e, d] = true
+  ```
+
+  **Indexed by day, not by employee.** A horizon may straddle a quarter boundary — the week containing
+  30 June and 1 July — and eligibility is retested per quarter, so one employee can be eligible on
+  Tuesday and ineligible on Wednesday inside a single solve. An employee-level flag would silently get
+  that week wrong, and it is exactly the week nobody tests.
+- **Class.** Hard, non-relaxable, resolved upstream.
+- **What the caller is resolving.** None of these are visible to a weekly roster solve, which is the
+  argument for the whole approach:
+
+  | Condition | Why the solver cannot see it |
+  |---|---|
+  | ≥ 4/5 employment with *other* employers in quarter T-3, against the sector's full-time reference person | Another employer's payroll, a quarter before the horizon |
+  | Reduction from 100% in T-4 to 80% in T-3 bars flexi in T and T+1 | Two quarters of history |
+  | Pensioners exempt from the 4/5 test | Personal status |
+  | No concurrent regular contract with the same employer | Contract state, not roster state |
+  | Annual flexi income ceiling | Year-to-date earnings across employers |
+  | Sector scope and opt-outs | Tenant-level static fact |
+
+  As of **1 July 2026** flexi-jobs are open in principle to the whole private *and* public sector,
+  except sectors that opted out — a scope inversion from the previous enumerated-sectors regime. The
+  annual ceiling rose from €12,000 to €18,000 at the same date, with the employee-side fiscal
+  exemption at €18,440 for 2026 income and no ceiling for pensioners. Horeca additionally caps the
+  flexi hourly wage at €21.00 (€22.61 including flexi holiday pay) — a **wage** rule, outside this
+  model's scope, recorded so nobody mistakes it for a rostering constraint.
+- **Parameters.** `flexi_eligible[e, d]`, boolean, caller-supplied, mandatory for any employee with a
+  flexi contract. Absence is a malformed payload, never a default of `true`.
+- **Recommended treatment of the income ceiling.** Fold it into `max_hours_this_week[e]` as a fourth
+  term in that budget's `min()`, rather than adding a parallel euro-denominated budget. The caller
+  already converts a reference period into weekly hours; converting a remaining income allowance into
+  remaining hours is the same kind of arithmetic against a known wage, and it keeps one budget concept
+  in the model instead of two.
+- **Model encoding.** Presolve elimination, alongside `R-AVAIL` and `R-SKILL` — an ineligible
+  `(e, d, s)` variable is never created.
+- **Checker encoding.** Verify each flexi assignment against the supplied flag for that day. **Never
+  recompute eligibility** — a checker that reaches for quarter T-3 is testing the caller.
+- **Explainer text.** `Bram is not flexi-eligible on Wed 1 July (new quarter); he is eligible through Tue 30 June.`
+- **Provenance.** Law of 16 November 2015 on various social-affairs provisions, art. 4 §1 — note this is
+  a *wet houdende diverse bepalingen inzake sociale zaken*, not a programmawet, and it has been amended
+  repeatedly since. The 1 July 2026 expansion and ceiling change postdate the original text `[CITE]` —
+  cite the amending instrument, not a payroll provider's summary, before this ships.
+
+### `R-DIMONA-FLX` — Dimona filing gate
+
+- **Statement.** A flexi shift may only be assigned if a Dimona declaration of type `FLX` covering it
+  has been filed and the NSSO returned `OK`.
+- **Predicate.** For every `e` with `contract(e) = flexi` and every `(d, s) ∈ O`:
+
+  ```
+  x[e, d, s] = 1   ⟹   dimona_ok[e, d] = true
+  ```
+
+  The NSSO returns `OK` or `NOK` at filing; only `OK` permits declaring the worker as flexi in the
+  quarterly DmfA. `NOK` means the worker may not start, so this is a gate on the roster, not a
+  post-hoc formality.
+- **Class.** Hard, non-relaxable, external. The filing state is data the service reads and never sets.
+- **Two filing regimes, and why the model cares.** The obligation differs by contract form:
+  - **Verbal flexi contract** — one Dimona **per working day**, naming the start and end times of that
+    day's work.
+  - **Written flexi framework contract** — one Dimona IN and one OUT **per quarter**, plus a mandatory
+    daily electronic time registration of hours actually worked.
+
+  A Dimona **may never cross a quarter boundary** in either regime, because the conditions are retested
+  each quarter. This is the mechanism behind `R-FLEXI-ELIG`'s per-day indexing.
+- **The replanning consequence, which is the interesting one.** Under the verbal regime the filing names
+  the day's start and end times, so **moving or dropping a flexi worker's shift requires re-filing,
+  while moving a salaried worker's shift requires nothing.** Administrative disruption is therefore
+  *asymmetric by contract type*, and a disruption metric that counts both changes as one unit is
+  understating the real cost of the flexi change.
+
+  This is a substantive input to `replan.md`: it is a defensible, externally-grounded reason for a
+  contract-weighted disruption metric, which is D3/D4 territory rather than the D2 that ships. **Not a
+  reason to change the shipped metric** — a reason the alternatives are not arbitrary, which is exactly
+  what the T2 study comparing D0–D4 needs.
+- **The short-notice substitution gate.** Replacing an absent flexi worker with another flexi worker
+  requires a fresh `OK` before the substitute starts. For this project's headline scenario — a Saturday
+  sick call — that materially narrows which substitutes are reachable in time, and it narrows it in a
+  way that has nothing to do with availability or skill. A replan that ignores it proposes repairs that
+  cannot legally be executed that morning.
+
+  Consequence: `dimona_ok[e, d]` is not static within a solve horizon. For a same-day replan the caller
+  must distinguish *already filed* from *fileable in time*, and the second is a judgement about NSSO
+  turnaround the service cannot make. **T1 takes the conservative reading — only `OK` counts** — and the
+  optimistic reading is deferred with the T2 capture work, where replay against real incumbent decisions
+  can show whether it costs real repairs. `[CITE]` on the filing deadline: vendor guidance states 24
+  hours before start, the general statutory obligation is filing before work begins, and the two are not
+  the same claim.
+- **Parameters.** `dimona_ok[e, d]`, boolean, caller-supplied, mandatory for flexi contracts.
+  `filing_regime[e] ∈ {verbal, written}`, informational in T1 — it does not change the predicate, only
+  the disruption weighting above.
+- **Model encoding.** Presolve elimination, folded into the same eligibility filter as `R-FLEXI-ELIG`.
+  The two rules are separate IDs because they fail for different reasons and produce different operator
+  actions — *this person cannot hold a flexi job* versus *the paperwork is not in* — and the explainer
+  must not conflate them.
+- **Checker encoding.** Verify each flexi assignment against the supplied flag.
+- **Explainer text.** `No Dimona FLX on file for Gita on Sat; she cannot be rostered to the Evening shift.`
+- **Provenance.** NSSO administrative instructions on Dimona for flexi-job workers (type `FLX`); the
+  underlying obligation from the law of 16 November 2015. Administrative instructions are **not**
+  statute and are revised quarterly — cite the instruction version in force, and expect this section to
+  need rereading more often than the Arbeidswet ones do.
 
 ## Independence rule
 
