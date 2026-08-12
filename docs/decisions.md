@@ -88,3 +88,6 @@ present tense squeezes rationale out.
 | D-058 | Variables exist for every incumbent pair, so deviations are always countable | T1 |
 | D-059 | Eligibility fixings gated, so an ineligible assignment is reportable | T1 |
 | D-060 | Metric divergence requires slack — coverage tightness is T2's decisive generator knob | T2 |
+| D-061 | Day-permutation invariance holds only on a day-decoupled cold instance | T1 |
+| D-062 | Relaxation monotonicity excludes coverage, which changes the objective rather than the feasible set | T1 |
+| D-063 | Suite-wide invariant realised as a shared helper, opt-out by construction | T1 |

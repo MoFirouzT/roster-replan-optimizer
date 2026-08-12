@@ -76,6 +76,28 @@ def one_shift() -> OpenShift:
     return OpenShift(day=0, shift=MORNING, required=1)
 
 
+def solved(instance):
+    """Solve, and assert the suite-wide invariant on the way out.
+
+    `validation.md` requires every test that produces a solution to assert zero *hard*
+    checker violations on it -- a property of the harness rather than a test of its own.
+    This helper is how that is realised: it is enforced wherever it is used, not by magic,
+    so a test that calls `model.solve` directly opts out and should have a reason to.
+
+    `OPTIMAL` is asserted too. A test comparing objectives against enumeration or across
+    relaxations is meaningless on a time-limited `FEASIBLE`, and the failure would look
+    like a wrong objective rather than a truncated search.
+    """
+    from roster_replan.checker import check
+    from roster_replan.model import solve
+
+    result = solve(instance)
+    assert not isinstance(result, list), f"expected a solution, got core {result}"
+    assert result.status == "OPTIMAL", result.status
+    assert [v for v in check(result.roster, instance) if not v.soft] == []
+    return result
+
+
 def hours(day: float, clock: float) -> float:
     """Hours from the horizon start, for readable interval fixtures."""
     return day * 24.0 + clock

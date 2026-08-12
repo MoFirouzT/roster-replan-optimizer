@@ -81,12 +81,17 @@ other than the roster:
 | Brute force **(a)** | N≤6, 3 days, ≤2 shift types: enumerate every roster, `checker` hard-feasible set **equals** model feasible set |
 | Brute force **(b)** | Same instances: solver objective **equals** enumerated optimum, for every metric D0–D4. The enumeration is scored by `scoring.py`, never by the model |
 | Differential | Random rosters (mostly infeasible): `checker_violations(r)` **equals** `model_violations(r)`, as sets of `(rule, coordinates)`; mismatch prints the rule ID |
-| Property | Idempotent replan on a no-change input · byte-identical output under a fixed seed · monotone objective under constraint relaxation · past shifts never modified |
-| Metamorphic | Employee relabelling leaves the objective invariant; day permutation stays structure-consistent |
+| Property | Idempotent replan on a no-change input, and a fixed point under repetition · identical output under a fixed seed, and one optimum across seeds · monotone objective under rule relaxation · past shifts never modified, including when changing them would help |
+| Metamorphic | Employee relabelling leaves the objective invariant; day permutation leaves it invariant **only on a day-decoupled cold instance** — see below |
 | Golden | Committed scenarios with committed objective values; a diff fails CI until a `decisions.md` entry justifies it |
 
 **Suite-wide invariant:** every test that produces a solution asserts zero **hard** checker violations on
-it. Not a separate test — a property of the harness. Soft violations are recorded, not asserted away.
+it, and that the solve reached `OPTIMAL`. Soft violations are recorded, not asserted away.
+
+Realised as a shared `solved()` helper rather than enforced automatically — so a test calling the solver
+directly opts out, and should have a reason to. The `OPTIMAL` half matters more than it looks: a test
+comparing objectives across relaxations or against enumeration is meaningless on a time-limited
+`FEASIBLE`, and the failure would read as a wrong objective rather than as a truncated search.
 
 ### Brute force lands in two stages
 
@@ -126,6 +131,33 @@ feasibility bit and nothing more, and that comparison is the vacuous one.
 Random roster generation should be biased toward *nearly* feasible rosters. Uniformly random assignments
 violate `R-COVER` immediately and never exercise the interesting rules, so generate by perturbing solved
 rosters: swap two assignments, move one shift, drop a person.
+
+### Day permutation is conditional, and the condition is not small
+
+This table previously claimed day permutation "stays structure-consistent" without qualification. **That
+is false**, and three separate couplings make it so:
+
+- `R-REST-GAP` and `R-WEEKLY-REST` constrain adjacent and consecutive days.
+- `R-CONSEC-DAYS` counts runs, and `{0,1,2}` is one run of three where `{0,2,4}` is three runs of one.
+- D1 and D2 read publication state and notice from absolute start times, so permuting days reprices every
+  change.
+
+The relation holds under stated preconditions: one shift type per day separated by more than
+`min_rest_hours`, no consecutive-day limit, weekly rest loose enough not to bind, and a **cold** solve —
+where the objective is cost plus the peak tie-breaker and neither reads the calendar.
+
+The negative case is also committed: one employee and two *adjacent* days with `max_consecutive_days = 1`
+must leave a shift unstaffed, while the same two shifts moved apart are both coverable. That test exists
+so the preconditions above cannot later be dropped as apparent boilerplate.
+
+### Relaxation monotonicity excludes coverage
+
+Relaxing a *rule* expands the feasible set without touching the objective function, so the optimum can
+only improve or hold. Relaxing **coverage** is different: it changes the objective itself through the
+shortfall term, so it is not a relaxation in this sense and comparing optima across it is meaningless.
+
+A monotonicity suite in which every relaxation is inert passes vacuously, so one test asserts that at
+least one relaxation actually moves the objective.
 
 ### Two stated comparison rules
 
