@@ -124,17 +124,20 @@ Test layers, invariants and the harness design: [`docs/specs/validation.md`](doc
 The scaling problem here is **many small instances** and **interactive latency**, not one large instance.
 Benchmarks are built accordingly; throughput and p95 across tenants, not a single 5000-employee monolith.
 
-Levers, and what is actually measured about each:
+Levers, measured, including the three that did not pay off:
 
-- domain presolve (eliminating impossible employee/shift pairs before the solver sees them) — shipped, not yet isolated
-- symmetry breaking over interchangeable employees — not yet built
-- the `regular` automaton constraint for legal shift sequences — not yet built
-- warm starts from the previous solution — **measured: 9% of search time, paired on 216 runs**
-- per-tenant compiled-model caching — **measured: model building costs ~7 ms against ~3 ms of search**, so at these sizes it is the larger half of the latency
+| Lever | Result |
+| --- | --- |
+| Domain presolve | **28% off build, 16% off search**, 24/24 cases — a quarter of the model removed |
+| Per-tenant compiled-model caching | **The largest one**: building costs ~7 ms against ~3 ms of search |
+| Warm starts from the previous solution | **9% of search time**, paired on 216 runs; invisible end to end |
+| Symmetry breaking | **Null** — 3 interchangeable employees across 24 cases. Worth 20% where symmetry exists, so the null is about the distribution |
+| `regular` automaton for shift sequences | **Rejected, 20% slower** — a one-week horizon leaves exactly one window to replace |
+| Pattern/column variables | **Rejected** — no proof of optimality in 30 s on a cold week, against ~20 ms |
 
-The last one was expected to be a footnote and is the more useful finding of the two. Details, and
-the studies still outstanding: [`docs/studies/README.md`](docs/studies/README.md) and
-[`docs/benchmarks.md`](docs/benchmarks.md).
+Three of the six textbook levers lost, and the one that mattered most was the least interesting:
+at these sizes the model is built more slowly than it is solved. Each study, including every null:
+[`docs/studies/README.md`](docs/studies/README.md).
 
 ## Deliberately out of scope
 

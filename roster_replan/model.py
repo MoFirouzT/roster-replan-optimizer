@@ -101,8 +101,32 @@ def exclusions(instance: Instance) -> dict[tuple[int, int, int], tuple[str, ...]
     return excluded
 
 
-def build(instance: Instance) -> Built:
-    """The model, with every hard constraint instance gated."""
+def build(
+    instance: Instance,
+    *,
+    presolve: bool = True,
+    symmetry: bool = False,
+    sequence: str = "windows",
+) -> Built:
+    """The model, with every hard constraint instance gated.
+
+    The three keyword arguments are **study switches, not supported modes**. Each selects an
+    alternative encoding of the same problem so that `docs/studies/` can measure one against
+    the other with everything else held. The shipped configuration is the default of each,
+    and `studies/*.md` records why.
+
+    `presolve=False` keeps a variable for every pair, including the impossible ones, and
+    leaves them to the gated `x = 0` below. This costs only one branch because of `D-058`:
+    a variable already has to exist for any pair the incumbent assigned, eligible or not,
+    so the machinery for carrying an ineligible variable under a gate is already here.
+
+    `symmetry=True` adds lexicographic ordering within groups of genuinely interchangeable
+    employees. `sequence="automaton"` encodes `R-CONSEC-DAYS` as a `regular` automaton
+    instead of sliding-window sums.
+
+    Every variant must reach the same optimum. That is checked by `lab.agree` before any
+    timing is reported, because a broken encoding is usually the fast one.
+    """
     model = cp_model.CpModel()
     excluded = exclusions(instance)
     incumbent = instance.incumbent or frozenset()
@@ -120,7 +144,9 @@ def build(instance: Instance) -> Built:
         (e, o.day, o.shift)
         for e in range(len(instance.employees))
         for o in instance.open_shifts
-        if (e, o.day, o.shift) not in excluded or (e, o.day, o.shift) in incumbent
+        if not presolve
+        or (e, o.day, o.shift) not in excluded
+        or (e, o.day, o.shift) in incumbent
     ]
 
     built = Built(
@@ -147,7 +173,12 @@ def build(instance: Instance) -> Built:
     _weekly_rest(built, instance)
     _max_weekly(built, instance)
     _max_daily(built, instance)
-    _consec_days(built, instance)
+    if sequence == "automaton":
+        _consec_days_automaton(built, instance)
+    else:
+        _consec_days(built, instance)
+    if symmetry:
+        _break_symmetry(built, instance)
     return built
 
 
@@ -403,6 +434,152 @@ def _consec_days(built: Built, instance: Instance) -> None:
             # the checker names too -- the two readings must be comparable.
             literal = built.gate(model, Gate("R-CONSEC-DAYS", employee, max(0, start + limit)))
             model.add(sum(inside) <= allowance).only_enforce_if(literal)
+
+
+# --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------
+# The textbook encoding of a sequence rule, and `model.md` calls it a T2 study rather than
+# a T1 assumption precisely so it has to earn the swap. See `studies/regular-constraint.md`.
+
+
+def _worked_indicators(built: Built, instance: Instance, employee: int) -> dict[int, object]:
+    """One boolean per day: did this employee work at all. Shared by both encodings, so
+    the comparison is between the sequence constraints and nothing else."""
+    model = built.model
+    worked = {}
+    for day in range(instance.days):
+        same_day = [built.x[e, d, s] for (e, d, s) in built.x if e == employee and d == day]
+        indicator = model.new_bool_var(f"w_{employee}_{day}")
+        if same_day:
+            model.add_max_equality(indicator, same_day)
+        else:
+            model.add(indicator == 0)
+        worked[day] = indicator
+    return worked
+
+
+def _consec_days_automaton(built: Built, instance: Instance) -> None:
+    """The same rule as a state machine over the week: state = current streak length.
+
+    **It can be gated, but only per employee, and that is the trade.** An automaton does
+    accept `only_enforce_if` and CP-SAT enforces it properly -- checked, not assumed, in
+    `tests/test_studies.py`, because the API accepting a call is not evidence that it means
+    anything. What changes is granularity. The sliding-window encoding carries one literal
+    per (employee, window), so a violation is reported against the **day** the streak
+    breached the limit -- the same coordinate the checker names. One automaton covers the
+    whole week, so its literal can only say *this employee's week is wrong somewhere*.
+
+    That is not a rounding error in reporting quality. `violations()` compares model gates
+    against checker violations on the `(rule, employee, day, shift)` key, so an automaton
+    gate with no day would not match its counterpart and the differential harness would
+    have to be told about the exception. See `studies/regular-constraint.md`.
+    """
+    limit = instance.params.max_consecutive_days
+    if limit is None:
+        return
+
+    model = built.model
+    # State `s` means "s consecutive days worked, ending here". Working from the last
+    # allowed state is what the rule forbids, so that transition simply does not exist.
+    transitions = []
+    for state in range(limit + 1):
+        transitions.append((state, 0, 0))
+        if state < limit:
+            transitions.append((state, 1, state + 1))
+
+    for employee, person in enumerate(instance.employees):
+        worked = _worked_indicators(built, instance, employee)
+        # A streak already past the limit before the horizon cannot be repaired by any
+        # roster, so it is clamped rather than made infeasible -- the same clamp the
+        # sliding-window encoding applies, and the two disagree without it.
+        start = min(person.consecutive_days_worked_before_horizon, limit)
+        # No day coordinate: one automaton covers the week, so this is the finest gate the
+        # encoding admits. The window encoding names the breaching day.
+        literal = built.gate(model, Gate("R-CONSEC-DAYS", employee, None))
+        model.add_automaton(
+            [worked[day] for day in range(instance.days)],
+            start,
+            list(range(limit + 1)),
+            transitions,
+        ).only_enforce_if(literal)
+
+
+# --- Symmetry breaking `[study only]` -----------------------------------------------
+
+
+def _orbits(instance: Instance) -> list[list[int]]:
+    """Groups of employees that are genuinely interchangeable.
+
+    Interchangeable means swapping them maps every legal roster to a legal roster **and
+    leaves the objective unchanged**. The second half is what the incumbent destroys:
+    disruption is measured against each person's own published row, so two otherwise
+    identical people with different published shifts are not interchangeable at all, and a
+    lexicographic constraint over them would cut off optima.
+
+    Two employees therefore join an orbit only when every attribute the model reads matches
+    *and* their incumbent rows match. `studies/symmetry-breaking.md` reports how often that
+    happens, which is the number `model.md` asks for rather than assumes.
+    """
+    incumbent = instance.incumbent or frozenset()
+    groups: dict[tuple, list[int]] = defaultdict(list)
+
+    for index, person in enumerate(instance.employees):
+        signature = (
+            person.contract,
+            tuple(sorted(person.skills)),
+            tuple(sorted((i.start, i.end) for i in person.absences)),
+            tuple(sorted((i.start, i.end) for i in person.unavailability)),
+            person.max_hours_this_week,
+            person.max_daily_hours,
+            person.consecutive_days_worked_before_horizon,
+            person.last_shift_end_before_horizon,
+            tuple(sorted(person.flexi_eligible or ())),
+            tuple(sorted(person.dimona_ok or ())),
+            person.hourly_rate,
+            tuple(sorted((d, s) for (e, d, s) in incumbent if e == index)),
+        )
+        groups[signature].append(index)
+
+    return [sorted(members) for members in groups.values() if len(members) > 1]
+
+
+def _break_symmetry(built: Built, instance: Instance) -> None:
+    """Lexicographic ordering inside each orbit, on the assignment vector.
+
+    Ungated on purpose: this is not a rule, it is a statement that one of several equally
+    good rosters has been chosen arbitrarily, so there is nothing for an explainer to
+    report and nothing a relaxation should restore.
+    """
+    slots = sorted({(o.day, o.shift) for o in instance.open_shifts})
+    for orbit in _orbits(instance):
+        for earlier, later in zip(orbit, orbit[1:]):
+            _lexicographic(built, slots, earlier, later)
+
+
+def _lexicographic(built: Built, slots, earlier: int, later: int) -> None:
+    """`row(earlier) >= row(later)` read as a binary number, position by position.
+
+    CP-SAT has no lexicographic primitive, so this is the standard prefix-equality chain:
+    at each position the earlier row may only fall below the later one once some earlier
+    position has already broken the tie.
+    """
+    model = built.model
+    tied = model.new_bool_var(f"lex_{earlier}_{later}_0")
+    model.add(tied == 1)
+
+    for position, (day, shift) in enumerate(slots):
+        a = built.x.get((earlier, day, shift))
+        b = built.x.get((later, day, shift))
+        if a is None or b is None:
+            # Presolve removed one side, so the two rows already differ structurally and
+            # the pair is not interchangeable in this model. Ordering them would cut optima.
+            return
+
+        model.add(a >= b).only_enforce_if(tied)
+        following = model.new_bool_var(f"lex_{earlier}_{later}_{position + 1}")
+        model.add_bool_and(following.negated()).only_enforce_if(tied.negated())
+        model.add(a == b).only_enforce_if(following)
+        model.add(a != b).only_enforce_if([tied, following.negated()])
+        tied = following
 
 
 # --- Solving ------------------------------------------------------------------------

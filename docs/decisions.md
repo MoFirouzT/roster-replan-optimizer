@@ -37,7 +37,6 @@ Records leave this table as they are written. What remains here is what is still
 | D-001 | CP-SAT over MILP — **the one T1 record still owed.** No spec argues it, so it cannot be written from the repo without inventing a rationale nobody made. It needs the actual comparison: what MILP was weighed against, and on what | T1 |
 | D-007 | Lexicographic ordering vs. a weighted sum, for trading disruption against cost | T2 |
 | D-008 | Coverage as hard or soft constraint | T2 |
-| D-009 | Assignment booleans over pattern/column formulation at these sizes | T2 |
 | D-010 | Async job queue over synchronous HTTP | T3 |
 | D-011 | Stateless solver service, no DB reads | T3 |
 | D-012 | LLM confined to artifacts a deterministic layer can reject | T4 |
@@ -149,6 +148,31 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   not only the instance. And the metrics only diverge where there is slack, which is what makes
   coverage tightness T2's decisive generator knob (`D-060`).
 - **Date.** 2026-08-12.
+
+## D-009 — Assignment booleans over pattern/column variables, measured
+
+- **Decision.** Assignment booleans `x[e, d, s]`. The pattern formulation is fully built in
+  `benchmarks/patterns.py` so the comparison is against a real second formulation rather than an
+  estimate, and it is not shipped.
+- **Alternatives.** One boolean per (employee, legal weekly pattern), with coverage summing the
+  chosen patterns — which makes every per-employee rule vanish from the model, because a pattern
+  breaking one is never enumerated.
+- **Reason.** It is competitive on a replan and **fails on a cold week**. On replans the two are within
+  noise, and the reason is not the formulation: `now` sits on day 5, so five of seven days are pinned
+  and there are only 36 to 122 legal patterns for a whole tenant. Solved cold, with the horizon open,
+  the catalogue grows to 5,000–19,500 patterns, enumeration alone costs 0.4–6.7 seconds against a 20 ms
+  assignment solve, and the pattern model **fails to prove optimality within 30 seconds on 5 of 6
+  cases**. The second failure is the one that matters, because caching removes the first and not the
+  second.
+- **Consequences.** The mechanism is worth naming, because it ties two of these studies together: with
+  no incumbent the objective is nearly indifferent, and thousands of near-identical columns give
+  CP-SAT an enormous symmetric search space. **The pattern encoding creates the symmetry that `D-087`
+  found the assignment model does not have.** This is a result about *explicit enumeration*, not about
+  column-based formulations in general — the standard answer is column generation, which needs an LP
+  relaxation CP-SAT does not expose and would be a separate project. It also does not improve with a
+  longer horizon: at a four-week reference period the enumeration is `4^28` rather than `4^7`.
+- **Study.** `docs/studies/pattern-encoding.md`.
+- **Date.** 2026-08-13.
 
 ## D-014 — Horizon-boundary state supplied by the caller, not solved over a longer horizon
 
@@ -1391,4 +1415,49 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   record, not on the benchmark set. The same damage axis `D-083` names as missing is what would
   exercise it, which is the second independent reason to add one. Until then the study says so in
   those words.
+- **Date.** 2026-08-13.
+
+## D-087 — Symmetry breaking measured and not shipped, because the distribution has no symmetry
+
+- **Decision.** No symmetry breaking in the model. `model.md` said this was deliberate pending
+  measurement; the measurement is now in [`studies/symmetry-breaking.md`](studies/symmetry-breaking.md).
+- **Alternatives.** Ship lexicographic ordering over interchangeable employees.
+- **Reason.** There is almost nothing to break. Across 24 committed cases there are **3**
+  interchangeable employees in total, in one case. Lexicographic ordering therefore costs about 4% of
+  build time and returns a coin flip on search. But the null had to be separated from "the lever does
+  not work", so it was also run on a workforce built to be interchangeable, where it is worth **20% of
+  total time** — 27% off the search, paid for with a 79% larger model. The lever works; this
+  distribution does not present the structure it needs.
+- **Consequences.** The spec's stated reason was **partly wrong and is corrected**. It attributes the
+  suppression to the disruption objective, and the objective is the smaller half: the incumbent
+  roughly halves what symmetry remains (7 interchangeable employees across six cold weeks, 3 across
+  24 replans), but the larger effect is the generator giving every employee an independently sampled
+  budget and availability, so two employees are rarely identical before any incumbent exists. That
+  also bounds how far this null travels — a real tenant with eight part-timers on identical contracts
+  and open availability would have genuine orbits, and this distribution does not model that tenant.
+  Revisit when a tenant profile shows a substantial group identical in contract, skills, budget and
+  availability.
+- **Study.** `docs/studies/symmetry-breaking.md`.
+- **Date.** 2026-08-13.
+
+## D-088 — The `regular` automaton rejected at a one-week horizon, on speed and on reporting
+
+- **Decision.** `R-CONSEC-DAYS` keeps the sliding-window encoding. The automaton is implemented behind
+  `build(sequence="automaton")` for the study and is not the shipped path.
+- **Alternatives.** Adopt the automaton, which is the textbook encoding for a sequence rule.
+- **Reason.** It loses on both axes. **Speed:** 20% slower to search on 24 of 24 cases, with an
+  identical variable and constraint count — because at a seven-day horizon with a six-day limit the
+  sliding-window encoding builds exactly **one** window per employee, so the automaton is competing
+  against a single linear inequality over seven booleans. `model.md` suspected the window count would
+  be small; it is one. **Reporting:** an automaton can carry an assumption literal — checked rather
+  than assumed, since the API accepts calls it might not honour — but only one per employee for the
+  whole week, where the window encoding names the *day* the streak breached. `violations()` compares
+  gates to checker violations on the `(rule, employee, day, shift)` key, so adopting it would mean
+  carving an exception into the harness that proves the two readings agree.
+- **Consequences.** Revisit at a horizon longer than about two weeks, where the window count grows
+  with the horizon and the automaton stays one constraint. That is not hypothetical for this domain —
+  reference-period arithmetic is a multi-week rule (`D-014`, `D-033`) — but it is not the model that
+  ships. `R-WEEKLY-REST` is not a candidate in either direction: it governs a continuous 35-hour free
+  run measured in hours, which a day-level automaton cannot express.
+- **Study.** `docs/studies/regular-constraint.md`.
 - **Date.** 2026-08-13.

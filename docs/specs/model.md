@@ -157,8 +157,13 @@ than merely rejected.
 **Durations are carried in minutes.** CP-SAT is integral and `work_hours` is not. The conversion is
 arithmetic rather than a rule threshold, so it lives in the model rather than in the shared schema.
 
-- **Rejected/deferred:** pattern/column variables — dramatically stronger formulations, evaluated
-  as a T2 study at these instance sizes. Record the outcome even if null.
+- **Rejected, measured** (`D-009`): pattern/column variables. Built in full and compared, not
+  estimated — see [`studies/pattern-encoding.md`](../studies/pattern-encoding.md). They tie on a
+  replan, where the pinned past leaves only 36–122 legal patterns for a whole tenant, and fail to
+  prove optimality within 30 seconds on a cold week where the assignment model takes 20 milliseconds.
+  "Dramatically stronger" was the wrong expectation at this horizon, and the mechanism is the one
+  symmetry breaking exists for: thousands of near-identical columns create exactly the symmetry the
+  assignment model turns out not to have.
 
 ## Constraints
 
@@ -193,6 +198,15 @@ and is the textbook choice, which is exactly why it is a **T2 study rather than 
 seven-day horizon the window count is trivially small, and the study should confirm the automaton wins
 rather than take it on faith.
 
+**It does not win** (`D-088`). At this horizon the window count is not merely small, it is **one**, so
+the automaton competes against a single linear inequality over seven booleans and is 20% slower to
+search on 24 of 24 cases. It also gates only per employee, where the window encoding names the day the
+streak breached — the coordinate the checker reports and `violations()` matches on. Kept behind
+`build(sequence="automaton")` for the study, and revisited at a horizon beyond about two weeks.
+`R-WEEKLY-REST` is not a candidate either way: a continuous 35-hour free run measured in hours is not
+expressible by a day-level automaton. See
+[`studies/regular-constraint.md`](../studies/regular-constraint.md).
+
 ## Objective
 
 Defined in [`replan.md`](replan.md). This file owns feasibility; that file owns preference.
@@ -200,7 +214,13 @@ Defined in [`replan.md`](replan.md). This file owns feasibility; that file owns 
 ## Presolve
 
 Most (employee, shift) pairs are impossible: unavailable, wrong skill, wrong contract, Dimona gate.
-Eliminate them before the solver sees them. Often the largest single win, and free.
+Eliminate them before the solver sees them.
+
+**Measured: a quarter of the model, 28% off build time and 16% off search, on 24 of 24 paired cases**
+([`studies/presolve.md`](../studies/presolve.md)). Free, as claimed — the exclusion table is computed
+either way because the reasons have to be retained (`D-045`). Not "the largest single win", which was
+the earlier wording: build time dominates search at these sizes (`D-081`), and the largest available
+win is caching the compiled model, which removes the whole build rather than a quarter of it.
 
 `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX` are enforced *entirely* this way — by removing
 variables, not by adding rows.
@@ -220,9 +240,17 @@ Interchangeable employees create exponentially many equivalent solutions. Lexico
 constraints, and the interaction with the disruption objective (which partially breaks symmetry on
 its own — quantify this rather than assuming it).
 
-**Not implemented.** No symmetry breaking is in the model, deliberately: the disruption objective
-already breaks symmetry partially, and adding lexicographic constraints before measuring how much would
-be optimising against a guess. T2 study.
+**Not implemented, and now measured rather than assumed** (`D-087`). Across 24 committed cases there
+are **3** interchangeable employees in total, in one case — so lexicographic ordering costs about 4% of
+build time and returns a coin flip on search.
+
+The stated reason above was partly wrong. The incumbent does suppress symmetry, roughly halving it, but
+the larger effect is the generator giving every employee an independently sampled budget and
+availability, so two employees are rarely identical *before* any incumbent exists. That also bounds the
+null: run on a workforce built to be interchangeable, the lever is worth 20% of total time, so it works
+and this distribution does not present what it needs. Revisit for a tenant with a substantial group
+identical in contract, skills, budget and availability. See
+[`studies/symmetry-breaking.md`](../studies/symmetry-breaking.md).
 
 ## The forecast interface `[not implemented]`
 

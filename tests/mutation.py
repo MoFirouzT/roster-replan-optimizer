@@ -72,6 +72,7 @@ SUITE = "benchmarks/suite.py"
 METHODS = "benchmarks/methods.py"
 GREEDY = "benchmarks/greedy.py"
 METRIC_STUDY = "benchmarks/metrics.py"
+PATTERNS = "benchmarks/patterns.py"
 DOMAIN = "roster_replan/domain.py"
 
 MUTANTS: tuple[Mutant, ...] = (
@@ -379,6 +380,51 @@ MUTANTS: tuple[Mutant, ...] = (
         "    return dataclasses.replace(instance, disruption=dataclasses.replace(params, metric=metric))",
         "    return instance",
         "tests/test_metrics.py",
+    ),
+    # --- The level-1 model studies --------------------------------------------------
+    # Every defect here produces a *faster* variant, which is the direction that gets
+    # written up. An encoding that drops a constraint, a symmetry that is not one, a
+    # pattern catalogue missing an option: all three solve quicker and answer a different
+    # question, and no timing would show it.
+    Mutant(
+        "studies-automaton-drops-the-prior-streak",
+        "studies",
+        MODEL,
+        "        start = min(person.consecutive_days_worked_before_horizon, limit)",
+        "        start = 0",
+        "tests/test_studies.py",
+    ),
+    Mutant(
+        "studies-orbits-ignore-the-incumbent",
+        "studies",
+        MODEL,
+        "            tuple(sorted((d, s) for (e, d, s) in incumbent if e == index)),",
+        "            (),",
+        "tests/test_studies.py",
+    ),
+    Mutant(
+        "studies-presolve-flag-does-nothing",
+        "studies",
+        MODEL,
+        "        if not presolve\n        or (e, o.day, o.shift) not in excluded",
+        "        if (e, o.day, o.shift) not in excluded",
+        "tests/test_studies.py",
+    ),
+    Mutant(
+        "studies-patterns-miss-a-legal-option",
+        "studies",
+        PATTERNS,
+        "    choices: list[tuple] = [()]",
+        "    choices: list[tuple] = []",
+        "tests/test_studies.py",
+    ),
+    Mutant(
+        "studies-patterns-skip-the-legality-check",
+        "studies",
+        PATTERNS,
+        "        if _legal(instance, employee, pattern):\n            patterns.append(pattern)",
+        "        if True:\n            patterns.append(pattern)",
+        "tests/test_studies.py",
     ),
 )
 

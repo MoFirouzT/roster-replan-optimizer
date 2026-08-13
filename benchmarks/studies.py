@@ -1,0 +1,301 @@
+"""The level-1 model studies: presolve, symmetry, the `regular` automaton, and patterns.
+
+    uv run python -m benchmarks.studies                # all of them
+    uv run python -m benchmarks.studies --only presolve
+
+Each asks whether one change to how the model is *expressed* -- never to what it means --
+makes it cheaper. `lab.py` owns the measurement discipline; this module owns the
+configurations and the two instance families they run over.
+
+**Every study checks agreement before it reports a timing.** A variant that reaches a
+different optimum is a broken encoding, not a fast one, and the broken encoding is usually
+the fast one. `lab.agree` is called first, every time.
+
+## Two instance families, because the committed set cannot answer one of the questions
+
+The committed set is the distribution the project claims to serve, so it is where a lever's
+value is decided. But a null over it has two possible causes -- the lever does nothing, or
+the instances never present the structure the lever exploits -- and those are different
+findings that a single number cannot tell apart.
+
+So symmetry breaking also runs over `identical_workforce`, an instance built to contain the
+structure: N employees with identical skills, contracts, budgets and availability. If a
+lever does nothing there, it does nothing. If it works there and not on the committed set,
+the committed set is the reason, and that is a statement about the distribution rather than
+about the lever.
+
+The fourth study is different in kind. Presolve, symmetry and the automaton are switches
+inside one model, so `lab.compare` can pair them directly. Pattern/column variables are a
+**second formulation** -- it lives in `patterns.py` and is compared end to end, including
+the enumeration it needs before a model exists at all. Leaving that enumeration out of its
+total would be the way to make it look competitive, so it is inside every number reported.
+
+That study also runs twice, on the replan case and on the cold week, because the replan
+case flatters it for a reason that has nothing to do with the formulation: `now` sits on
+day 5, so five of seven days are pinned and there is almost nothing left to enumerate.
+"""
+
+from __future__ import annotations
+
+import argparse
+import dataclasses
+import time
+
+from benchmarks import lab, suite
+from roster_replan.disruption import objective_terms
+from roster_replan.domain import (
+    Employee,
+    Instance,
+    Interval,
+    OpenShift,
+    RuleParams,
+    ShiftType,
+    shipped_d2,
+)
+from roster_replan.model import _orbits, build
+
+# A sample rather than all 72: each study builds and solves every case several times under
+# several configurations, and the committed set's classes are what vary the structure, not
+# the seeds. Six seeds of the same class measure the same thing six times.
+CASES = [f"{name}/0" for name in suite.CLASSES] + [f"{name}/1" for name in suite.CLASSES]
+
+
+def _objective(built, instance: Instance) -> None:
+    built.model.minimize(
+        sum(
+            objective_terms(
+                built.model, instance, built.x, built.shortfall, built.mix_shortfall
+            )
+        )
+    )
+
+
+def _run(instances: dict[str, Instance], builder, *, repeats: int = 5) -> dict:
+    return {
+        name: lab.measure(instance, builder, objective=_objective, repeats=repeats)
+        for name, instance in instances.items()
+    }
+
+
+def committed() -> dict[str, Instance]:
+    return {case: suite.build(case).instance for case in CASES}
+
+
+# --- An instance built to contain the structure symmetry breaking exploits -----------
+
+
+def identical_workforce(employees: int = 12, *, required: int = 2) -> Instance:
+    """N employees who are genuinely interchangeable, and a cold week to place them in.
+
+    Deliberately unlike anything the generator produces: no unavailability, one skill, one
+    contract, one budget. That is the point -- it isolates the lever from the question of
+    whether the committed distribution ever presents symmetry.
+
+    Cold, with no incumbent, because an incumbent destroys symmetry by construction: each
+    person's disruption is measured against their own published row, so two people with
+    different published shifts are not interchangeable however identical their contracts.
+    """
+    shift_types = (
+        ShiftType(label="M", start_hour=7.0, span_hours=8.0, break_hours=0.5),
+        ShiftType(label="E", start_hour=15.0, span_hours=8.0, break_hours=0.5),
+    )
+    people = tuple(
+        Employee(
+            name=f"E{index:02d}",
+            contract="salaried",
+            skills=frozenset({"bar"}),
+            unavailability=(),
+            absences=(),
+            max_hours_this_week=38.0,
+            max_daily_hours=8.0,
+            consecutive_days_worked_before_horizon=0,
+            last_shift_end_before_horizon=None,
+        )
+        for index in range(employees)
+    )
+    return Instance(
+        days=7,
+        shift_types=shift_types,
+        employees=people,
+        open_shifts=tuple(
+            OpenShift(day=day, shift=shift, required=required)
+            for day in range(7)
+            for shift in range(2)
+        ),
+        params=RuleParams(
+            min_rest_hours=11.0,
+            min_weekly_rest_hours=35.0,
+            min_period_hours=3.0,
+            max_consecutive_days=6,
+        ),
+        disruption=shipped_d2(),
+    )
+
+
+def symmetric_family() -> dict[str, Instance]:
+    return {f"identical-{n}": identical_workforce(n) for n in (8, 10, 12, 14, 16)}
+
+
+# --- The studies --------------------------------------------------------------------
+
+
+def presolve_study() -> None:
+    instances = committed()
+    print("\n" + "=" * 78)
+    print("PRESOLVE -- removing impossible (employee, shift) pairs before the solver")
+    print("=" * 78)
+
+    control = _run(instances, lambda i: build(i, presolve=False))
+    treatment = _run(instances, lambda i: build(i, presolve=True))
+    _guard(control, treatment)
+    lab.report("presolve on, against presolve off", control, treatment)
+
+    kept = [treatment[c].variables / control[c].variables for c in instances]
+    print(
+        f"\nvariables kept: {100 * min(kept):.0f}% to {100 * max(kept):.0f}% "
+        f"of the unpresolved model across {len(kept)} cases"
+    )
+
+
+def symmetry_study() -> None:
+    print("\n" + "=" * 78)
+    print("SYMMETRY BREAKING -- lexicographic ordering over interchangeable employees")
+    print("=" * 78)
+
+    committed_instances = committed()
+    orbits = {
+        name: sum(len(o) for o in _orbits(instance))
+        for name, instance in committed_instances.items()
+    }
+    covered = sum(1 for count in orbits.values() if count)
+    print(
+        f"\ninterchangeable employees on the committed set: "
+        f"{sum(orbits.values())} across {len(orbits)} cases, "
+        f"{covered} of which have any at all"
+    )
+
+    cold = {
+        name: dataclasses.replace(
+            suite.build(name).base, disruption=suite.build(name).instance.disruption
+        )
+        for name in CASES[:6]
+    }
+    cold_orbits = {name: sum(len(o) for o in _orbits(i)) for name, i in cold.items()}
+    print(f"the same weeks solved cold, with no incumbent: {sum(cold_orbits.values())}")
+
+    print("\n-- on the committed set --")
+    control = _run(committed_instances, lambda i: build(i))
+    treatment = _run(committed_instances, lambda i: build(i, symmetry=True))
+    _guard(control, treatment)
+    lab.report("symmetry breaking on, against off", control, treatment)
+
+    print("\n-- on a workforce built to be interchangeable --")
+    family = symmetric_family()
+    for name, instance in family.items():
+        print(f"   {name}: {sum(len(o) for o in _orbits(instance))} interchangeable employees")
+    control = _run(family, lambda i: build(i))
+    treatment = _run(family, lambda i: build(i, symmetry=True))
+    _guard(control, treatment)
+    lab.report("symmetry breaking on, against off", control, treatment)
+
+
+def automaton_study() -> None:
+    instances = committed()
+    print("\n" + "=" * 78)
+    print("REGULAR AUTOMATON -- R-CONSEC-DAYS as a state machine, not sliding windows")
+    print("=" * 78)
+
+    control = _run(instances, lambda i: build(i))
+    treatment = _run(instances, lambda i: build(i, sequence="automaton"))
+    _guard(control, treatment)
+    lab.report("automaton, against sliding windows", control, treatment)
+
+    family = symmetric_family()
+    control = _run(family, lambda i: build(i))
+    treatment = _run(family, lambda i: build(i, sequence="automaton"))
+    _guard(control, treatment)
+    lab.report("automaton, on the larger cold instances", control, treatment)
+
+
+def pattern_study() -> None:
+    """Pattern/column variables against assignment booleans, closing `D-009`.
+
+    Run twice, because the replan case flatters the pattern formulation for a reason that
+    has nothing to do with the formulation: `now` sits on day 5, so five of the seven days
+    are pinned and there is almost nothing left to enumerate. The cold week is the same
+    tenant with the whole horizon open, and it is the honest test of whether enumeration
+    scales.
+    """
+    from roster_replan.model import solve as assignment_solve
+
+    from benchmarks import patterns
+
+    print("\n" + "=" * 78)
+    print("PATTERN ENCODING -- one boolean per legal weekly pattern, against assignments")
+    print("=" * 78)
+
+    for label, pick in (
+        ("replan (most of the week pinned)", lambda s: s.instance),
+        ("cold (whole horizon open)", lambda s: dataclasses.replace(
+            s.base, disruption=s.instance.disruption
+        )),
+    ):
+        print(f"\n-- {label} --")
+        print(
+            f"{'case':20}{'patterns':>10}{'enum ms':>9}{'build ms':>10}{'search ms':>11}"
+            f"{'total ms':>10}{'assignment ms':>15}{'':>4}"
+        )
+        for case in CASES[:6]:
+            scenario = suite.build(case)
+            instance = pick(scenario)
+
+            started = time.perf_counter()
+            roster, objective, timing = patterns.solve_patterns(instance)
+            pattern_total = 1000 * (time.perf_counter() - started)
+
+            started = time.perf_counter()
+            reference = assignment_solve(instance)
+            assignment_total = 1000 * (time.perf_counter() - started)
+
+            # "did not finish" and "finished with the wrong answer" are different results
+            # and only one of them is about the formulation being incorrect. Reporting
+            # both as a disagreement would hide the more interesting of the two.
+            if timing["status"] != "OPTIMAL":
+                verdict = f"NO PROOF ({timing['status']})"
+            elif objective == reference.objective:
+                verdict = "same"
+            else:
+                verdict = f"DISAGREES {objective} vs {reference.objective}"
+            print(
+                f"{case:20}{timing['patterns']:>10,}"
+                f"{1000 * timing['enumerate_seconds']:>9.1f}"
+                f"{1000 * timing['build_seconds']:>10.1f}"
+                f"{1000 * timing['search_seconds']:>11.2f}"
+                f"{pattern_total:>10.1f}{assignment_total:>15.1f}  {verdict}"
+            )
+
+
+def _guard(control: dict, treatment: dict) -> None:
+    """No timing is reported until the two configurations agree about the answer."""
+    disagreed = lab.agree(control, treatment)
+    if disagreed:
+        raise AssertionError(
+            f"the two encodings reached different optima on {disagreed} -- that is a bug "
+            f"in an encoding, not a result about one"
+        )
+
+
+STUDIES = {
+    "presolve": presolve_study,
+    "symmetry": symmetry_study,
+    "automaton": automaton_study,
+    "patterns": pattern_study,
+}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--only", choices=sorted(STUDIES), nargs="*", default=None)
+    args = parser.parse_args()
+    for name in args.only or STUDIES:
+        STUDIES[name]()
