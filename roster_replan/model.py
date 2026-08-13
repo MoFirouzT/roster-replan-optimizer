@@ -677,6 +677,46 @@ class Solution:
     shortfall: dict[tuple[int, int], int]
     search_seconds: float = 0.0
 
+    # CP-SAT's best proven lower bound. Equal to `objective` on an OPTIMAL solve; below it
+    # when the search stopped at a time limit, which is exactly when a caller needs it.
+    # Carried here rather than derived by the caller because it is only available from the
+    # solver object, and a service that cannot report its gap is a service that hides it
+    # (`service.md`).
+    bound: int = 0
+
+    @property
+    def gap(self) -> float:
+        """Relative optimality gap, 0.0 when proven optimal.
+
+        Guarded against a zero objective, which is reachable here rather than theoretical:
+        a replan that changes nothing scores 0, and that is the *best* possible answer
+        rather than a degenerate one.
+        """
+        if self.objective == 0:
+            return 0.0
+        return abs(self.objective - self.bound) / abs(self.objective)
+
+
+@dataclass(frozen=True, slots=True)
+class Unproven:
+    """The search stopped with no solution **and no proof that none exists**.
+
+    A third outcome, and it exists because the first two were being conflated. Returning
+    an empty `list[Gate]` here -- which is what this function used to do -- is
+    type-identical to "proved infeasible with an empty core", so a caller could not tell a
+    proof from a timeout. Three things downstream turn that into a real failure: the
+    fallback ladder would report a conflict that was never demonstrated, `methods.py` would
+    record a timeout as `INFEASIBLE` in a benchmark, and T4's explainer is specified to
+    turn a core into prose, so it would phrase an infeasibility nobody proved.
+
+    Found by giving the ladder a 1 ms budget, which is the only reason it was ever seen:
+    no instance in the committed set takes more than 12.4 ms, so nothing in normal
+    operation reaches this path.
+    """
+
+    status: str
+    search_seconds: float
+
 
 def solve(
     instance: Instance,
@@ -685,11 +725,13 @@ def solve(
     time_limit: float = 30.0,
     workers: int = 1,
     hint: Roster | None = None,
-) -> Solution | list[Gate]:
-    """Solve, or return the rule instances that make it impossible.
+) -> Solution | Unproven | list[Gate]:
+    """Solve, or say why not -- distinguishing a proof from a timeout.
 
-    A list of `Gate`s means infeasible: those are the rule instances in conflict, which
-    is the shape the T4 explainer consumes.
+    A list of `Gate`s means **proved infeasible**: those are the rule instances in
+    conflict, which is the shape the T4 explainer consumes. An `Unproven` means the search
+    ran out of budget with nothing to show, which is not the same claim and must not be
+    reported as one.
 
     **Sufficient, not minimal.** CP-SAT's `sufficient_assumptions_for_infeasibility`
     returns a set that explains the infeasibility, and does not guarantee it is the
@@ -725,6 +767,10 @@ def solve(
 
     status = solver.solve(model)
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        if status != cp_model.INFEASIBLE:
+            return Unproven(
+                status=solver.status_name(status), search_seconds=solver.wall_time
+            )
         return [
             built.gates[index]
             for index in solver.sufficient_assumptions_for_infeasibility()
@@ -738,6 +784,7 @@ def solve(
         status=solver.status_name(status),
         shortfall={k: solver.value(v) for k, v in built.shortfall.items()},
         search_seconds=solver.wall_time,
+        bound=round(solver.best_objective_bound),
     )
 
 

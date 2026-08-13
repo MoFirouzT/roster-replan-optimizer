@@ -65,12 +65,15 @@ type = "forbidden"
 source_modules = ["roster_replan.disruption"]
 forbidden_modules = ["roster_replan.scoring", "roster_replan.checker", "roster_replan.model"]
 
-# The greedy baseline's whole claim is that it is not the solver in disguise. A baseline
-# that quietly consults the thing it is a baseline for measures nothing.
+# Two claims at once, which is why this contract outlived the study that created it. As a
+# benchmark baseline, greedy repair must not be the solver in disguise -- a baseline that
+# consults the thing it measures measures nothing. As the third rung of T3's fallback
+# ladder, it must not need the solver *at all*, because the rung exists for the case where
+# the solver did not deliver.
 [[tool.importlinter.contracts]]
 name = "The greedy baseline is solver-free"
 type = "forbidden"
-source_modules = ["benchmarks.greedy"]
+source_modules = ["roster_replan.repair"]
 forbidden_modules = [
     "roster_replan.model",
     "roster_replan.disruption",

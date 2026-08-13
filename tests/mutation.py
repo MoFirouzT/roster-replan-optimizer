@@ -70,9 +70,10 @@ VALIDATION = "roster_replan/validation.py"
 GENERATOR = "benchmarks/generator.py"
 SUITE = "benchmarks/suite.py"
 METHODS = "benchmarks/methods.py"
-GREEDY = "benchmarks/greedy.py"
+GREEDY = "roster_replan/repair.py"
 METRIC_STUDY = "benchmarks/metrics.py"
 PATTERNS = "benchmarks/patterns.py"
+LADDER = "roster_replan/ladder.py"
 DOMAIN = "roster_replan/domain.py"
 
 MUTANTS: tuple[Mutant, ...] = (
@@ -425,6 +426,42 @@ MUTANTS: tuple[Mutant, ...] = (
         "                    _minutes(window.end - window.start) + minutes,",
         "                    _minutes(window.end - window.start),",
         "tests/test_studies.py",
+    ),
+    # --- The fallback ladder ---------------------------------------------------------
+    # Every rung here is unreachable in normal operation -- nothing in the committed set
+    # takes more than 12.4 ms -- so these mutants are the only thing standing between the
+    # lower rungs and shipping on the strength of a code review.
+    Mutant(
+        "ladder-timeout-reported-as-infeasible",
+        "ladder",
+        MODEL,
+        "        if status != cp_model.INFEASIBLE:\n            return Unproven(",
+        "        if False:\n            return Unproven(",
+        "tests/test_ladder.py",
+    ),
+    Mutant(
+        "ladder-gap-always-zero",
+        "ladder",
+        MODEL,
+        "        return abs(self.objective - self.bound) / abs(self.objective)",
+        "        return 0.0",
+        "tests/test_ladder.py",
+    ),
+    Mutant(
+        "ladder-skips-the-checker-on-its-own-output",
+        "ladder",
+        LADDER,
+        "    return tuple(v.key() for v in check(roster, instance) if not v.soft)",
+        "    return ()",
+        "tests/test_ladder.py",
+    ),
+    Mutant(
+        "ladder-invents-a-roster-when-there-is-no-incumbent",
+        "ladder",
+        LADDER,
+        "        attempts.append(GREEDY)\n        return Answer(\n            roster=frozenset(),\n            rung=INCUMBENT,",
+        "        attempts.append(GREEDY)\n        return Answer(\n            roster=frozenset(),\n            rung=EXACT,",
+        "tests/test_ladder.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

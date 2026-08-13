@@ -45,7 +45,7 @@ from roster_replan.domain import (
     ShiftType,
     shipped_d2,
 )
-from roster_replan.model import exclusions, solve
+from roster_replan.model import Unproven, exclusions, solve
 
 # --- The tenant's fixed furniture ---------------------------------------------------
 # Three 8h spans on an eight-hour grid with a 30-minute break, so `span` and `work_hours`
@@ -413,6 +413,12 @@ def generate(seed: int, params: ScenarioParams | None = None) -> Scenario:
         raise RuntimeError(
             f"seed {seed} produced a base week with no legal roster at all, which "
             f"`D-047` says should be nearly unreachable: {solution}"
+        )
+    if isinstance(solution, Unproven):
+        raise RuntimeError(
+            f"seed {seed}'s base week did not solve within the budget ({solution.status}); "
+            f"the committed set's fingerprints depend on this being deterministic, so a "
+            f"timeout here would silently move instances rather than fail"
         )
 
     # The whole week is published. That is the case a replan is actually asked about, and

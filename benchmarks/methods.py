@@ -41,7 +41,7 @@ three seeds on the same case, where the disruption methods move by zero (`D-080`
 
 ## What `greedy` actually is
 
-See `greedy.py`, which is a separate module so that an import-linter contract can hold it
+See `roster_replan/repair.py`, which is a separate module so that an import-linter contract can hold it
 to being solver-free. That is the property that makes it a baseline rather than a second
 opinion from the same source.
 """
@@ -52,10 +52,10 @@ import dataclasses
 import time
 
 from benchmarks.generator import Scenario
-from benchmarks.greedy import repair
 from roster_replan.checker import check
 from roster_replan.domain import Disruption, Instance, Roster
-from roster_replan.model import solve
+from roster_replan.model import Unproven, solve
+from roster_replan.repair import repair
 from roster_replan.scoring import disruption_of, score
 
 COLD_COST = "cold-cost"
@@ -157,6 +157,10 @@ def _dispatch(
     solution = solve(instance, seed=seed, time_limit=time_limit, hint=hint)
     if isinstance(solution, list):
         return None, "INFEASIBLE", 0.0
+    if isinstance(solution, Unproven):
+        # Not the same as infeasible, and recording it as such would put a timeout in the
+        # benchmark as a proof. Never reached at these sizes; kept correct anyway.
+        return None, solution.status, solution.search_seconds
     return solution.roster, solution.status, solution.search_seconds
 
 

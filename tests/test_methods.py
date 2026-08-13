@@ -24,7 +24,8 @@ import dataclasses
 
 import pytest
 
-from benchmarks import greedy, methods, suite
+from benchmarks import methods, suite
+from roster_replan import repair as greedy
 from roster_replan.checker import check
 from roster_replan.scoring import disruption_of, score
 

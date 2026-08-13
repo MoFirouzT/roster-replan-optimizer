@@ -1555,3 +1555,29 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   and that is a standing cost in a project whose T4 deliverable is an explainer.
 - **Study.** `docs/studies/rest-gap-encoding.md`.
 - **Date.** 2026-08-13.
+
+## D-089 — A timeout and an infeasibility are different answers, and `solve` now says which
+
+- **Decision.** `solve` returns three things, not two: a `Solution`, a `list[Gate]` meaning **proved
+  infeasible**, or an `Unproven` meaning the search stopped with no solution and no proof. Previously
+  the last two shared a type.
+- **Alternatives.** Keep the two-way split and let callers infer exhaustion from an empty core. Raise
+  on a timeout.
+- **Reason.** An empty `list[Gate]` is type-identical to "proved infeasible, with an empty core", so
+  no caller could tell a proof from a stopwatch. Three consumers turn that into a real failure. The
+  fallback ladder reported *no legal roster exists* when the truth was *we did not look for long
+  enough*. `methods.py` recorded a timeout as `INFEASIBLE`, which would have put a stopwatch reading
+  into a benchmark as a proof. And T4's explainer is specified to consume a core and phrase it, so it
+  would have narrated a conflict nobody demonstrated — the exact failure `D-013` exists to prevent,
+  arriving through the data rather than through the LLM.
+- **Consequences.** The ladder's cold branch reads `Unproven` and never a core, which is not merely
+  defensive: **a cold solve cannot be infeasible at all**, because the coverage floor is soft and the
+  empty roster satisfies every hard constraint (`D-018`). So exhaustion is the only cold failure, and
+  the branch that would report a cold core is unreachable by construction. That reasoning is asserted
+  by test rather than left in a comment, because it silently stops holding if the floor ever hardens.
+- **How it was found.** Not by review. The ladder was given a 1 ms budget to force its lower rungs,
+  and it answered "no legal roster exists" for an instance that solves in 10 ms. Nothing in the
+  committed set takes more than 12.4 ms, so no benchmark, test or production payload would have
+  reached this path — it needed a deliberately absurd budget, which is the same technique the whole
+  rung-forcing exercise rests on.
+- **Date.** 2026-08-13.
