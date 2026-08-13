@@ -275,6 +275,83 @@ def pattern_study() -> None:
             )
 
 
+def rest_gap_study() -> None:
+    """Pairwise inequalities against one `add_no_overlap` per employee.
+
+    `rules.md` deferred this to a T2 study and said "measured there, not assumed here",
+    which is a promise the repo had not kept. The pairwise set grows quadratically in the
+    slots, so the interval form should win as the horizon grows -- and the horizon here is
+    one week, which is exactly the regime where the naive form is cheapest.
+    """
+    instances = committed()
+    print("\n" + "=" * 78)
+    print("REST GAP -- one no_overlap per employee, against pairwise inequalities")
+    print("=" * 78)
+
+    control = _run(instances, lambda i: build(i))
+    treatment = _run(instances, lambda i: build(i, rest="intervals"))
+    _guard(control, treatment)
+    lab.report("intervals, against pairwise", control, treatment)
+
+    family = symmetric_family()
+    control = _run(family, lambda i: build(i))
+    treatment = _run(family, lambda i: build(i, rest="intervals"))
+    _guard(control, treatment)
+    lab.report("intervals, on the larger cold instances", control, treatment)
+
+
+def coverage_study() -> None:
+    """How often a hard coverage floor would answer "infeasible" instead of answering.
+
+    The evidence `D-008` needs. `R-COVER` ships as a hard ceiling and a soft floor, and
+    `D-018` argued that from first principles at T1 -- a disruption often has no legal
+    repair, and *one short on Saturday, here is what it costs* is what a planner can act
+    on. That argument is sound and was never measured. This measures it: force every
+    non-historical shortfall to zero and count how many of the committed cases stop having
+    an answer at all.
+    """
+    from ortools.sat.python import cp_model
+
+    print("\n" + "=" * 78)
+    print("COVERAGE FLOOR -- what a hard floor would refuse to answer")
+    print("=" * 78)
+
+    refused = []
+    already_short = []
+    for case in suite.case_names():
+        scenario = suite.build(case)
+        instance = scenario.instance
+
+        built = build(instance)
+        _objective(built, instance)
+        for (day, shift), slack in built.shortfall.items():
+            if not instance.is_past(day, shift):
+                built.model.add(slack == 0)
+
+        built.model.clear_assumptions()
+        built.model.add_assumptions(built.literals)
+        solver = cp_model.CpSolver()
+        solver.parameters.num_workers = 1
+        solver.parameters.random_seed = 7
+        solver.parameters.max_time_in_seconds = 30.0
+
+        if solver.solve(built.model) not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+            refused.append(case)
+            if scenario.base_shortfall:
+                already_short.append(case)
+
+    total = len(suite.case_names())
+    print(f"\ncases a hard floor could not answer: {len(refused)}/{total}")
+    print(f"  of those, already short before the event: {len(already_short)}")
+    print(f"  fully staffable before the event: {len(refused) - len(already_short)}")
+    by_class: dict[str, int] = {}
+    for case in refused:
+        name = case.partition("/")[0]
+        by_class[name] = by_class.get(name, 0) + 1
+    for name in sorted(by_class, key=lambda k: -by_class[k]):
+        print(f"    {name:20}{by_class[name]}/6")
+
+
 def _guard(control: dict, treatment: dict) -> None:
     """No timing is reported until the two configurations agree about the answer."""
     disagreed = lab.agree(control, treatment)
@@ -290,6 +367,8 @@ STUDIES = {
     "symmetry": symmetry_study,
     "automaton": automaton_study,
     "patterns": pattern_study,
+    "coverage": coverage_study,
+    "rest-gap": rest_gap_study,
 }
 
 

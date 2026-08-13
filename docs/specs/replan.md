@@ -2,9 +2,16 @@
 
 The objective. [`rules.md`](rules.md) owns what is *legal*; this file owns what is *preferable*.
 
-> **Status: D0–D4 defined, D2 shipped.** The remaining `[TODO]`s are the cost model, which is a
-> deliberate placeholder until T2 supplies real wage data, and calibration of the exchange rate, which
-> cannot be done from first principles — see [Trading disruption against cost](#trading-disruption-against-cost-and-coverage).
+> **Status: D0–D4 defined and measured, D2 shipped.** The comparison the file called for is in
+> [`studies/disruption-metrics.md`](../studies/disruption-metrics.md), and warm starting is measured
+> under `D-082`.
+>
+> **T2 closes without the wage data**, so the two remaining `[TODO]`s stand and their owner has moved:
+> the cost model is still a flat rate, and the exchange rate is still uncalibrated. Neither can be
+> settled from first principles, and the corpus that would settle them is
+> [`capture.md`](capture.md)'s. `benchmarks.md` reports the consequence rather than working around it —
+> with a flat rate and a hard coverage ceiling every fully staffed roster costs the same, so the cost
+> axis of the frontier collapses and `D-050`'s sweep has nothing to trace yet.
 
 ## What disruption is a function of
 
@@ -260,8 +267,9 @@ sweeps it (`D-050`), which is when the cost axis starts to mean anything.
 
 ## Understaffing: hard or soft
 
-Settled in [`rules.md`](rules.md#r-cover--coverage): **hard ceiling, soft floor**, provisional under
-`D-008`. The consequence for this file is the domination bound above, and one more worth naming: with a
+Settled in [`rules.md`](rules.md#r-cover--coverage): **hard ceiling, soft floor**, ratified under
+`D-008` — a hard floor cannot answer 16 of the 72 committed cases, eight of them weeks that were
+fully staffable until the disruption. The consequence for this file is the domination bound above, and one more worth naming: with a
 soft floor, coverage has been *priced against stability*. That is a real choice. A planner who would
 always rather be short than move someone is expressing an exchange rate, and this model lets them
 configure it instead of pretending the question does not arise.

@@ -133,10 +133,14 @@ Levers, measured, including the three that did not pay off:
 | Warm starts from the previous solution | **9% of search time**, paired on 216 runs; invisible end to end |
 | Symmetry breaking | **Null** — 3 interchangeable employees across 24 cases. Worth 20% where symmetry exists, so the null is about the distribution |
 | `regular` automaton for shift sequences | **Rejected, 20% slower** — a one-week horizon leaves exactly one window to replace |
+| `no_overlap` intervals for rest gaps | **Rejected** — trades search time for build time, and the sign of the total flips by instance |
 | Pattern/column variables | **Rejected** — no proof of optimality in 30 s on a cold week, against ~20 ms |
 
-Three of the six textbook levers lost, and the one that mattered most was the least interesting:
-at these sizes the model is built more slowly than it is solved. Each study, including every null:
+Four of the seven textbook levers lost, and the one that mattered most was the least interesting:
+at these sizes the model is built more slowly than it is solved. Three of the four failures share a
+cause worth naming — a global constraint aggregates, and this model gates every rule *instance*, so
+replacing many local constraints with one global one coarsens what a failure can be blamed on. That
+is a real cost when the T4 deliverable is an explainer. Each study, including every null:
 [`docs/studies/README.md`](docs/studies/README.md).
 
 ## Deliberately out of scope

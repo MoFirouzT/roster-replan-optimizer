@@ -25,7 +25,7 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 
 | ID | Rule | Class | Parameters | Provenance |
 | --- | --- | --- | --- | --- |
-| `R-COVER` | Each open shift is staffed to its requirement | hard ceiling, soft floor *(provisional — `D-008`)* | per shift | operational |
+| `R-COVER` | Each open shift is staffed to its requirement | hard ceiling, soft floor (`D-008`) | per shift | operational |
 | `R-AVAIL` | No assignment overlapping a declared absence or unavailability | hard | per employee, interval | operational |
 | `R-SKILL` | Assigned employee holds the shift's required skill | hard | per shift/employee | operational |
 | `R-SKILL-MIX` | A shift's roster holds at least *m* people with a given skill | hard or soft, **per entry** | per shift/skill | operational, or legal per entry `[CITE]` |
@@ -157,8 +157,10 @@ own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
 
   Feasibility requires `Σ_e x[e, d, s] ≤ req[d, s]`. Each unit of `u[d, s]` is priced in the
   objective.
-- **Class.** Split — **hard ceiling, soft floor** (`D-018`). *Provisional for T1; ratified under
-  `D-008` in T2.*
+- **Class.** Split — **hard ceiling, soft floor** (`D-018`), ratified under `D-008` in T2 with the
+  measurement that record argued from: forcing every non-historical shortfall to zero leaves **16 of
+  the 72 committed cases with no answer at all**, and eight of those were weeks that could have been
+  fully staffed before the disruption arrived.
 
   The ceiling is free: the all-zero roster satisfies it, so a hard upper bound can never be the sole
   cause of infeasibility. The floor must be soft because a disruption often has no legal repair, and
@@ -453,10 +455,14 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   the pair set is small and the encoding is transparently the same object the checker walks, which is
   worth more here than tightness.
 
-  **Alternative, deferred to a T2 study:** one optional interval variable per `(employee, shift
-  instance)` inflated by `min_rest_hours`, under a single `add_no_overlap` per employee. It scales as
-  the horizon grows where the pairwise set grows quadratically, and it gives CP-SAT a global propagator
-  instead of many local ones. Measured there, not assumed here.
+  **Alternative, measured and rejected** (`D-089`): one optional interval variable per
+  `(employee, shift instance)` inflated by `min_rest_hours`, under a single `add_no_overlap` per
+  employee. It is 23% smaller and builds 12% faster, and searches 16% slower on 24 of 24 cases — a 2%
+  better total on the committed set that reverses to 11% worse on larger cold instances. It also
+  coarsens the gate to one literal per employee-week, losing the slot coordinate this encoding
+  reports. The scaling argument for it is about the **horizon**, which is fixed at one week here, so
+  it remains untested rather than disproved — see
+  [`studies/rest-gap-encoding.md`](../studies/rest-gap-encoding.md).
 - **Checker encoding.** Sort the employee's assigned instances by start time, walk consecutive pairs,
   compare each gap against the parameter. `last_shift_end_before_horizon[e]` is the predecessor of the
   first instance — **not a special case, just the zeroth element**, which is the framing that stops the
@@ -585,11 +591,14 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Model encoding.** Sliding-window sums — `|D| − L + p` inequalities per employee, each over `L + 1`
   booleans, plus one reification per `(employee, day)` for `w`.
 
-  **Alternative, deferred to the T2 study already named in `model.md`:** a `regular` automaton over the
-  worked/not-worked sequence, whose states count the current streak. It expresses this rule and
-  `R-WEEKLY-REST` in one propagator and is the textbook encoding for sequence rules — which is exactly
-  why the study should confirm it beats the naive form here rather than assume it, at horizons of seven
-  days where the window count is trivially small.
+  **Alternative, measured and rejected** (`D-088`): a `regular` automaton over the worked/not-worked
+  sequence, whose states count the current streak. It is the textbook encoding for sequence rules,
+  which is why the study had to confirm it rather than assume it — and it is **20% slower to search on
+  24 of 24 cases**, because at a seven-day horizon with a six-day limit this encoding builds exactly
+  **one** window per employee, so the automaton competes against a single inequality. It also gates
+  only per employee-week, losing the day coordinate. It does not express `R-WEEKLY-REST` either: a
+  continuous 35-hour free run is measured in hours, not days. See
+  [`studies/regular-constraint.md`](../studies/regular-constraint.md).
 - **Checker encoding.** Walk days in order tracking a streak counter initialised to
   `consecutive_days_worked_before_horizon[e]`, reset on any unworked day.
 - **Explainer text.** `Finn already worked 4 days before Monday and this roster adds 3 more — 7 consecutive, 6 allowed.`
@@ -740,8 +749,15 @@ on a computation this service does not perform.**
 
   This is a substantive input to `replan.md`: it is a defensible, externally-grounded reason for a
   contract-weighted disruption metric, which is D3/D4 territory rather than the D2 that ships. **Not a
-  reason to change the shipped metric** — a reason the alternatives are not arbitrary, which is exactly
-  what the T2 study comparing D0–D4 needs.
+  reason to change the shipped metric** — a reason the alternatives are not arbitrary.
+
+  The D0–D4 study is done and deliberately left this out (`D-036`), and its result raised the value of
+  the idea rather than lowering it. D0, D1 and D2 never diverge on the committed set, because their
+  weights multiply every candidate repair by the same constant and a constant factor reorders nothing.
+  A per-contract weight would not behave that way: it varies with **which employee** is chosen, and
+  candidates differ precisely in that. It is the one weight in this family that would change the answer
+  on this distribution — and its size is a fact about a tenant's back office, so it waits for the
+  captured corpus rather than for a number someone invents.
 - **The short-notice substitution gate.** Replacing an absent flexi worker with another flexi worker
   requires a fresh `OK` before the substitute starts. For this project's headline scenario — a Saturday
   sick call — that materially narrows which substitutes are reachable in time, and it narrows it in a

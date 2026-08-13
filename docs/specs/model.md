@@ -1,9 +1,14 @@
 # Model
 
 > **Status: reconciled with `model.py` and `domain.py`.** Index sets, decision variables, the gate
-> mechanism, presolve, symmetry and the payload schema describe what is built. Still outline: the wire
-> format (JSON, versioning, the Pydantic boundary — all T3), and the forecast interface, which is
-> interface-only by design.
+> mechanism, presolve, symmetry and the payload schema describe what is built, and the four encoding
+> questions this file deferred to T2 are now measured rather than assumed — presolve (`D-045`),
+> symmetry (`D-087`), the `regular` automaton (`D-088`) and pattern variables (`D-009`), each with a
+> study in [`docs/studies/`](../studies/README.md). Presolve was confirmed; the other three
+> alternatives lost, two of them to this file's own stated suspicions.
+>
+> Still outline: the wire format (JSON, versioning, the Pydantic boundary — all T3), and the forecast
+> interface, which is interface-only by design.
 
 The CP-SAT formulation. Rule semantics live in [`rules.md`](rules.md); this file defines the index
 sets, variables and encodings those rules are expressed over.

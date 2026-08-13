@@ -107,10 +107,11 @@ def build(
     presolve: bool = True,
     symmetry: bool = False,
     sequence: str = "windows",
+    rest: str = "pairwise",
 ) -> Built:
     """The model, with every hard constraint instance gated.
 
-    The three keyword arguments are **study switches, not supported modes**. Each selects an
+    The four keyword arguments are **study switches, not supported modes**. Each selects an
     alternative encoding of the same problem so that `docs/studies/` can measure one against
     the other with everything else held. The shipped configuration is the default of each,
     and `studies/*.md` records why.
@@ -122,7 +123,8 @@ def build(
 
     `symmetry=True` adds lexicographic ordering within groups of genuinely interchangeable
     employees. `sequence="automaton"` encodes `R-CONSEC-DAYS` as a `regular` automaton
-    instead of sliding-window sums.
+    instead of sliding-window sums. `rest="intervals"` encodes `R-REST-GAP` as one
+    `add_no_overlap` per employee instead of pairwise inequalities.
 
     Every variant must reach the same optimum. That is checked by `lab.agree` before any
     timing is reported, because a broken encoding is usually the fast one.
@@ -169,7 +171,10 @@ def build(
     _cover(built, instance)
     _skill_mix(built, instance)
     _pin_past(built, instance, incumbent)
-    _rest_gap(built, instance)
+    if rest == "intervals":
+        _rest_gap_intervals(built, instance)
+    else:
+        _rest_gap(built, instance)
     _weekly_rest(built, instance)
     _max_weekly(built, instance)
     _max_daily(built, instance)
@@ -289,7 +294,6 @@ def _conflicting_pairs(instance: Instance) -> list[tuple[tuple[int, int], tuple[
 
 def _rest_gap(built: Built, instance: Instance) -> None:
     model = built.model
-    minimum = instance.params.min_rest_hours
 
     for first, second in _conflicting_pairs(instance):
         for employee in range(len(instance.employees)):
@@ -297,6 +301,76 @@ def _rest_gap(built: Built, instance: Instance) -> None:
             if a in built.x and b in built.x:
                 literal = built.gate(model, Gate("R-REST-GAP", employee, second[0], second[1]))
                 model.add(built.x[a] + built.x[b] <= 1).only_enforce_if(literal)
+
+    _rest_gap_boundary(built, instance)
+
+
+def _rest_gap_boundary(built: Built, instance: Instance) -> None:
+    """The gap against the shift that ended before the horizon began.
+
+    The horizon boundary is the zeroth element of the sequence, not a special case. Shared
+    by both encodings deliberately: it is a fixing rather than a relation between two
+    variables, so expressing it differently in the interval form would confound the study
+    with a second change instead of isolating the pair set.
+    """
+    model = built.model
+    minimum = instance.params.min_rest_hours
+
+    for employee, person in enumerate(instance.employees):
+        previous_end = person.last_shift_end_before_horizon
+        if previous_end is None:
+            continue
+        for open_shift in instance.open_shifts:
+            key = (employee, open_shift.day, open_shift.shift)
+            if key not in built.x:
+                continue
+            if instance.window(open_shift.day, open_shift.shift).start - previous_end < minimum:
+                literal = built.gate(
+                    model, Gate("R-REST-GAP", employee, open_shift.day, open_shift.shift)
+                )
+                model.add(built.x[key] == 0).only_enforce_if(literal)
+
+
+def _rest_gap_intervals(built: Built, instance: Instance) -> None:
+    """`R-REST-GAP` as one `add_no_overlap` per employee `[study only]`.
+
+    The alternative `rules.md` deferred to a T2 study: an optional interval per (employee,
+    shift instance), inflated by `min_rest_hours`, so that a global propagator enforces
+    what the pairwise encoding states one pair at a time. It should scale better as the
+    horizon grows, because the conflicting-pair set grows quadratically in the slots.
+
+    **The gate granularity is the catch, and it is the same one the automaton has.** A
+    `no_overlap` covers an employee's whole week, so its literal can say only *this
+    employee's week has a rest violation somewhere*, where the pairwise encoding names the
+    second slot of the offending pair -- the coordinate `checker.py` reports and
+    `violations()` matches on. See `studies/rest-gap-encoding.md`.
+    """
+    model = built.model
+    minutes = _minutes(instance.params.min_rest_hours)
+
+    for employee in range(len(instance.employees)):
+        intervals = []
+        for open_shift in instance.open_shifts:
+            key = (employee, open_shift.day, open_shift.shift)
+            if key not in built.x:
+                continue
+            window = instance.window(open_shift.day, open_shift.shift)
+            # Inflated by the rest minimum at the end, so two intervals overlap exactly
+            # when the gap between the shifts is short. Sizes are constants, so this is an
+            # optional interval with fixed bounds rather than a scheduling variable.
+            intervals.append(
+                model.new_optional_fixed_size_interval_var(
+                    _minutes(window.start),
+                    _minutes(window.end - window.start) + minutes,
+                    built.x[key],
+                    f"rest_{employee}_{open_shift.day}_{open_shift.shift}",
+                )
+            )
+        if len(intervals) > 1:
+            literal = built.gate(model, Gate("R-REST-GAP", employee, None, None))
+            model.add_no_overlap(intervals).only_enforce_if(literal)
+
+    _rest_gap_boundary(built, instance)
 
     # The horizon boundary is the zeroth element of the sequence, not a special case.
     for employee, person in enumerate(instance.employees):

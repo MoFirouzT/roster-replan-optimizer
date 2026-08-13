@@ -419,6 +419,14 @@ MUTANTS: tuple[Mutant, ...] = (
         "tests/test_studies.py",
     ),
     Mutant(
+        "studies-rest-intervals-not-inflated",
+        "studies",
+        MODEL,
+        "                    _minutes(window.end - window.start) + minutes,",
+        "                    _minutes(window.end - window.start),",
+        "tests/test_studies.py",
+    ),
+    Mutant(
         "studies-patterns-skip-the-legality-check",
         "studies",
         PATTERNS,

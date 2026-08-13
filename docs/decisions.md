@@ -35,8 +35,6 @@ Records leave this table as they are written. What remains here is what is still
 | ID | Decision | Tier |
 | --- | --- | --- |
 | D-001 | CP-SAT over MILP — **the one T1 record still owed.** No spec argues it, so it cannot be written from the repo without inventing a rationale nobody made. It needs the actual comparison: what MILP was weighed against, and on what | T1 |
-| D-007 | Lexicographic ordering vs. a weighted sum, for trading disruption against cost | T2 |
-| D-008 | Coverage as hard or soft constraint | T2 |
 | D-010 | Async job queue over synchronous HTTP | T3 |
 | D-011 | Stateless solver service, no DB reads | T3 |
 | D-012 | LLM confined to artifacts a deterministic layer can reject | T4 |
@@ -44,7 +42,6 @@ Records leave this table as they are written. What remains here is what is still
 | D-015 | Incumbent comparison on observables only, never on objective values | T2 |
 | D-016 | Pseudonymisation at capture; absence reasons discarded rather than protected | T2 |
 | D-017 | Acceptance bar for incumbent replacement fixed before the first replay | T2 |
-| D-036 | Asymmetric administrative disruption by contract type as input to the D0–D4 study | T2 |
 
 ---
 
@@ -149,6 +146,48 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   coverage tightness T2's decisive generator knob (`D-060`).
 - **Date.** 2026-08-12.
 
+## D-007 — Answered under `D-049`
+
+- **Decision.** The question this ID reserved — lexicographic ordering against a weighted sum for
+  trading disruption against cost — was decided in [`D-049`](#d-049--weighted-sum-not-lexicographic-ordering),
+  written with the objective batch at T1 rather than waiting for T2. Weighted sum.
+- **Reason this record exists at all.** The ID was listed as owed, and deleting the row would leave a
+  reader who finds `D-007` referenced anywhere with nothing to look up. `decisions.md` amends in place
+  and does not erase, and the same courtesy applies to a question that turned out to be answered
+  early.
+- **Consequences.** None beyond `D-049`'s. The T2 half of what this row anticipated — sweeping the
+  exchange rate rather than asserting it — is `D-050`, and its measurement is in
+  [`benchmarks.md`](benchmarks.md): with a flat cost model the cost axis collapses, so the sweep has
+  nothing to trace yet and says so.
+- **Date.** 2026-08-13.
+
+## D-008 — `R-COVER`'s soft floor ratified, and now measured rather than argued
+
+- **Decision.** `R-COVER` keeps the hard ceiling and soft floor that `D-018` introduced provisionally
+  at T1. The provisional marking comes off `rules.md`.
+- **Alternatives.** A hard floor, which is what the walking skeleton did. Both directions soft.
+- **Reason.** `D-018` argued this from the classification test — *what should the service return when
+  the only otherwise-legal roster breaks the rule* — and concluded that "nothing, and an explanation"
+  is the wrong answer for a coverage shortfall. Sound, and never measured. It is now: forcing every
+  non-historical shortfall to zero over the committed set, **a hard floor cannot answer 16 of the 72
+  cases at all**.
+
+  The composition of those 16 is what settles it. Eight are weeks that were **already fully
+  staffable before the event** — ordinary disruptions on healthy tenants, where a hard floor turns
+  "one short on Saturday, here is what it costs" into "infeasible". The other eight are the
+  chronically short tenants a hard floor was never going to serve. `scarce-skill` fails on all six
+  seeds, `flexi-heavy` on three, `tight` and `multi-absence` on two each, and even `headline` — the
+  Saturday sick call on a mid-sized tenant with slack — fails on one.
+- **Consequences.** A fifth of this distribution would receive no answer from a hard floor, which is a
+  product failure rather than a correct solve. The soft floor is what makes the fallback ladder in T3
+  meaningful too: the exact rung returns a priced shortfall instead of dropping through to the greedy
+  rung, and `benchmarks.md` shows the optimal replan leaving 0.16 positions short per clean case, so
+  this path is exercised routinely rather than in extremis. The obligations `D-018` created stand
+  unchanged — the shortfall weight must dominate by the derived bound (`D-057`), and `validation.py`
+  checks it rather than trusting it.
+- **Amends.** `D-018`, whose "provisional for T1 — folds into `D-008` in T2" is now discharged.
+- **Date.** 2026-08-13.
+
 ## D-009 — Assignment booleans over pattern/column variables, measured
 
 - **Decision.** Assignment booleans `x[e, d, s]`. The pattern formulation is fully built in
@@ -201,7 +240,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
 - **Decision.** Coverage is one equality per shift instance, `Σ_e x[e, d, s] + u[d, s] = req[d, s]`
   with `u ∈ [0, req]` priced in the objective. Overstaffing is rejected outright; understaffing is
-  permitted and priced. Provisional for T1 — folds into `D-008` in T2.
+  permitted and priced. ~~Provisional for T1 — folds into `D-008` in T2.~~ **Ratified by `D-008`**,
+  which measured what this record argued: a hard floor cannot answer 16 of the 72 committed cases,
+  and eight of those weeks were fully staffable before the disruption.
 - **Alternatives.** A hard equality, which is what the walking skeleton did. Both directions soft. Two
   inequalities rather than one equality with an explicit slack.
 - **Reason.** The classification test asks what the service should return when the only
@@ -532,6 +573,32 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   disruption metric is not arbitrary. That is `D-036` and D3/D4 territory, and it is deliberately *not*
   a reason to change the shipped D2.
 - **Date.** 2026-08-12.
+
+## D-036 — Per-contract administrative disruption deferred, and the D0–D4 study raised its value
+
+- **Decision.** Not added to the metric. Changing a flexi worker's shift carries administrative cost a
+  salaried change does not — same-day Dimona filing (`R-DIMONA-FLX`) is the clearest case — and this
+  ID reserved the question of pricing that asymmetry. It stays out of D0–D4 and out of the shipped
+  profile.
+- **Alternatives.** Add a per-contract multiplier to the slot weight and include it in the D0–D4
+  comparison as a sixth variant.
+- **Reason.** It is not one of D0–D4 and adding it would have changed what that study measured. D0–D4
+  nest — D1 with equal weights is D0, D2 with a flat multiplier is D1 — which is what makes their
+  comparison clean (`D-085`). A contract multiplier is orthogonal to that ladder rather than another
+  rung on it, so it belongs in its own study. More importantly the weight itself is unknown: how much
+  administrative cost a same-day Dimona actually imposes is a fact about a tenant's back office, and
+  inventing a number would make it look measured.
+- **Consequences.** The D0–D4 study makes this **more** interesting rather than less, and the reason is
+  worth recording because it is not obvious. D0, D1 and D2 turn out never to diverge on the committed
+  set, because a disruption damages a *given* slot, so the publication and notice weights multiply
+  every candidate repair by the same constant and a constant factor reorders nothing. A per-contract
+  weight would not behave that way: it varies with **which employee** is chosen, and candidates differ
+  precisely in that. So it is the one weight in this family that would genuinely change the answer on
+  this distribution — unlike the two that ship.
+
+  It needs the same evidence D3's `W_callin > W_cancel > W_move` ordering needs, which is
+  capture-and-replay. Revisit with that corpus, not before.
+- **Date.** 2026-08-13.
 
 ## D-037 — `span` and `work_hours` as separate symbols — no single `hours(d, s)`
 
@@ -1460,4 +1527,31 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   ships. `R-WEEKLY-REST` is not a candidate in either direction: it governs a continuous 35-hour free
   run measured in hours, which a day-level automaton cannot express.
 - **Study.** `docs/studies/regular-constraint.md`.
+- **Date.** 2026-08-13.
+
+## D-089 — `R-REST-GAP` keeps pairwise inequalities at a one-week horizon
+
+- **Decision.** The pairwise encoding stays. The `no_overlap` alternative is implemented behind
+  `build(rest="intervals")` for the study and is not the shipped path.
+- **Alternatives.** One optional interval per (employee, shift instance), inflated by
+  `min_rest_hours`, under a single `add_no_overlap` per employee — the alternative `rules.md` named
+  and deferred to a T2 study.
+- **Reason.** It trades search time for build time and the trade does not come out ahead. The interval
+  form is 23% smaller and builds 12% faster, and searches 16% slower on 24 of 24 cases; the total is
+  2% better on the committed set — the threshold the measurement harness itself calls not worth the
+  complexity — and **11% worse** on the larger cold instances. A lever whose sign
+  depends on which half of the latency dominates is not a lever. It also coarsens the gate: a
+  `no_overlap` covers an employee's whole week, where the pairwise encoding names the second slot of
+  the offending pair — the coordinate the checker reports and `violations()` matches on.
+- **Consequences.** **The claim behind the alternative is untested, and the study says so rather than
+  claiming a null.** `rules.md` justifies it by the pair set growing quadratically *as the horizon
+  grows*, and this project's horizon is fixed at one week. The larger family varies employees, and
+  employees are the wrong axis — conflicting pairs are computed over slots, so adding people
+  multiplies both encodings equally. Revisit with a longer horizon, not with tenant size.
+
+  Worth recording once across three studies: `D-088`, `D-009` and this one all failed partly because
+  **global constraints aggregate, and this model's gates are per rule instance**. Any encoding that
+  replaces many local constraints with one global one coarsens what a failure can be attributed to,
+  and that is a standing cost in a project whose T4 deliverable is an explainer.
+- **Study.** `docs/studies/rest-gap-encoding.md`.
 - **Date.** 2026-08-13.

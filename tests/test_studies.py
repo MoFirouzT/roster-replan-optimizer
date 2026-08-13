@@ -22,6 +22,14 @@ from ortools.sat.python import cp_model
 
 from benchmarks import patterns, studies, suite
 from roster_replan.checker import check
+from roster_replan.domain import (
+    Employee,
+    Instance,
+    OpenShift,
+    RuleParams,
+    ShiftType,
+    shipped_d2,
+)
 from roster_replan.model import _orbits, build, solve
 
 CASES = ["headline/0", "tight/0", "small/0", "thin-availability/0", "multi-absence/0"]
@@ -30,6 +38,7 @@ VARIANTS = {
     "presolve-off": dict(presolve=False),
     "symmetry": dict(symmetry=True),
     "automaton": dict(sequence="automaton"),
+    "rest-intervals": dict(rest="intervals"),
 }
 
 
@@ -154,6 +163,61 @@ def test_orbits_separate_employees_who_differ_only_in_their_published_row():
     grouped = {member for orbit in _orbits(published) for member in orbit}
     assert grouped == {2, 3}, (
         f"only the two employees with empty published rows are interchangeable, got {grouped}"
+    )
+
+
+def test_both_rest_encodings_agree_where_the_rest_gap_actually_binds():
+    """A night shift followed by the next morning: legal by every other rule, illegal by rest.
+
+    The committed cases do not discriminate the two rest encodings, and the mutation harness
+    found that by surviving a mutant that removed the interval inflation entirely. The reason
+    is `D-066`'s blind spot in a new place: `max_daily_hours` of 8 against 7.5-hour shifts
+    already forbids two shifts in one day, so every same-day pair is refused by
+    `R-MAX-DAILY` before `R-REST-GAP` is consulted, and an unenforced rest gap changes no
+    answer.
+
+    This instance puts the two shifts on **different days** with a zero-hour gap between
+    them, where the daily cap does not reach and only the rest rule can object.
+    """
+    shift_types = (
+        ShiftType(label="N", start_hour=23.0, span_hours=8.0, break_hours=0.5),
+        ShiftType(label="M", start_hour=7.0, span_hours=8.0, break_hours=0.5),
+    )
+    instance = Instance(
+        days=3,
+        shift_types=shift_types,
+        employees=(
+            Employee(
+                name="solo",
+                contract="salaried",
+                skills=frozenset({"bar"}),
+                max_hours_this_week=38.0,
+                max_daily_hours=8.0,
+            ),
+        ),
+        # Night on day 0 ends at 07:00 on day 1; the morning on day 1 starts at 07:00.
+        # Zero hours of rest, against a minimum of 11.
+        open_shifts=(
+            OpenShift(day=0, shift=0, required=1),
+            OpenShift(day=1, shift=1, required=1),
+        ),
+        params=RuleParams(
+            min_rest_hours=11.0,
+            min_weekly_rest_hours=0.0,
+            min_period_hours=3.0,
+            max_consecutive_days=None,
+        ),
+        disruption=shipped_d2(),
+    )
+
+    pairwise = _solve_with(instance)
+    intervals = _solve_with(instance, rest="intervals")
+    assert pairwise == intervals
+
+    # And the rule is actually binding here, or the agreement above is vacuous: one of the
+    # two shifts must go unstaffed, which the shortfall weight prices.
+    assert pairwise >= instance.disruption.shortfall_weight, (
+        "the rest gap did not bind on the instance built to make it bind"
     )
 
 
