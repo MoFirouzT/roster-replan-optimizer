@@ -117,6 +117,51 @@ it. Every micro-instance happened to have a clean incumbent, so the layer passed
 The regression case is committed; the general lesson is that a ground-truth layer only covers the
 structures its instances contain.
 
+### The instance set, and how its gaps were found
+
+Twenty-nine committed micro-instances in `tests/micro_instances.py`, each exercising a *structure* rather
+than looking realistic, with `employees × open_shifts ≤ 10` so enumeration stays affordable. The bound is
+asserted rather than reviewed: an oversized instance would not fail, it would only make the suite slow,
+and a slow enumeration layer is one that eventually gets deleted instead of fixed.
+
+Every instance runs on a **seven-day horizon** even where two shifts are open. `R-WEEKLY-REST` requires
+its 35-hour window to fall inside the horizon, so on a three-day instance the rule binds everywhere for a
+reason that belongs to the horizon rather than the roster. Lowering the parameter instead would demand a
+derogation basis — and inventing a legal citation to quiet the validator is precisely the dishonesty the
+rule registry exists to prevent. Enumeration cost does not depend on `days`, so the long horizon is free.
+
+**Threshold instances exist because mutation testing found the set blind without them.** The three main
+shift types sit on an eight-hour grid, so every gap they can produce is 0, 8 or 16 hours — and a rest
+threshold of 9 hours is indistinguishable from 11. Lowering `min_rest_hours` in the model passed all 82
+ground-truth tests. Probing each rule threshold in turn found the same blindness in the weekly budget and
+the daily maximum, whose limits sat far from any shift-count boundary, and in the gross-versus-net
+distinction, which only shows up for a budget in `[15.0, 16.0)`.
+
+Five instances now bracket their thresholds from both sides. The lesson generalises past this project:
+**a fixture set proves a rule exists; only a fixture at the boundary proves it is enforced at the right
+number.**
+
+### What the golden layer catches that stage (b) cannot
+
+Stage (b) compares two independent readings, so it is blind to anything both readings take as *data* —
+the objective weights above all. Changing `published_weight` from 10 to 12 leaves both readings agreeing
+perfectly about a different optimum, and all 82 ground-truth tests pass.
+
+The golden record catches exactly that class: committed numbers, so a behavioural change arrives as a
+reviewable diff. Verified by mutation rather than assumed — that weight change fails the golden layer and
+nothing else.
+
+Regenerate deliberately, and justify the diff:
+
+```
+uv run python -m tests.golden --write
+```
+
+**Rosters are recorded only where the optimum is unique**, which enumeration settles at generation time.
+Interchangeable employees create ties, and a tied optimum's roster is a function of solver version and
+search order rather than of the specification — committing one would produce failures that are not
+defects, and would train everyone to regenerate without reading the diff.
+
 ### Building the differential harness
 
 Feasibility-checking a fixed roster in CP-SAT is fixing all variables and solving, so the harness is

@@ -91,3 +91,7 @@ present tense squeezes rationale out.
 | D-061 | Day-permutation invariance holds only on a day-decoupled cold instance | T1 |
 | D-062 | Relaxation monotonicity excludes coverage, which changes the objective rather than the feasible set | T1 |
 | D-063 | Suite-wide invariant realised as a shared helper, opt-out by construction | T1 |
+| D-064 | Committed instances as Python constructors, not serialised — a schema is T2's problem | T1 |
+| D-065 | Seven-day horizon throughout the micro set, rather than derogating weekly rest | T1 |
+| D-066 | Threshold-bracketing instances for every rule limit, after mutation testing found the set blind | T1 |
+| D-067 | Golden rosters recorded only where enumeration proves the optimum unique | T1 |
