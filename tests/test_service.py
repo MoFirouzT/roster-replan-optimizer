@@ -289,3 +289,91 @@ def test_a_solver_failure_becomes_a_job_state_rather_than_a_dead_worker(scenario
 @pytest.fixture
 def anyio_backend():
     return "asyncio"
+
+
+# --- The T4 tool surface -------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_the_manifest_lists_every_tool_with_a_schema(client):
+    """A tool-calling caller enumerates this. Schemas come from the request models, so the
+    description a caller reads and the validation it must pass cannot drift apart."""
+    from roster_replan.service import tools
+
+    manifest = (await client.get("/v1/tools")).json()
+    assert {t["name"] for t in manifest} == set(tools.BY_NAME)
+
+    for entry in manifest:
+        assert entry["description"]
+        assert entry["parameters"]["type"] == "object"
+
+
+@pytest.mark.anyio
+async def test_what_if_distinguishes_a_skilled_hire_from_a_body(client, scenario):
+    """The answer a planner acts on, over HTTP."""
+    wire = contracts.from_domain(scenario.instance).model_dump()
+
+    skilled = await client.post(
+        "/v1/tools/what_if",
+        json={
+            "instance": wire,
+            "changes": [
+                {
+                    "kind": "add_employee",
+                    "skills": ["kitchen"],
+                    "contract": "flexi",
+                    "weekly_hours": 24.0,
+                    "daily_hours": 8.0,
+                }
+            ],
+        },
+    )
+    assert skilled.status_code == 200
+    assert skilled.json()["refused"] is False
+
+
+@pytest.mark.anyio
+async def test_an_unlawful_hypothetical_is_refused_over_http(client, scenario):
+    """The safety property, at the boundary an agent would actually call."""
+    wire = contracts.from_domain(scenario.instance).model_dump()
+
+    response = await client.post(
+        "/v1/tools/what_if",
+        json={"instance": wire, "changes": [{"kind": "relax_rule", "min_rest_hours": 8.0}]},
+    )
+
+    body = response.json()
+    assert body["refused"] is True
+    assert body["variant"] is None
+    assert any("derogation" in d["message"] for d in body["defects"])
+
+
+@pytest.mark.anyio
+async def test_explain_returns_fields_beside_the_prose(client, scenario):
+    """`D-013`: a caller that does not trust the sentence can read the numbers."""
+    wire = contracts.from_domain(scenario.instance).model_dump()
+    body = (await client.post("/v1/tools/explain_infeasibility", json={"instance": wire})).json()
+
+    assert body["answered"] in ("shortfall", "infeasibility")
+    assert isinstance(body["prose"], str)
+    for finding in body["shortfalls"]:
+        assert finding["by_rule"]
+        assert finding["short"] >= 1
+
+
+@pytest.mark.anyio
+async def test_an_unknown_tool_is_a_404_and_a_bad_payload_is_a_422(client):
+    assert (await client.post("/v1/tools/nope", json={})).status_code == 404
+    assert (
+        await client.post("/v1/tools/validate_profile", json={"instance": {"days": -1}})
+    ).status_code == 422
+
+
+@pytest.mark.anyio
+async def test_validate_profile_reports_without_saving(client, scenario):
+    """A tool an LLM can call must not be able to persist a tenant's scheduling policy."""
+    wire = contracts.from_domain(scenario.instance).model_dump()
+    body = (await client.post("/v1/tools/validate_profile", json={"instance": wire})).json()
+
+    assert body["lawful"] is True
+    assert body["defects"] == []

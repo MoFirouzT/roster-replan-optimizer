@@ -98,7 +98,7 @@ forbidden_modules = [
 [[tool.importlinter.contracts]]
 name = "The explainer answers from the checker, never from the model"
 type = "forbidden"
-source_modules = ["roster_replan.explain"]
+source_modules = ["roster_replan.explain", "roster_replan.prose"]
 forbidden_modules = [
     "roster_replan.model",
     "roster_replan.disruption",
@@ -118,6 +118,7 @@ source_modules = [
     "roster_replan.repair",
     "roster_replan.ladder",
     "roster_replan.explain",
+    "roster_replan.prose",
 ]
 forbidden_modules = ["roster_replan.service", "fastapi", "pydantic", "starlette"]
 

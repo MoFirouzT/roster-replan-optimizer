@@ -78,6 +78,8 @@ JOBS = "roster_replan/service/jobs.py"
 COMPILED = "roster_replan/compiled.py"
 MILP = "benchmarks/milp.py"
 EXPLAIN = "roster_replan/explain.py"
+PROSE = "roster_replan/prose.py"
+WHATIF = "roster_replan/whatif.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 
@@ -632,6 +634,68 @@ MUTANTS: tuple[Mutant, ...] = (
         "            counts.update(set(entry.rules))",
         "            counts.update(set(entry.rules[:1]))",
         "tests/test_explain.py",
+    ),
+    # --- The prose layer --------------------------------------------------------------
+    # The validator is the D-013 boundary made enforceable. Every defect here widens what a
+    # rendering may claim, and a wider bound is invisible in output that happens to be true.
+    Mutant(
+        "prose-validator-ignores-invented-names",
+        "prose",
+        PROSE,
+        "            or any(character.isdigit() for character in token)",
+        "            or False",
+        "tests/test_prose.py",
+    ),
+    Mutant(
+        "prose-invents-a-weekday-without-a-calendar",
+        "prose",
+        PROSE,
+        '        when = f"day {day}"',
+        '        when = WEEKDAYS[day % 7]',
+        "tests/test_prose.py",
+    ),
+    Mutant(
+        "prose-drops-the-unexplained-warning",
+        "prose",
+        PROSE,
+        "    if finding.unexplained:",
+        "    if False:",
+        "tests/test_prose.py",
+    ),
+    Mutant(
+        "prose-clock-does-not-roll-over",
+        "prose",
+        PROSE,
+        "    minutes = int(round(hours * 60)) % (24 * 60)",
+        "    minutes = int(round(hours * 60))",
+        "tests/test_prose.py",
+    ),
+    # --- what_if -----------------------------------------------------------------------
+    # The dangerous output here is not a wrong number, it is a confident yes to an unlawful
+    # hypothetical. Both mutants below produce one.
+    Mutant(
+        "whatif-answers-unlawful-hypotheticals",
+        "whatif",
+        WHATIF,
+        "    defects = validate_instance(variant_instance)",
+        "    defects = []",
+        "tests/test_whatif.py",
+    ),
+    Mutant(
+        "whatif-baseline-uses-a-different-seed",
+        "whatif",
+        WHATIF,
+        "    baseline = _measure(instance, seed=seed, time_limit=time_limit)",
+        "    baseline = _measure(instance, seed=seed + 1, time_limit=time_limit)",
+        "tests/test_whatif.py",
+    ),
+    Mutant(
+        "whatif-hire-lands-without-the-skill",
+        "whatif",
+        WHATIF,
+        "            skills=frozenset(change.skills),",
+        "            skills=frozenset(),",
+        "tests/test_whatif.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

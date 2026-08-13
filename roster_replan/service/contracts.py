@@ -53,6 +53,7 @@ from ..domain import (
     ShiftType,
     SkillMixEntry,
 )
+from ..prose import render
 
 API_VERSION = "v1"
 
@@ -407,6 +408,7 @@ class ShortfallOut(Strict):
     short: int
     by_rule: dict[str, int]
     summary: str
+    prose: str
 
 
 class AnswerOut(Strict):
@@ -442,7 +444,7 @@ class JobOut(Strict):
     defects: list[dict] = Field(default_factory=list)
 
 
-def answer_out(answer) -> AnswerOut:
+def answer_out(answer, instance: Instance) -> AnswerOut:
     return AnswerOut(
         roster=[list(k) for k in sorted(answer.roster)],
         rung=answer.rung,
@@ -465,6 +467,7 @@ def answer_out(answer) -> AnswerOut:
                 short=f.short,
                 by_rule=f.by_rule(),
                 summary=f.summary(),
+                prose=render(f, instance),
             )
             for f in answer.shortfalls
         ],

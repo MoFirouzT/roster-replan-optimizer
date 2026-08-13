@@ -161,11 +161,35 @@ memoising `Instance.window` removed 20% of build time (`D-092`), which is larger
 and larger than every level-1 lever in T2. See
 [`studies/model-cache.md`](../studies/model-cache.md).
 
-## Tool surface `[T4]`
+## Tool surface `[built — roster_replan/service/tools.py]`
 
-`solve`, `replan`, `explain_infeasibility`, `what_if`, `validate_profile` exposed as callable tools
-over this API. `what_if` — *"what if I hire one more flexi-jobber?"* — is a parameter sweep over
-existing machinery and the question owners actually ask.
+`solve`, `replan`, `explain_infeasibility`, `what_if`, `validate_profile`, enumerable at
+`GET /v1/tools` with schemas and invoked at `POST /v1/tools/{name}`.
+
+Four are thin over machinery that already exists, and that is the design rather than a
+shortcut: a tool surface whose tools each contain original logic is a second implementation
+of the product, with its own bugs. `what_if` is the exception and the one `service.md`
+singled out — a parameter sweep, and the question owners actually ask.
+
+**Tool calls are synchronous, unlike `/replans`.** A tool call is exploratory: a planner or an
+agent asking a question and waiting. An enqueued replan is production work with a budget and
+a cancellation story. Both exist because they are different interactions.
+
+Three properties hold across all five (`D-012`, `D-013`):
+
+- **Structured fields *and* prose, together.** A caller that distrusts the sentence reads the
+  numbers; one that cannot parse the numbers reads the sentence. Prose alone would make a
+  model's phrasing load-bearing.
+- **Nothing decides anything.** `what_if` reports that a skilled hire fills a position and an
+  unskilled one does not. Whether to hire is not a question this project has standing to
+  answer, and a tool that answered it would launder a business decision through a solver.
+- **All five are read-only.** `validate_profile` checks and reports; the save is the
+  caller's. A tool an LLM can call should not be able to persist a tenant's policy.
+
+**An unlawful hypothetical is refused, not answered** (`D-098`). Relaxing a statutory
+parameter without a recorded derogation basis is rejected by `validation.py` before any
+solve, so `what_if` cannot reply *just shorten the rest gap* — the most dangerous output
+available from a tool a planner might trust.
 
 ## Boundary discipline
 

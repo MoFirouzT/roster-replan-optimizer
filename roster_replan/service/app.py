@@ -26,7 +26,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Response
 
 from ..ladder import EXACT, RUNGS
-from . import jobs
+from . import contracts, jobs, tools
 from .contracts import API_VERSION, JobOut, ReplanRequest, answer_out
 
 # Concurrency is a deployment knob rather than a constant, but it needs a default that is
@@ -85,6 +85,27 @@ def create_app(*, concurrency: int = CONCURRENCY) -> FastAPI:
             raise HTTPException(status_code=404, detail=f"no job {job_id}")
         return _out(job)
 
+    @app.get(f"/{API_VERSION}/tools")
+    async def tool_manifest() -> list[dict]:
+        """What a tool-calling caller enumerates, schemas included."""
+        return tools.manifest()
+
+    @app.post(f"/{API_VERSION}/tools/{{name}}")
+    async def invoke(name: str, payload: dict) -> dict:
+        """Synchronous, unlike `/replans`, and that is a deliberate difference.
+
+        A tool call is exploratory — a planner or an agent asking a question and waiting for
+        the answer — where an enqueued replan is production work with a budget and a
+        cancellation story. Both exist because they are different interactions, not because
+        one supersedes the other.
+        """
+        try:
+            return tools.call(name, payload)
+        except KeyError as unknown:
+            raise HTTPException(status_code=404, detail=str(unknown)) from unknown
+        except ValueError as bad:
+            raise HTTPException(status_code=422, detail=str(bad)) from bad
+
     @app.get(f"/{API_VERSION}/health")
     async def health() -> dict:
         return telemetry(store, queue_depth=store.depth(), concurrency=concurrency)
@@ -99,7 +120,11 @@ def _out(job: jobs.Job) -> JobOut:
         tenant=job.tenant,
         seed=job.request.seed,
         profile_version=job.request.profile_version,
-        answer=None if job.answer is None else answer_out(job.answer),
+        answer=(
+            None
+            if job.answer is None
+            else answer_out(job.answer, contracts.to_domain(job.request.instance))
+        ),
         error=job.error,
         defects=job.defects,
     )

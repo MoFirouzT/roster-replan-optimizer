@@ -34,8 +34,6 @@ Records leave this table as they are written. What remains here is what is still
 
 | ID | Decision | Tier |
 | --- | --- | --- |
-| D-012 | LLM confined to artifacts a deterministic layer can reject | T4 |
-| D-013 | Minimal core from the solver, prose from the LLM — never the reverse | T4 |
 
 ---
 
@@ -290,6 +288,66 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   Statelessness is also what makes the T2 benchmark machinery and the production path the same code.
   `benchmarks/methods.py` and `run_job` call the same solver with the same payloads, so a benchmark
   number is a claim about the deployed system rather than about a laboratory copy of it.
+- **Date.** 2026-08-13.
+
+## D-012 — The LLM renders a finding it cannot alter, and a validator bounds what it may say
+
+- **Decision.** The deterministic layer computes the finding (`explain.py`) *and* renders it
+  (`prose.py`). An LLM is optional and may only rephrase. `prose.unsupported_terms` bounds what any
+  rendering may contain: every employee name, rule ID and number must appear in the finding it came
+  from, and the deterministic renderer is held to the same bound it would judge a model by.
+- **Alternatives.** Hand the LLM the structured finding and let it write the sentence, checking the
+  result by reading. Let it choose which blocked employees are worth mentioning.
+- **Reason.** `PLAN.md` requires the LLM be confined to artifacts a deterministic layer can reject,
+  and "can reject" is the load-bearing half — a rejection rule that cannot be executed is a review
+  policy. Meaning is what a deterministic layer cannot judge; **vocabulary is what it can**. So the
+  check is not whether the sentence is true but whether it mentions anything the finding does not
+  support, which is decidable and catches the failures that matter: an invented employee, an invented
+  rule, an invented count.
+
+  Building the renderer first is what makes the LLM optional rather than load-bearing. A phrasing
+  step that already exists and is already correct leaves a model nothing to do but vary wording, so
+  the feature degrades to "slightly better English" when the model is unavailable rather than to "no
+  explanation".
+- **Consequences.** The validator's first version flagged a token only if it was already a **real**
+  employee name, which let a wholly invented `E99` through — the worse failure, since a fabricated
+  person is less checkable than a real one named wrongly. It now treats anything identifier-shaped as
+  a claim about the instance: rule-ID prefixed, or carrying a digit. Ordinary English words are not
+  claims, which is what leaves a rephrasing model room to work.
+
+  Three things the renderer refuses to invent are `D-013`'s rule applied to itself. **Weekdays**:
+  `domain.py` has no calendar by design, so `day 5` becomes `Sat` only when the caller supplies
+  `weekday_of_day_zero`, and says `day 5` otherwise. **Shift names**: `ShiftType.label` is printed
+  verbatim, because expanding `E` to `Evening` is right for this generator and wrong for a tenant
+  whose `E` means something else. **Employee identity**: names come from the payload, so under
+  `D-016` a captured corpus renders surrogate keys — the text is exactly as readable as the caller's
+  own identifiers, which is the correct dependency rather than a limitation.
+- **Date.** 2026-08-13.
+
+## D-013 — Minimal core from the solver, prose from the LLM — never the reverse
+
+- **Decision.** The conflict is always identified by deterministic code. The LLM never decides *what*
+  is wrong, only how to say it. Enforced by `D-012`'s validator rather than by instruction.
+- **Alternatives.** Let the model read the instance and diagnose the shortfall directly, which is
+  what a general-purpose assistant would do and needs no explainer at all.
+- **Reason.** A diagnosis is a claim about the world that a planner will act on — moving someone's
+  Saturday, calling somebody in. A model that produces one is producing a claim nothing checked, and
+  the failure mode is not obvious nonsense but a plausible, specific, wrong reason: *Ana is
+  unavailable* when Ana is merely over hours. That is worse than no explanation, because it is
+  actionable and wrong.
+
+  The inversion this record forbids is the tempting one, because it is less work: the model is good
+  at reading a payload and producing a fluent account of it, and the account is usually right. Usually
+  right is the problem.
+- **Consequences.** The rule now has machinery behind it rather than a paragraph. `explain.py`
+  answers from the checker (`D-097`), so the finding is independently derived; `prose.py` renders it;
+  `unsupported_terms` rejects any rendering that adds a name, a rule or a number. A model that
+  hallucinates fails the check rather than reaching a planner.
+
+  It also constrains the tool surface T4 builds next: `explain_infeasibility` returns the structured
+  finding alongside the prose, so a caller that does not trust the sentence can read the fields. The
+  minimal-core reduction `D-048` defers is still owed and belongs to the *rare* case (`D-047`); this
+  record's machinery is what it will render through when it lands.
 - **Date.** 2026-08-13.
 
 ## D-014 — Horizon-boundary state supplied by the caller, not solved over a longer horizon
@@ -1956,4 +2014,33 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   no-op everywhere. It matters on the one shape that does occur — an incumbent whose past is illegal
   and `R-PIN-PAST` forces the solver to keep — where without it that person's existing breach is
   reported as the reason they cannot work an unrelated shift later in the week.
+- **Date.** 2026-08-13.
+
+## D-098 — `what_if` refuses unlawful hypotheticals rather than answering them
+
+- **Decision.** A `what_if` variant is validated before it is solved. If the change makes the instance
+  unlawful — most importantly, relaxing a statutory parameter with no recorded derogation basis — the
+  tool returns the refusal and its defects as the answer, and no roster.
+- **Alternatives.** Solve it anyway and let the caller notice. Refuse rule relaxations outright.
+- **Reason.** *Yes, hire nobody, just shorten the rest gap* is the most dangerous sentence this
+  project could emit: specific, actionable, and illegal. A hypothetical tool is exactly where that
+  answer would be produced innocently, because the machinery is perfectly capable of solving an
+  instance whose parameters break the law — `validation.py` is what knows better, and it was already
+  written.
+
+  Refusing relaxations outright was rejected for the opposite reason: a derogation is lawful, and a
+  planner exploring one is the case this tool exists to serve. The rule is *recorded basis*, not
+  *never*, so the same relaxation is answered when a basis is supplied.
+- **Consequences.** The change set is closed and typed rather than a free-form patch. A tool an LLM
+  can call will be called with something unexpected, and a patch endpoint over `Instance` is an
+  arbitrary-edit hole wearing a schema — each `Change` kind is one whose interaction with the rule
+  registry was understood before it was allowed.
+
+  A hypothetical hire is eligible on every day, which is the optimistic reading and is stated rather
+  than hidden: the answer is an **upper bound** on what hiring would buy.
+
+  `Outcome` carries the resulting roster, not only the summary numbers. That began as a testability
+  fix and is the better design anyway: two tied optima under D2 share an objective *and* a change
+  count, so a baseline accidentally solved at the wrong seed is invisible in every scalar and visible
+  only in the roster — the mutation harness caught exactly that, twice, before the field existed.
 - **Date.** 2026-08-13.
