@@ -957,6 +957,12 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Consequences.** Instances are constructed with the domain types, so a schema change breaks them
   at import rather than at parse — the better failure, and an earlier one. The golden *record* is
   serialised, because it is data rather than construction, so the two choices are not in tension.
+- **The prediction was wrong, 2026-08-13.** The benchmark set did not need a schema or a loader
+  either. Generation is deterministic, so `D-073` defines the set by its seeds and commits
+  fingerprints rather than payloads, for the same readability reason this record gives. Serialisation
+  is now owed to T3's API boundary, which needs it for its own reasons, and no earlier. The decision
+  recorded above stands; only its guess about when the bill would arrive was wrong, and it is left in
+  place because a prediction that failed is worth more visible than deleted.
 - **Date.** 2026-08-13.
 
 ## D-065 — Seven-day horizon throughout the micro set, rather than derogating weekly rest
@@ -1089,4 +1095,70 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   the rule lands, and the spec now says so rather than leaving the gap to be found in the results.
   Adding students is additive once the rule is encoded: the flexi path already proves the per-employee,
   per-day eligibility shape the quota will need.
+- **Date.** 2026-08-13.
+
+## D-073 — The benchmark set is defined by its seeds, not by serialised instances
+
+- **Decision.** What is committed is a manifest of class names, seeds and fingerprints.
+  Instances are regenerated on demand from `benchmarks/suite.py`.
+- **Alternatives.** Serialise all 72 instances, which is what "committed and versioned" normally
+  means.
+- **Reason.** Generation is deterministic, so a class name plus a seed names an instance exactly.
+  What that buys is a readable diff, and readability decides whether anyone looks — the same
+  argument `D-067` makes about golden rosters. Seventy-two serialised payloads produce a diff nobody
+  reads, and a diff nobody reads is not review, it is a checkbox.
+- **Consequences.** The set's stability now rests on the generator staying put, which is what the
+  fingerprints and `GENERATOR_VERSION` are for (`D-074`). No schema and no loader are needed, which
+  contradicts the expectation recorded in `D-064`; that record is amended rather than rewritten.
+- **Date.** 2026-08-13.
+
+## D-074 — Two fingerprints per case, so a stale manifest says which layer moved
+
+- **Decision.** Each case records a `week` digest over the generated payload and an `incumbent`
+  digest over the solved base roster.
+- **Alternatives.** One combined digest per case.
+- **Reason.** The two move for different reasons. `week` moves when the generator moves. `incumbent`
+  moves when the generator moves *or* when the solver does — a CP-SAT upgrade, or a change to the
+  objective encoding. A single digest says "something changed" and leaves the reader to work out
+  what, which `D-067` already names as the failure that trains everyone to regenerate without
+  reading.
+- **Consequences.** A `week` hash holding while incumbents move is a solver change, and the
+  instances stay comparable across it. Both moving is a generator change, and they do not.
+  `GENERATOR_VERSION` carries the second case explicitly, and the manifest test fails when it is not
+  bumped. The independence of the two is verified by moving each input on its own: counting distinct
+  hashes across the set cannot show it, because the incumbent is a deterministic function of the week
+  and the seed, so the two counts match whether or not one field is a copy of the other.
+- **Date.** 2026-08-13.
+
+## D-075 — Nothing filtered out of the committed set
+
+- **Decision.** Scenarios that guarantee a coverage shortfall, or whose base week is already short,
+  stay in the set with that fact recorded per case.
+- **Alternatives.** Drop them at generation time so that every committed case is a clean repair
+  question.
+- **Reason.** Filtering at generation prunes the distribution to the cases that flatter the thesis,
+  and it does it invisibly — the resulting p95 is a p95 over a set somebody curated, and the stated
+  distribution no longer describes what was measured. Which cases to exclude is an analysis
+  decision, and it belongs in `benchmarks.md` where it can be argued with, not in the generator where
+  it cannot be seen.
+- **Consequences.** `base_shortfall`, `short_slots` and `damage` are recorded per case so the
+  analysis can segment rather than pool. One class, `scarce-skill`, is chronically short by design,
+  and results over it are reported separately: pooling a capacity question with a repair question
+  averages two different things into a number that answers neither. The one property that *is*
+  asserted is that every case poses a question at all — a scenario whose event damaged nothing scores
+  as a flawless repair for all four methods and measures none of them.
+- **Date.** 2026-08-13.
+
+## D-076 — Classes differing only in the event share a base week
+
+- **Decision.** Classes that vary only the disruption event generate the identical published week at
+  a given seed, and the set asserts it rather than relying on it.
+- **Alternatives.** Let every class generate its own week.
+- **Reason.** The property falls out of the event parameters not being read until the base week
+  already exists, and leaving it accidental is the whole risk: if the base week ever came to depend
+  on the event, a difference in results across events would be a difference in *instances* and
+  nothing in the benchmark would say so. The event axis measures the event only if the week is held.
+- **Consequences.** The same holds one axis over — `early-notice` is the headline week at a
+  different hour, so the notice axis varies notice and nothing else. Both are asserted by test, and
+  a mutant that seeds generation from the event name is caught by them.
 - **Date.** 2026-08-13.

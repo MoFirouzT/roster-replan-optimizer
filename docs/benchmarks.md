@@ -1,8 +1,9 @@
 # Benchmarks
 
-> **Status: generator built, results outstanding.** The instance distribution below is
-> reconciled with `benchmarks/generator.py`. Everything under *Results* is still T2's to fill, and
-> every `[B-n]` placeholder in the README resolves from here.
+> **Status: generator and instance set built, results outstanding.** The distribution and the
+> committed set below are reconciled with `benchmarks/generator.py` and `benchmarks/suite.py`.
+> Everything under *Results* is still T2's to fill, and every `[B-n]` placeholder in the README
+> resolves from here.
 
 ## The scaling axis
 
@@ -56,6 +57,48 @@ benchmark and it is stated rather than buried: these numbers can show that a rep
 Only the captured corpus in [`specs/capture.md`](specs/capture.md) can carry that second claim, which
 is why it is scheduled rather than optional.
 
+## The committed set
+
+Twelve scenario classes, six seeds each — 72 cases, listed in `benchmarks/manifest.json`.
+
+    uv run python -m benchmarks.suite --write
+
+**The set is its seeds.** Generation is deterministic, so a class name and a seed name an instance
+exactly, and what is committed is a manifest of fingerprints rather than 72 payloads (`D-073`). Each
+case carries two: `week` over the generated payload, and `incumbent` over the solved base roster. A
+`week` hash that holds while incumbents move is a solver change and the instances stay comparable
+across it; both moving is a generator change and they do not (`D-074`).
+
+Every class varies **one** axis from `headline` — the Saturday 09:00 sick call on a mid-sized tenant
+with slack — so a difference in results has one candidate explanation rather than several. Classes
+that differ only in the disruption event generate the *same published week* at a given seed, which
+is what makes the event axis a controlled comparison rather than a comparison of instances
+(`D-076`).
+
+| Class | Varies |
+| --- | --- |
+| `headline` | — the Saturday 09:00 sick call |
+| `loose`, `tight` | coverage tightness, at 0.35 and 0.90 |
+| `small`, `large` | 8 and 25 employees |
+| `scarce-skill` | scarce skill held by a quarter of staff |
+| `flexi-heavy` | 60% flexi contracts |
+| `thin-availability` | availability density 0.60 |
+| `multi-absence`, `demand-spike`, `withdrawal` | the other three event types |
+| `early-notice` | the same disruption with days of notice instead of hours |
+
+**Nothing is filtered** (`D-075`). Ten of the 72 cases start from a week that cannot be fully
+staffed, and `scarce-skill` is chronically short by design. They stay in with `base_shortfall`,
+`short_slots` and `damage` recorded per case, because filtering at generation prunes the
+distribution to the cases that flatter the thesis and does it where nobody can see. Which cases to
+exclude is an analysis decision and it is made here:
+
+- **Results are segmented by `base_shortfall`, never pooled across it.** A week that was already
+  short poses a capacity question; a week that was fully staffed poses a repair question. Averaging
+  them produces a number that answers neither.
+- **`demand-spike` on a tight week degenerates** and is reported separately. When the extra headcount
+  cannot be staffed by anyone, the optimal replan changes nothing and absorbs the shortfall — correct
+  behaviour, and no evidence about repair quality.
+
 ## Methods compared
 
 | Method | Isolates |
@@ -67,6 +110,12 @@ is why it is scheduled rather than optional.
 
 Both axes for all four: solve time (p50/p95), disruption score (D2), cost delta. A method that is
 fast and disruptive has not won.
+
+**The cost column will read as zeros until the cost model lands.** `cost_weight` ships at 0 and the
+cost model is a flat rate (`D-050`), so two rosters of equal hours cost the same and the cold
+baseline is not, today, a *cost* baseline. The disruption axis of that comparison is sound
+regardless — a cold solve has no reason to resemble the incumbent, which is the entire point — but
+the column is a placeholder and is marked as one rather than reported as a null result.
 
 ## Results
 
