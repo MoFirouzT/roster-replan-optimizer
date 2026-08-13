@@ -1009,3 +1009,84 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   fails the golden layer and nothing else. Regeneration is a documented command rather than folklore,
   so the friction sits where it belongs.
 - **Date.** 2026-08-13.
+
+## D-068 — A benchmark case is a scenario: a published week and a disruption to it
+
+- **Decision.** The generator emits a `Scenario` — a base week, the incumbent solved from
+  it, and the instance carrying a disruption event — rather than a bare `Instance`.
+- **Alternatives.** Generate instances, and let the benchmark runner inject the events.
+- **Reason.** A replan is a function of a published roster and something that went wrong with it
+  (`D-005`). An instance on its own cannot pose the question this project answers. Injecting events
+  in the runner would also let the disruption vary independently of the week it lands on, so two
+  methods could be compared on differently damaged weeks with nothing to show it had happened.
+- **Consequences.** Generation runs in two phases and costs a solve per scenario, which puts a floor
+  under how large the committed set can be. The scenario carries the base week as well as the replan
+  instance, so the cold baselines have something to solve that never saw the incumbent — which is
+  what makes "cold re-solve" a fair comparison rather than a straw man.
+- **Date.** 2026-08-13.
+
+## D-069 — The incumbent is solved cold, not hand-built
+
+- **Decision.** The base week is solved with the shipped profile and the resulting roster becomes
+  `x̄`.
+- **Alternatives.** Hand-construct incumbents. Build them with a greedy heuristic.
+- **Reason.** A hand-built incumbent is easy or hard for reasons nobody chose, and it encodes the
+  author's idea of what a published roster looks like — the same idea that produced the model.
+  Solving it makes the incumbent legal and coverage-satisfying by construction, which is what a real
+  published week is.
+- **Consequences.** Stated cost, because it is the weak point of the whole benchmark: **the
+  incumbent comes from the system under test.** It cannot be evidence that this model matches
+  practice, only that a replan beats a re-solve *given* a roster this model would produce. Replacing
+  it with captured rosters is exactly what [`capture.md`](specs/capture.md) exists to do, and this is
+  the strongest argument for that work being scheduled rather than optional. The base solve can leave
+  shortfall at high demand, so `base_shortfall` is recorded on the scenario rather than assumed zero.
+- **Date.** 2026-08-13.
+
+## D-070 — Tightness measured against presolved eligibility, not asserted by the parameter
+
+- **Decision.** `demand_ratio` is a generation *target*. What a scenario reports is measured after
+  the fact — realised demand ratio, minimum slot slack, tight slots, and slots no roster can staff —
+  computed over the pairs that survive `model.exclusions()`.
+- **Alternatives.** Report the requested parameter. Measure slack against headcount.
+- **Reason.** `D-060` makes coverage tightness the knob that decides whether the D0–D4 study can see
+  anything at all, so a nominal figure would quietly decide the study's answer. Availability density
+  and skill scarcity both change how tight a week actually is, and neither is visible in the demand
+  parameter. Headcount has the same fault one level down: two weeks with identical demand and
+  identical staff are not equally tight if one of them cannot staff its evenings.
+- **Consequences.** The measure imports the model's presolve. That is deliberate and is not an
+  independence breach — tightness *describes* an instance rather than claiming what is legal, and the
+  description that matters is the one the solver is working from. Requested and measured ratios
+  differ by the rounding that turning hours into whole shift instances forces, so `benchmarks.md`
+  reports the measured figure and the instance set records both.
+- **Date.** 2026-08-13.
+
+## D-071 — Low demand expressed by closing slots, not by thinning a full grid
+
+- **Decision.** When target demand falls below one person per shift instance, the generator opens
+  fewer shift instances rather than keeping the whole grid open.
+- **Alternatives.** Always open every `(day, shift)` pair and vary the required headcount.
+- **Reason.** `O` is the set of pairs with `req > 0` ([`model.md`](specs/model.md)), so closing a
+  slot is how low demand is actually expressed — and a small tenant genuinely does not run a night
+  shift every day. The full grid also puts a floor under the achievable demand ratio: with 21
+  instances at one body each, no scenario can be looser than that floor, which silently caps how
+  loose the study is able to look.
+- **Consequences.** Instance size now varies with tightness, so a solve-time comparison across
+  tightness is partly a comparison across instance size, and the benchmark has to report both rather
+  than attribute the difference to tightness alone. Guarded by a test asserting that measured
+  tightness tracks the requested value across the range, which is what fails if the grid is forced
+  open again.
+- **Date.** 2026-08-13.
+
+## D-072 — Student contracts omitted from the generator until `R-STUDENT-QUOTA` is encoded
+
+- **Decision.** The generated contract mix is flexi and salaried. No student share.
+- **Alternatives.** Generate students now, as `benchmarks.md`'s parameter list implies.
+- **Reason.** `R-STUDENT-QUOTA` is a profile-gated T2 rule and is not yet encoded, so a student share
+  would move no constraint. A knob that does nothing makes the instance distribution look richer than
+  it is, and a study run over it would report a null that is a property of the generator rather than
+  of the problem.
+- **Consequences.** The contract-mix axis is narrower than `benchmarks.md` originally described until
+  the rule lands, and the spec now says so rather than leaving the gap to be found in the results.
+  Adding students is additive once the rule is encoded: the flexi path already proves the per-employee,
+  per-day eligibility shape the quota will need.
+- **Date.** 2026-08-13.
