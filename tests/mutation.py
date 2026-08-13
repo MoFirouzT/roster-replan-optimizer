@@ -71,6 +71,7 @@ GENERATOR = "benchmarks/generator.py"
 SUITE = "benchmarks/suite.py"
 METHODS = "benchmarks/methods.py"
 GREEDY = "benchmarks/greedy.py"
+METRIC_STUDY = "benchmarks/metrics.py"
 DOMAIN = "roster_replan/domain.py"
 
 MUTANTS: tuple[Mutant, ...] = (
@@ -350,6 +351,34 @@ MUTANTS: tuple[Mutant, ...] = (
         "        published_weight=0,",
         "        published_weight=params.published_weight,",
         "tests/test_methods.py",
+    ),
+    # --- The D0-D4 study ------------------------------------------------------------
+    # This study fails towards a flattering answer. Every defect below makes the five
+    # metrics look like they agree, which is the conclusion that requires no evidence --
+    # so a green run of the study proves nothing until these are shown to be caught.
+    Mutant(
+        "metrics-lexicographic-hold-dropped",
+        "metrics",
+        METRIC_STUDY,
+        "    built.model.add(sum(_terms(built, instance, hold)) == held_at)",
+        "    built.model.add(sum(_terms(built, instance, hold)) >= 0)",
+        "tests/test_metrics.py",
+    ),
+    Mutant(
+        "metrics-gates-left-unasserted",
+        "metrics",
+        METRIC_STUDY,
+        "    built.model.add_assumptions(built.literals)",
+        "    built.model.clear_assumptions()",
+        "tests/test_metrics.py",
+    ),
+    Mutant(
+        "metrics-swap-does-not-swap",
+        "metrics",
+        METRIC_STUDY,
+        "    return dataclasses.replace(instance, disruption=dataclasses.replace(params, metric=metric))",
+        "    return instance",
+        "tests/test_metrics.py",
     ),
 )
 

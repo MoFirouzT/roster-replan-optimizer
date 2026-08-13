@@ -3,8 +3,9 @@
 > **Status: the four-method comparison is measured and reported.** The distribution, the committed
 > set and the results below are reconciled with `benchmarks/generator.py`, `benchmarks/suite.py`,
 > `benchmarks/methods.py` and `benchmarks/run.py`, and every `[B-n]` placeholder in the README now
-> resolves from here. Still outstanding for T2: the D0–D4 study, the level-1 model studies, and
-> capture-and-replay.
+> resolves from here. The D0–D4 study is in
+> [`studies/disruption-metrics.md`](studies/disruption-metrics.md). Still outstanding for T2: the
+> level-1 model studies, and capture-and-replay.
 
 ## The scaling axis
 

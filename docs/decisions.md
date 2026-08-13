@@ -46,7 +46,6 @@ Records leave this table as they are written. What remains here is what is still
 | D-016 | Pseudonymisation at capture; absence reasons discarded rather than protected | T2 |
 | D-017 | Acceptance bar for incumbent replacement fixed before the first replay | T2 |
 | D-036 | Asymmetric administrative disruption by contract type as input to the D0–D4 study | T2 |
-| D-060 | Metric divergence requires slack — coverage tightness is T2's decisive generator knob | T2 |
 
 ---
 
@@ -896,6 +895,30 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   explainer obligation.
 - **Date.** 2026-08-12.
 
+## D-060 — Metric divergence requires slack: the mechanism holds, the stated instrument does not
+
+- **Decision.** Divergence needs room to choose, and coverage tightness is a real generator knob for
+  it. But the quantity this record originally proposed to test it against — the instance set's
+  week-level `min_slot_slack` — does not predict divergence and is not used for the claim.
+- **Alternatives.** Report the week-level correlation as the confirmation. Drop the claim.
+- **Reason.** The mechanism is confirmed where it is cleanest: `tight` diverges on 0 of 6 cases,
+  because a fully constrained week has one legal repair and every metric returns it. But the
+  week-level minimum is a minimum over 21 slots, and the repair happens at the one the event damaged
+  — a week can hold one impossible slot and abundant room everywhere else. Measured that way the
+  relationship is non-monotone and the most constrained bucket has the highest conflict rate, which
+  is an artifact of the instrument. Measured at the damaged slot (`metrics.repair_slack`) it improves
+  to 16/40 at high slack against near-zero below, and still is not a law.
+- **Consequences.** **Slack is necessary and nowhere near sufficient.** The missing condition is
+  structural: D3 diverges from D2 only when a *move* is available — another open shift on the same
+  day that a rostered person could be shifted to — which is a property of the damaged day rather than
+  of the week or the slot. The committed set does not vary it, so the study reports a correlation and
+  not a law, and a generator axis over same-day shift availability is the honest way to close it.
+  `demand-spike` diverging on 0 of 6 is the same point from the other side: an added headcount is a
+  pure call-in with nothing to pair against, so no move exists to be preferred.
+- **Supersedes.** The forward-declared version of this record, which assumed the week-level measure
+  would serve.
+- **Date.** 2026-08-13.
+
 ## D-061 — Day-permutation invariance holds only on a day-decoupled cold instance
 
 - **Decision.** The metamorphic day-permutation test asserts objective invariance only under stated
@@ -1331,4 +1354,41 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   are timings. The comparisons meant to survive a change of machine are the paired ones — warm against
   cold, seed against seed — and they are reported as ratios for that reason. Anything that must be
   exact and diffable belongs in the manifest, which is where `D-073` and `D-074` put it.
+- **Date.** 2026-08-13.
+
+## D-085 — Metric divergence is measured as regret by lexicographic solve, not by comparing rosters
+
+- **Decision.** Two metrics are said to disagree on a case when holding one at its optimum makes the
+  other strictly worse than its own optimum. The second solve minimises `b` subject to `a`'s
+  objective equalling `V_a`, which selects the best `b`-roster among **all** of `a`'s optima.
+- **Alternatives.** Solve under each metric and compare the returned rosters. Compare objective
+  values.
+- **Reason.** A metric usually has many optimal rosters, and which one is returned is the solver's
+  search order. Comparing returned rosters reports 47 of 72 cases as divergent where only 23 are —
+  D0's tie set is large enough that it would "disagree" with itself at another seed. The
+  lexicographic form removes the ambiguity entirely: a positive regret means *no* optimum of `a` is
+  an optimum of `b`, which is a fact about the metrics rather than about the search. This is the same
+  failure `D-080` records for the cost baseline, and it is worth having been caught twice.
+- **Consequences.** Raw regrets are **not comparable across directions**, because D3 multiplies by
+  change-type weights of 6 to 14 and D2 does not — the apparent 420-against-50 asymmetry in the matrix
+  is units, and normalised against the paying metric's own optimum the disagreement is about even
+  both ways. The study reports the normalised figure and says so. Every regret must be non-negative,
+  which is asserted inline and independently in the test layer: a negative one means a solve is wrong,
+  not that a metric is surprising.
+- **Date.** 2026-08-13.
+
+## D-086 — D4 is unexercised by the committed set, and this is recorded rather than inferred
+
+- **Decision.** D3 and D4 never conflict on any of the 72 cases, in either direction. The
+  concentration penalty is reported as **unexercised** rather than as validated or as equivalent.
+- **Alternatives.** Report the zero as evidence that D4 adds nothing. Drop D4.
+- **Reason.** The penalty only becomes non-linear when two events land on the same person
+  (`f(1)=1, f(2)=3`), and median damage across this set is one assignment. Even `multi-absence`, which
+  removes three people, gives each of them one event. A zero here is therefore a fact about the
+  distribution and says nothing about the metric — reading it as "D4 adds nothing" would be inferring
+  a null from an experiment that could not have produced anything else.
+- **Consequences.** Any claim that D4 behaves correctly rests on the micro-instances and the golden
+  record, not on the benchmark set. The same damage axis `D-083` names as missing is what would
+  exercise it, which is the second independent reason to add one. Until then the study says so in
+  those words.
 - **Date.** 2026-08-13.

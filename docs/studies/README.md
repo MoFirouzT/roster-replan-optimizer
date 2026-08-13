@@ -8,7 +8,7 @@ unmeasured win.
 
 | Study | Question | Outcome |
 |---|---|---|
-| `disruption-metrics.md` | Do D0–D4 produce different rosters? | `[TODO — T2]` |
+| [`disruption-metrics.md`](disruption-metrics.md) | Do D0–D4 produce different rosters? | **Yes, on 23/72, at ~100% relative regret both ways** — but only D0/D1/D2 against D3/D4. Within each side, nothing separates them here, and D4 is unexercised. `D-085`, `D-086` |
 | `warm-start.md` | Speedup from hinting the previous solution, isolated from the objective effect | **9% of search time** (median paired ratio 0.907, faster on 201/216), invisible end to end. `D-082`, [`benchmarks.md`](../benchmarks.md) |
 | `presolve.md` | Eliminating impossible (employee, shift) pairs before the solver | `[TODO — T2]` |
 | `symmetry-breaking.md` | Lexicographic ordering over interchangeable employees — and how much the disruption objective already breaks | `[TODO — T2]` |

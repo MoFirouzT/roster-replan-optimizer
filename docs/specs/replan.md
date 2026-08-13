@@ -44,12 +44,27 @@ actually needs it. `published_through` is a special case of it, so the generalis
 All five are defensible. They produce different rosters, and **that fact is the deliverable** — the T2
 study exists to show it rather than to assert it.
 
+> **Measured** in [`studies/disruption-metrics.md`](../studies/disruption-metrics.md). They diverge on
+> 23 of the 72 committed cases, and where they do, each scores the other's answer at roughly double
+> its own optimum. But the divergence is entirely **D0/D1/D2 against D3/D4**: within each side nothing
+> separates them on that distribution. D0, D1 and D2 agree because a disruption damages a *given* slot,
+> so `P × N` is a constant factor across every candidate repair and a constant factor reorders nothing
+> — the weights need a choice of *which* slot to disturb, which these scenarios never offer. D3 and D4
+> agree because the concentration penalty needs two events on one person, and median damage is one
+> assignment (`D-086`).
+
 > **They only diverge where there is slack, and this constrains T2's generator.** On a tightly covered
 > instance there is exactly one legal repair, so every metric returns it and the choice of metric is
 > invisible. An instance generator that does not vary **coverage tightness** would therefore report "the
 > metrics agree" — as a property of the instances, not of the metrics. The generator's tightness
 > parameter is not one knob among several; it is the one that decides whether the study can see anything
 > at all.
+>
+> **Necessary, and not sufficient** (`D-060`). The mechanism held — the `tight` class diverges on 0 of
+> 6 cases — but slack alone does not predict divergence, and the week-level minimum slot slack the
+> instance set records predicts it not at all. What D3 additionally needs is a *move* to be available:
+> another open shift on the same day that a rostered person could be shifted to. That is a property of
+> the damaged day, and no generator axis varies it yet.
 >
 > A worked divergence, small enough to check by hand and used as a test: Ana holds a morning and Bram the
 > evening of the same day; Ana becomes unavailable in the morning only. D2 counts changed slots and calls
