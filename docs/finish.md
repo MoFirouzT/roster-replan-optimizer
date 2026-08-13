@@ -75,8 +75,9 @@ in the evidence, and it is stated here rather than in a footnote.
 
 - **The cost model is a flat rate** and `cost_weight` ships at `0` (`D-050`). The disruption/cost
   frontier therefore has no cost axis to trace. Needs wage data.
-- **Five open decisions** remain in `decisions.md`: three for capture (`D-015`–`D-017`) and two for
-  T4. Every T1, T2 and T3 decision is written.
+- **Two open decisions** remain in `decisions.md`, both T4 (`D-012`, `D-013`) and both about the LLM
+  boundary. Every decision for T1, T2, T3 and capture is written — capture's three were writable
+  without the corpus, because the reasoning never depended on it, only the execution does.
 - **Service `[TODO]`s**: external queue store, metrics backend, interrupting a running solve.
 - **`R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE`** are registry entries
   marked optional and not encoded — asserted as such by `tests/test_specs.py` so they cannot quietly
@@ -107,10 +108,10 @@ Prose-level truth is a reading task and was done by reading. What can be mechani
 
 | | |
 | --- | --- |
-| Tests | 563 |
+| Tests | 567 |
 | Mutants, each naming the layer that must catch it | 59 |
 | Import-linter contracts | 8 |
-| Decision records | 90, with 5 still open |
+| Decision records | 94, with 2 still open |
 | Studies, including nulls | 8 |
 | Python | ~12,000 lines |
 

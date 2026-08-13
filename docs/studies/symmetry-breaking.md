@@ -50,12 +50,13 @@ a claim about rostering in general.
 | quantity | ratio, on against off | helped | hurt |
 | --- | --- | --- | --- |
 | variables | 1.000 | 0 | 1 |
-| build time | 1.004 | 7 | 17 |
-| search time | 0.999 | 13 | 11 |
-| total time | 1.003 | 7 | 17 |
+| build time | 1.020 | 5 | 19 |
+| search time | 1.010 | 4 | 20 |
+| total time | 1.015 | 4 | 20 |
 
-Search time is a coin flip, 13 against 11, which is exactly what "no symmetry to exploit" looks like.
-Build time is consistently but trivially worse, because the orbit search runs and finds nothing.
+Every quantity is trivially worse and none by 2%, which is exactly what "no symmetry to exploit"
+looks like: the orbit search runs, finds nothing, and the constraint it would have added is never
+added. Re-measured after `D-092`; the verdict was identical before it.
 
 **On a workforce built to be interchangeable** — `identical_workforce`, 8 to 16 employees with
 identical skills, contracts, budgets and no unavailability, solved cold:
@@ -64,12 +65,12 @@ identical skills, contracts, budgets and no unavailability, solved cold:
 | --- | --- | --- | --- |
 | variables | 1.235 | 0 | 5 |
 | constraints | 1.788 | 0 | 5 |
-| build time | 1.330 | 0 | 5 |
+| build time | 1.380 | 0 | 5 |
 | search time | **0.730** | 4 | 1 |
 | **total time** | **0.801** | 4 | 1 |
 
 The lever works where the structure exists: 27% off the search, paid for with a 79% larger model and
-a 33% slower build, netting **20% off the total**. It is worth noting that it nets out positive at
+a 38% slower build, netting **20% off the total**. It is worth noting that it nets out positive at
 all — the prefix-equality chain is not a cheap encoding, and at these sizes a lever that grows the
 build usually loses.
 

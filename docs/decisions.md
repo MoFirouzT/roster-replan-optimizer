@@ -36,9 +36,6 @@ Records leave this table as they are written. What remains here is what is still
 | --- | --- | --- |
 | D-012 | LLM confined to artifacts a deterministic layer can reject | T4 |
 | D-013 | Minimal core from the solver, prose from the LLM — never the reverse | T4 |
-| D-015 | Incumbent comparison on observables only, never on objective values | T2 |
-| D-016 | Pseudonymisation at capture; absence reasons discarded rather than protected | T2 |
-| D-017 | Acceptance bar for incumbent replacement fixed before the first replay | T2 |
 
 ---
 
@@ -317,6 +314,99 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   input contract and names the caller as its owner. The same architecture is reused, there by necessity
   rather than by preference, in `D-032`.
 - **Date.** 2026-08-12.
+
+## D-015 — Incumbent comparison on observables only, never on objective values
+
+- **Decision.** A replayed record compares only externally observable outcomes: coverage shortfall,
+  violations by rule ID, cost, disruption, solve time. The two systems' objective values are never
+  compared. Both solutions are scored by **this project's** checker and metrics.
+- **Alternatives.** Compare objective values directly. Fit a mapping from the incumbent's objective
+  onto this one so the two become comparable.
+- **Reason.** The incumbent's objective is unknown, differently scaled and differently weighted, so a
+  table comparing the two numbers is measuring nothing while looking rigorous. Fitting a mapping is
+  worse: it invents the very thing under test, and any conclusion then depends on a translation
+  nobody can check.
+
+  This is the same rule `methods.py` already applies inside the repo — every method scored on the
+  shipped D2 yardstick whatever it optimised, because scoring each method under its own objective
+  makes every comparison a tautology. `D-015` is that discipline applied across an organisational
+  boundary instead of within one, where it matters more because the other side's objective is not
+  merely different but unavailable.
+- **Consequences.** Scoring the incumbent with this project's checker means **the incumbent can fail
+  it**. That is a finding to report, not a bug in the harness, and it is the most valuable thing an
+  independent legality layer can produce — so the harness must not be built in a way that suppresses
+  it or treats a violating incumbent as bad input.
+
+  Results are paired per-instance deltas with win/loss/tie counts, never aggregate means. A mean
+  hides the distribution that decides this: a substitute tying on ninety instances and losing badly
+  on ten is not a substitute, and an average will not say so.
+
+  Solve time is the one confounded metric and is marked as such rather than quietly compared: this
+  service is measured locally while the vendor's figure may include queueing and network time. Where
+  the vendor reports solver time separately that is the number used, and each record states which of
+  the two was available.
+- **Date.** 2026-08-13.
+
+## D-016 — Pseudonymisation at capture, and absence reasons never written
+
+- **Decision.** Employee identifiers become stable per-tenant surrogate keys at the moment of
+  capture. Names, contact details and national registry numbers are never written. **Absence reasons
+  are discarded**, retaining only the availability bit.
+- **Alternatives.** Capture verbatim and pseudonymise at analysis or export time. Retain absence
+  reasons under access control, on the grounds that they might inform a future model.
+- **Reason.** Data that is never written cannot leak, and the timing is the whole decision: a
+  pseudonymisation step at analysis time protects nothing about the window between capture and
+  analysis, which is when a roster store is most exposed. And a roster store is an unusually rich
+  target — it locates named individuals at specific places and times.
+
+  Dropping absence reasons is the load-bearing half. A sick call is health data under GDPR Article 9,
+  which carries obligations a benchmark corpus has no business taking on. The optimiser never needed
+  the reason: `R-AVAIL` reads an interval, not a cause. So discarding it costs the model nothing and
+  removes an entire category of data from scope — the cheapest privacy decision available, and only
+  cheap because the domain model was already built without it (`D-020` separates *what befell
+  someone* from *what they declared*, and neither carries a reason).
+- **Consequences.** **The "raw" layer is not verbatim, and `capture.md` said it was.** The two-layer
+  scheme exists so the normalization can be shown faithful, and it describes the raw layer as "the
+  vendor request and response, verbatim and immutable" — which cannot hold once identifiers are
+  replaced before anything is written. Writing this record surfaced the contradiction and the spec is
+  corrected: raw means *as received, after pseudonymisation and with nothing else altered*, and the
+  adapter's round-trip test compares against that, with pseudonymisation named as the first of the
+  documented losses rather than discovered as a mismatch.
+
+  A stable per-tenant surrogate key is deliberately stable: an employee must be recognisable across
+  records or a replay cannot measure disruption against them, which is the whole point of the corpus.
+  That is a real residual exposure — a stable key plus a shift pattern is re-identifying in a small
+  tenant — and it is accepted rather than hidden, because the alternative removes the corpus's
+  ability to measure the thing it exists to measure.
+- **Date.** 2026-08-13.
+
+## D-017 — The acceptance bar is fixed before the first replay
+
+- **Decision.** The bar in [`specs/capture.md`](specs/capture.md#the-bar-stated-before-measuring) is
+  fixed in advance of the first replay: two absolute gates, then bars on the paired distribution. It
+  changes only through a `decisions.md` entry, and never in response to a result.
+- **Alternatives.** Set the bar once the distribution is known, which is what usually happens.
+- **Reason.** A success criterion written after the numbers arrive is not a criterion — it is a
+  description of the numbers. This project spends its credibility on measurements that could have
+  come out the other way, and a movable bar retracts that at the one moment it matters most, on the
+  only corpus that can test the headline claim against reality rather than against instances this
+  project invented for itself.
+- **Consequences.** Each clause exists to close a specific route, and the structure is the decision
+  rather than the numbers:
+
+  - **Two absolute gates** — zero checker violations, and no instance with worse coverage. Both are
+    outcomes no distributional argument can compensate for: one violation breaks the legality claim
+    the product is built on, and understaffing is what a planner notices within the hour.
+  - **Parity and thesis are separate numbers** — no worse on ≥ 90%, strictly better on ≥ 50%. One
+    figure cannot carry both, and T2 already produced the method that proves it: greedy repair ties
+    the optimum on 64 of 72 cases, so it would clear a 90% parity bar while demonstrating nothing.
+    The ≥ 50% clause is what that finding argues for.
+  - **A cap on the losses** — worse by no more than 25% on the instances where it is worse. Without
+    it the 10% allowance is unbounded and ten catastrophic losses pass a bar designed to exclude
+    exactly that.
+  - **Two time bounds** — p95 ≤ 1.5x the incumbent *and* ≤ 5 s. The relative bound alone is gamed by
+    a slow incumbent; the absolute one is what the planner waiting for the answer experiences.
+- **Date.** 2026-08-13.
 
 ## D-018 — `R-COVER` split into a hard ceiling and a soft floor
 
@@ -1795,4 +1885,36 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   mechanises the checkable half of "all specs true". It found a broken documentation link on its
   first run, and it encodes the duplicate-ID check that would have caught `D-089` being assigned
   twice.
+- **Date.** 2026-08-13.
+
+## D-096 — The timing balance is committed and asserted; absolute milliseconds are not
+
+- **Decision.** `tests/timings.json` records build p50, search p50 and their ratio. The test asserts
+  the **ratio** within 20%, and the milliseconds only within a loose sanity band.
+- **Alternatives.** Assert a band around the absolute figures, which is the obvious guard. Assert
+  nothing and re-read the documents by hand after a performance change.
+- **Reason.** `D-092` cut build time from about 7 ms to about 5 ms and **six documents went on quoting
+  7 ms** — two specs, two studies, `benchmarks.md` and a decision record. Nothing caught it: the suite
+  was green, the mutation harness was green, and `test_specs.py` checks rule IDs, decision IDs and
+  links but has no opinion about numbers.
+
+  The incident taught something narrower than *measurements rot*, and it is what shapes this guard.
+  **Paired ratios did not rot.** Re-running every level-1 study after `D-092` moved the ratios by
+  about a point and changed no verdict, because a ratio divides out whatever the shared baseline does.
+  **The absolute figure did**, because it is a statement about the baseline itself.
+
+  The first version of this file asserted a 40% band on the milliseconds, and it would **not** have
+  caught `D-092`, whose shift was 26%. A band loose enough to survive a slower laptop is too loose to
+  detect what it exists for, which makes the absolute figure the wrong quantity to assert on.
+  `build / search` is the right one: it is what the prose reasons from (`D-081`, `D-093`), and a
+  faster machine shrinks both sides of it. `D-092` moved it from about 2.2 to about 1.5 — a 44% drift
+  against a 20% band.
+- **Consequences.** The studies are left alone, which is the point: they were already robust and
+  adding provenance stamps to all eight would have been friction against a failure mode they do not
+  have. One quantity is guarded, and it is the one that broke.
+
+  `test_build_still_dominates_search` asserts the *ordering* separately, because two records reason
+  from it rather than merely quote it — `D-081` separates the two clocks because build costs more, and
+  `D-093` rejects the compiled-model cache partly on that balance. If it ever reversed, both would
+  need rereading, and a silent reversal is exactly what happened last time.
 - **Date.** 2026-08-13.

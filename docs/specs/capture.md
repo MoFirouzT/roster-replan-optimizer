@@ -27,7 +27,7 @@ one whose parameters are fitted to captured instances can be.
 
 Every captured interaction is stored twice.
 
-- **Raw.** The vendor request and response, verbatim and immutable.
+- **Raw.** The vendor request and response **as received, pseudonymised, and otherwise unaltered**.
 - **Normalized.** The same interaction expressed in this project's own instance and solution schema.
 
 Neither layer is sufficient alone.
@@ -36,6 +36,12 @@ without the normalized layer there is nothing to replay.
 The adapter between them is a component like any other and is round-trip tested:
 `normalize(raw)` followed by `denormalize` must reproduce the raw payload up to documented,
 enumerated losses.
+
+**"Raw" is not "verbatim", and the difference is deliberate** (`D-016`). An earlier version of this
+section said verbatim, which cannot hold: pseudonymisation happens *before* anything is written, so
+identifiers are already surrogates in the raw layer by the time it exists. Pseudonymisation is
+therefore the first of the adapter's enumerated losses rather than a mismatch to be discovered by the
+round-trip test. Everything else in the payload is untouched, which is what the layer is for.
 
 `[TODO]` Record schema. At minimum: record ID, pseudonymous tenant ID, capture timestamp, vendor and
 endpoint, raw request, raw response, normalized instance, normalized vendor solution, adapter
@@ -51,10 +57,17 @@ it locates named individuals at specific places and times.
 - Names, contact details and national registry numbers are never written.
 - **Absence reasons are dropped.** Only the availability bit is retained.
 
-The last one is the load-bearing one. A sick call is health data under GDPR Article 9, carrying
-obligations that a benchmark corpus has no business taking on. The optimiser never needed the
-reason — it needs to know the person is unavailable — so discarding it costs nothing and removes
-the entire category from scope.
+The last one is the load-bearing one (`D-016`). A sick call is health data under GDPR Article 9,
+carrying obligations that a benchmark corpus has no business taking on. The optimiser never needed
+the reason — `R-AVAIL` reads an interval, not a cause — so discarding it costs the model nothing and
+removes the entire category from scope. It is cheap only because the domain model was built without
+it: `D-020` already separates what befell someone from what they declared, and neither carries a
+reason.
+
+**The residual exposure is stated rather than implied.** Surrogate keys are *stable* by design, or a
+replay cannot measure disruption against the same person across records — which is the corpus's whole
+purpose. A stable key plus a shift pattern is re-identifying in a small tenant. That is accepted, not
+solved.
 
 `[TODO]` Retention period, and whether raw payloads are retained after adapter round-trip passes.
 
@@ -87,7 +100,7 @@ instances and loses catastrophically on ten is not a substitute, and an average 
 
 ## The bar, stated before measuring
 
-A success criterion written after the numbers arrive is not a criterion.
+A success criterion written after the numbers arrive is not a criterion (`D-017`).
 The following is fixed in advance of the first replay and is changed only through a `decisions.md`
 entry, never in response to a result.
 
@@ -104,7 +117,8 @@ says.
 - Disruption (D2) **no worse on ≥ 90%** of instances, and **strictly better on ≥ 50%**.
   The first number is the parity claim, the second is the thesis.
   One figure cannot carry both: a method can tie everywhere and satisfy a 90% bar while
-  demonstrating nothing.
+  demonstrating nothing. That is not hypothetical — T2's greedy baseline ties the optimal replan on
+  64 of 72 cases ([`benchmarks.md`](../benchmarks.md)), so it would clear the parity bar alone.
 - On the instances where disruption is worse, **worse by no more than 25%** of that instance's
   incumbent score. Without this cap the 10% allowance is unbounded, and ten catastrophic losses
   would pass a bar designed to exclude exactly that.
