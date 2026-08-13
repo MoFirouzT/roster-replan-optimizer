@@ -90,6 +90,10 @@ other than the roster:
 **Suite-wide invariant** (`D-063`). Every test that produces a solution asserts zero **hard** checker
 violations on it, and that the solve reached `OPTIMAL`. Soft violations are recorded, not asserted away.
 
+**Every layer above is checked by mutation** (`D-077`), in `tests/mutation.py`. Each mutant names the
+layer whose job it is to object, so the harness answers *can this layer see this defect* rather than
+the weaker *does anything fail*. A layer without a mutant is a layer nobody has shown to work.
+
 Realised as a shared `solved()` helper rather than enforced automatically — so a test calling the solver
 directly opts out, and should have a reason to. The `OPTIMAL` half matters more than it looks: a test
 comparing objectives across relaxations or against enumeration is meaningless on a time-limited

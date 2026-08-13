@@ -1162,3 +1162,34 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   different hour, so the notice axis varies notice and nothing else. Both are asserted by test, and
   a mutant that seeds generation from the event name is caught by them.
 - **Date.** 2026-08-13.
+
+## D-077 — Mutation testing as a committed harness, each mutant naming the layer that should catch it
+
+- **Decision.** `tests/mutation.py` holds every deliberate defect this project has used to check a
+  test layer. Each mutant names the layer expected to object, and one caught only by some *other*
+  layer is reported as a miss rather than a pass.
+- **Alternatives.** Keep it a habit, applied by hand whenever a layer is written. Point an
+  off-the-shelf mutation tool at the whole codebase.
+- **Reason.** A habit is not evidence. This repo already claimed every layer had been checked this
+  way, and until now the claim was the only thing committed — the checks themselves were thrown
+  away after each use, so nothing could be re-run and nothing could be reviewed. Naming the expected
+  catcher is what makes a result mean anything: run the *whole* suite against any mutant and
+  something fails, which says nothing about whether the ground-truth layer can see a wrong threshold
+  or whether the golden record can see a reweighted objective. Those are separate claims and they
+  need separate answers. A general mutation tool generates thousands of mutants, most of them
+  meaningless, and buries the handful that encode a real hypothesis about a layer.
+- **Consequences.** Adding a test layer now means adding a mutant for it — the harness is where a
+  layer earns being trusted. It is deliberately outside the normal suite: it rewrites source files
+  and takes minutes, so it runs when a layer is added or is about to be relied on.
+
+  Its first full run found two holes, both behind a fully green suite. The differential harness could
+  not see a wrong `min_rest_hours` in the model at all, because its only instance opened mornings and
+  every gap it could express was 24 hours — `D-066`'s blind spot, in the one layer that had not been
+  checked for it. And the `D-057` domination bound, which that record says is *validated rather than
+  trusted*, had no test asserting it fires. Both were closed rather than filed.
+- **The restore has to be verified, not assumed.** An editor's format-on-save watcher reads a file
+  when it changes and writes its result later, so during a run it sees the mutated text and its
+  delayed write can land *after* the restore. That happened, and it left a swapped publication weight
+  in a working tree that looked clean at a glance. The harness now retries the restore until it holds
+  and checks every touched path against git before exiting, reporting a leak as its own failure mode.
+- **Date.** 2026-08-13.

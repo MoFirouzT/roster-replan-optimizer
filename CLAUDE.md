@@ -85,6 +85,19 @@ preserves the alignment.
 
 ## Tests
 
-**Break the code to prove a test layer works before calling it done.** Every layer in this repo was
-checked that way, and it found two blind spots that a green suite had hidden — see `D-066` and
-`D-058`. A layer that has never been shown to fail is not known to work.
+**Break the code to prove a test layer works before calling it done.** A layer that has never been
+shown to fail is not known to work.
+
+The check is a script rather than a habit:
+
+```bash
+uv run python -m tests.mutation
+```
+
+Every mutant names the layer expected to object, and one caught only by some other layer is reported
+as a miss. It is not part of the normal suite — it rewrites source files and takes minutes, so run it
+when a test layer is added, or when one is about to be trusted. Adding a layer means adding a mutant
+for it.
+
+This has found four blind spots so far, each behind a fully green suite: `D-066`, `D-058`, a rest
+threshold the differential harness could not see, and a validation rule with no test at all.

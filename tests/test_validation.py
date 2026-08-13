@@ -12,7 +12,7 @@ import dataclasses
 from conftest import MORNING
 
 from roster_replan.checker import check
-from roster_replan.domain import OpenShift, ShiftType, SkillMixEntry
+from roster_replan.domain import OpenShift, ShiftType, SkillMixEntry, shipped_d2
 from roster_replan.validation import validate_instance
 
 
@@ -198,3 +198,39 @@ def test_duplicate_open_shift_is_a_defect(make_instance, person, one_shift):
 def test_unknown_shift_type_is_a_defect(make_instance, person):
     instance = make_instance([person], [OpenShift(day=0, shift=99, required=1)])
     assert "open_shifts[0].shift" in fields(validate_instance(instance))
+
+
+# --- The domination bound ----------------------------------------------------------
+# `D-057` derives the bound rather than choosing it, and says it is validated rather than
+# trusted. Nothing asserted that until mutation testing found the check could be disabled
+# without a single test objecting.
+
+
+def test_a_shortfall_weight_that_does_not_dominate_is_a_defect(
+    make_instance, person, one_shift
+):
+    """Understaffing *reduces* disruption, so a shortfall weight below the bound lets the
+    optimiser buy stability by leaving shifts empty -- an ordering error that looks like a
+    tuning problem. A weight scale that violates it is a malformed request."""
+    weak = make_instance(
+        [person], [one_shift], disruption=shipped_d2(shortfall_weight=1)
+    )
+    (defect,) = validate_instance(weak)
+
+    assert defect.field == "disruption.shortfall_weight"
+    assert defect.observed == 1
+
+
+def test_the_bound_scales_with_demand(make_instance, person):
+    """`max req x max_change_weight`: doubling the headcount a single shift needs doubles
+    the disruption that leaving it empty can avoid, so a weight that passed can stop
+    passing without the profile changing at all."""
+    weight = shipped_d2(shortfall_weight=200)
+
+    small = make_instance([person], [OpenShift(day=0, shift=MORNING, required=1)],
+                          disruption=weight)
+    large = make_instance([person], [OpenShift(day=0, shift=MORNING, required=8)],
+                          disruption=weight)
+
+    assert fields(validate_instance(small)) == []
+    assert "disruption.shortfall_weight" in fields(validate_instance(large))

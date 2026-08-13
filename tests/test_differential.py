@@ -160,6 +160,49 @@ def test_brute_force_violation_sets_agree():
     assert mismatches == [], f"{len(mismatches)} mismatches, first: {mismatches[:1]}"
 
 
+def bracketing() -> Instance:
+    """A variant whose rest gaps straddle `min_rest_hours` rather than clearing it.
+
+    `micro()` opens mornings only, so every gap between consecutive shifts is 24h and no
+    roster it can express distinguishes an 11-hour rest threshold from a 9-hour one. The
+    differential layer was therefore blind to a wrong threshold in either reading --
+    `D-066`'s blind spot, found here by mutation testing after the same lesson had already
+    been learned once in the ground-truth set.
+
+    A late shift ending at 21:00 followed by the next morning at 07:00 leaves a 10-hour
+    gap: illegal at 11, legal at 9, so the two thresholds now disagree about a roster the
+    harness actually enumerates.
+    """
+    late = ShiftType("L", 13.0, 8.0, 0.5)
+    return dataclasses.replace(
+        micro(),
+        shift_types=(ShiftType("M", 7.0, 8.0, 0.5), late),
+        open_shifts=(
+            OpenShift(day=0, shift=1, required=1),
+            OpenShift(day=1, shift=0, required=1),
+            OpenShift(day=1, shift=1, required=1),
+            OpenShift(day=2, shift=0, required=1),
+        ),
+    )
+
+
+def test_violation_sets_agree_on_gaps_that_straddle_the_threshold():
+    """The comparison above, over rosters where the rest threshold actually binds."""
+    instance = bracketing()
+    gaps = {
+        instance.window(1, 0).start - instance.window(0, 1).end,
+        instance.window(2, 0).start - instance.window(1, 1).end,
+    }
+    assert gaps == {10.0}, f"the instance no longer brackets the threshold: {gaps}"
+
+    mismatches = [
+        (r, checker_keys(r, instance), model_keys(r, instance))
+        for r in all_rosters(instance)
+        if not agree(r, instance)
+    ]
+    assert mismatches == [], f"{len(mismatches)} mismatches, first: {mismatches[:1]}"
+
+
 def test_presolve_agrees_with_the_checker():
     """The two eligibility derivations, compared pair by pair over every instance
     variant. This is what makes dropping R-COVER on unrepresentable rosters safe: the
