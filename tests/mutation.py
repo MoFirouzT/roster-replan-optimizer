@@ -76,6 +76,7 @@ PATTERNS = "benchmarks/patterns.py"
 LADDER = "roster_replan/ladder.py"
 JOBS = "roster_replan/service/jobs.py"
 COMPILED = "roster_replan/compiled.py"
+MILP = "benchmarks/milp.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 
@@ -560,6 +561,41 @@ MUTANTS: tuple[Mutant, ...] = (
         "        key = (tenant, fingerprint(instance))",
         "        key = (\"-\", fingerprint(instance))",
         "tests/test_cache.py",
+    ),
+    # --- The MILP formulation, D-001's evidence ---------------------------------------
+    # A second formulation is only evidence while it means the same thing. Each of these
+    # produces a fast, plausible, wrong comparison.
+    Mutant(
+        "milp-accepts-the-default-mip-gap",
+        "milp",
+        MILP,
+        "    params.SetDoubleParam(pywraplp.MPSolverParameters.RELATIVE_MIP_GAP, 0.0)",
+        "    pass",
+        "tests/test_milp.py",
+    ),
+    Mutant(
+        "milp-drops-the-consecutive-day-link",
+        "milp",
+        MILP,
+        "            for var in same_day:\n                solver.Add(indicator >= var)",
+        "            for var in same_day:\n                pass",
+        "tests/test_milp.py",
+    ),
+    Mutant(
+        "milp-forgets-the-coverage-ceiling",
+        "milp",
+        MILP,
+        "        solver.Add(sum(assigned) + short == required)",
+        "        solver.Add(sum(assigned) + short >= required)",
+        "tests/test_milp.py",
+    ),
+    Mutant(
+        "milp-silently-accepts-d3",
+        "milp",
+        MILP,
+        '    if instance.disruption is None or instance.disruption.metric not in ("D0", "D1", "D2"):',
+        "    if False:",
+        "tests/test_milp.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

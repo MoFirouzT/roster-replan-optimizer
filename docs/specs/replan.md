@@ -294,7 +294,7 @@ tell them apart. Paired on case and solver seed across the committed set, the hi
 search time on 201 of 216 runs, median paired ratio 0.907.
 
 **And it is small.** That is 9% of a 3 ms search, invisible in end-to-end latency because building
-the model costs about 7 ms. The objective is what carries the result: it cuts mean disruption from
+the model costs about 5 ms. The objective is what carries the result: it cuts mean disruption from
 323 to 66 against the cost baseline, and the hint is a rounding error beside it. The hint never
 changes the answer, which is asserted rather than assumed — a hint implemented as a constraint would
 return the best roster that keeps the damage and report it as the optimum.

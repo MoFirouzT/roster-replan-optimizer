@@ -74,8 +74,11 @@ describes it. It is the **only** module the model and the checker may both impor
 hold is fixed by the [independence rule](rules.md#independence-rule): data containers and the stated
 conventions, no rule predicate and no rule threshold (`D-038`, `D-039`).
 
-`[TODO]` The wire format — JSON, versioning and the Pydantic boundary — lands with the service in T3.
-What follows is the in-process schema those contracts will serialise.
+The wire format landed with the service:
+[`service.md#contracts`](service.md#contracts-built) and `roster_replan/service/contracts.py`. It is
+a **separate schema** rather than a serialisation of this one (`D-090`), so what follows stays the
+in-process schema and is free to change without breaking a caller. The two are held together by a
+round-trip identity test rather than by convention.
 
 ### Time is hours from the horizon start, not a calendar timestamp
 

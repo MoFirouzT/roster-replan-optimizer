@@ -1,9 +1,10 @@
-# Development plan
+# Development plan `[ARCHIVED]`
 
-> **End of life.**
-> This file is disposable.
-> It is archived to `docs/archive/` at the finish declaration (end of T3) and is not maintained afterwards.
-> If a sentence here would still be true after the project ships, it belongs in a spec, not in this file.
+> **Archived 2026-08-13 at the finish declaration**, as this file's own end-of-life clause required.
+> It is a record of how the project was sequenced, not a description of what it is, and it is **not
+> maintained**. Several things below were superseded by measurement — see
+> [`docs/finish.md`](../finish.md) for what actually happened, and `docs/specs/` for what the system
+> is.
 
 **Owns:** sequencing, per-tier scope, gates.
 **Does not own:** what anything *is* — that lives in `docs/specs/`.

@@ -129,15 +129,17 @@ Levers, measured, including the three that did not pay off:
 | Lever | Result |
 | --- | --- |
 | Domain presolve | **28% off build, 16% off search**, 24/24 cases — a quarter of the model removed |
-| Per-tenant compiled-model caching | **The largest one**: building costs ~7 ms against ~3 ms of search |
+| Memoising the shift-window lookup | **The largest one**: 20% off build, found by profiling — building costs more than solving here |
+| Per-tenant compiled-model caching | **Null for replanning** — 0 hits in 144 solves; a replan changes the model's own inputs |
 | Warm starts from the previous solution | **9% of search time**, paired on 216 runs; invisible end to end |
 | Symmetry breaking | **Null** — 3 interchangeable employees across 24 cases. Worth 20% where symmetry exists, so the null is about the distribution |
 | `regular` automaton for shift sequences | **Rejected, 20% slower** — a one-week horizon leaves exactly one window to replace |
 | `no_overlap` intervals for rest gaps | **Rejected** — trades search time for build time, and the sign of the total flips by instance |
 | Pattern/column variables | **Rejected** — no proof of optimality in 30 s on a cold week, against ~20 ms |
 
-Four of the seven textbook levers lost, and the one that mattered most was the least interesting:
-at these sizes the model is built more slowly than it is solved. Three of the four failures share a
+Five of the eight textbook levers lost, and the one that mattered most was the least interesting:
+at these sizes the model is built more slowly than it is solved, and the biggest single win was one
+memoised lookup that no encoding study could have found. Three of the four failures share a
 cause worth naming — a global constraint aggregates, and this model gates every rule *instance*, so
 replacing many local constraints with one global one coarsens what a failure can be blamed on. That
 is a real cost when the T4 deliverable is an explainer. Each study, including every null:
@@ -160,7 +162,8 @@ uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json
 
 ```text
 README.md                  this file — final-state
-PLAN.md                    tiers and sequencing (archived at the finish declaration)
+docs/finish.md             the finish declaration — what shipped, what did not
+docs/archive/PLAN.md       tiers and sequencing (archived, not maintained)
 roster_replan/
   model/                   CP-SAT formulation
   checker/                 independent legality verification — imports no solver

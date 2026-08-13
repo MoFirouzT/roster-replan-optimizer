@@ -1,8 +1,13 @@
 # Capture and replay
 
-> **Status: outline.** Adapter and replay harness land in T2, alongside the scoring machinery they
-> share with `benchmarks.md`. Population depends on an external authorization this project does not
-> control — see *Sequencing*.
+> **Status: outline, and not built.** This is the one component `PLAN.md` scheduled for T2 that T2
+> did not deliver, and the finish declaration records it as outstanding rather than quietly dropping
+> it — see [`docs/finish.md`](../finish.md).
+>
+> It never gated T2, by design: corpus population depends on an external authorization this project
+> does not control, and building a vendor adapter before the payload shape is known would produce a
+> round-trip test that proves only that the adapter matches a guess. The scoring machinery it was to
+> share with `benchmarks.md` exists and is what it would reuse.
 
 ## What this exists to prove
 

@@ -120,7 +120,7 @@ results one checkable invariant, which is that no method may score below the dis
 `Score.total`, because that solve is optimal.
 
 **Two clocks, not one** (`D-081`). At these sizes a search takes about 3 ms and building the model in
-Python takes about 7 ms, so an end-to-end stopwatch mostly measures model construction — identical
+Python takes about 5 ms, so an end-to-end stopwatch mostly measures model construction — identical
 for all four methods. The first version of this harness reported exactly that and made the four
 methods look equally fast for a reason that has nothing to do with any of them. End-to-end is the
 latency a caller sees; search time is the only number that compares one search against another.
@@ -248,7 +248,7 @@ rather than shown as three identical bars. A one-week horizon over 8–25 employ
 instances is small for CP-SAT. The T3 fallback ladder — exact, then time-boxed with a reported gap,
 then greedy — is designed for a regime this set does not reach, and the honest position is that its
 time-boxed rung is currently unexercised by any committed benchmark. What the numbers here do
-support is the opposite scheduling concern: at 3 ms of search against 7 ms of model construction, the
+support is the opposite scheduling concern: at 3 ms of search against 5 ms of model construction, the
 thing worth caching is the compiled model, which is what T3 already plans.
 
 ## Reproduction

@@ -10,6 +10,10 @@ be retained for reporting (`D-045`).
 
     uv run python -m benchmarks.studies --only presolve
 
+Re-measured after `D-092` memoised `Instance.window` and cut build time by 20%. The verdict is
+unchanged and the ratios moved by about a point, which is what a lever independent of that one should
+do.
+
 ## What was compared
 
 `build(presolve=False)` against the default. The off variant keeps a variable for every
@@ -22,8 +26,8 @@ one.
 | --- | --- | --- | --- |
 | variables | 0.716 | 24/24 | 0 |
 | constraints | 0.692 | 24/24 | 0 |
-| build time | 0.718 | 24/24 | 0 |
-| search time | 0.839 | 24/24 | 0 |
+| build time | 0.726 | 24/24 | 0 |
+| search time | 0.863 | 24/24 | 0 |
 
 Presolve keeps 57% to 76% of the unpresolved model's variables across the 24 cases, so the model is
 about a quarter smaller and the range across scenario classes is wide — `thin-availability`, where
@@ -31,7 +35,7 @@ declared unavailability removes the most pairs, is at the bottom of it.
 
 ## Reading it honestly
 
-**The 24/24 is what makes this a result at these sizes.** A 28% median improvement on a 7 ms build
+**The 24/24 is what makes this a result at these sizes.** A 27% median improvement on a 5.2 ms build
 would not survive scrutiny on its own; the same direction on every paired case does. This is the
 cleanest positive in the level-1 set, and it is the only one of the four that wins on every quantity
 at once.

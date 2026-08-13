@@ -34,9 +34,6 @@ Records leave this table as they are written. What remains here is what is still
 
 | ID | Decision | Tier |
 | --- | --- | --- |
-| D-001 | CP-SAT over MILP — **the one T1 record still owed.** No spec argues it, so it cannot be written from the repo without inventing a rationale nobody made. It needs the actual comparison: what MILP was weighed against, and on what | T1 |
-| D-010 | Async job queue over synchronous HTTP | T3 |
-| D-011 | Stateless solver service, no DB reads | T3 |
 | D-012 | LLM confined to artifacts a deterministic layer can reject | T4 |
 | D-013 | Minimal core from the solver, prose from the LLM — never the reverse | T4 |
 | D-015 | Incumbent comparison on observables only, never on objective values | T2 |
@@ -54,6 +51,47 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 ([`specs/model.md`](specs/model.md), [`specs/validation.md`](specs/validation.md)), and the objective
 ([`specs/replan.md`](specs/replan.md)). What the Open table still lists is T2 and later, plus
 `D-001`, which is T1 and is called out there for what it needs.
+
+## D-001 — CP-SAT over MILP: measured, and not for speed
+
+- **Decision.** CP-SAT. The MILP alternative is fully built in `benchmarks/milp.py` and reaches the
+  same optimum on every committed case, so this record rests on a comparison rather than on a
+  preference.
+- **Alternatives.** Branch-and-cut MILP. Both SCIP 10 and CBC ship inside `ortools`, so the
+  comparison needed no new dependency — and is therefore against **open-source** MILP, not Gurobi.
+- **Reason.** **Not speed. Measured, CP-SAT loses**: SCIP proves the same optimum faster on 24 of 24
+  cases, 38% faster than the shipped configuration and 25% faster than an ungated one. CBC is a coin
+  flip at 11 of 24. What CP-SAT provides instead is three capabilities this project already depends
+  on and MILP cannot supply:
+
+  1. **Assumption literals, and therefore infeasibility cores** (`D-002`, `D-048`) — the object T4's
+     explainer consumes and that `D-013` requires come from the solver rather than an LLM. MILP has no
+     assumption mechanism; an IIS is a different guarantee and `pywraplp` does not expose one.
+  2. **`violations()`** (`D-044`) — fixing every assignment and maximising true gate literals leaves
+     exactly the violated constraints false, so one solve enumerates them all. That trick *is* the
+     assumption mechanism. Without it the model can only refuse a roster, and comparing a refusal
+     against the checker's violation set is the vacuous comparison `D-065` rejects.
+  3. **Non-linear expressiveness** — D3 and D4 pair changes through `min(drops, adds)`, which
+     `add_min_equality` states directly and MILP needs auxiliary binaries and big-M for. `milp.py`
+     refuses D3 and D4 rather than comparing a linearised approximation.
+
+  The price is quantified rather than waved away: about 1.3 ms per solve, against a model build
+  costing ~5 ms regardless of backend (`D-092`). The solver choice moves roughly 15% of a request and
+  Python model construction moves more.
+- **Consequences.** The gating that buys capability 1 and 2 costs **21% of CP-SAT's search time** and
+  half of its variables — 534 gate literals against 183 assignment variables on `headline/0`. That is
+  the real price of the explainer, and it is now a number rather than an intuition.
+
+  One finding travels beyond this record. **MILP's default relative MIP gap is unsafe at this
+  objective's scale and fails silently.** `pywraplp` defaults it to `1e-4`, and `shortfall_weight` is
+  100,000 so that coverage dominates (`D-057`) — so a roster one shift short scores in the hundreds of
+  thousands and `1e-4` of that is ~30 disruption points, about ten changed shifts. At the default,
+  SCIP returned 300003 and **reported it `OPTIMAL`** while 300001 was feasible. The first version of
+  this study was therefore timing an approximation against a proof, and only the cross-formulation
+  equivalence test exposed it. Generalised: **the weight that makes coverage dominate also makes any
+  relative termination criterion coarse**, and any future solver with a gap tolerance inherits it.
+- **Study.** `docs/studies/cp-sat-vs-milp.md`.
+- **Date.** 2026-08-13.
 
 ## D-002 — Hard constraints structural rather than penalised
 
@@ -211,6 +249,50 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   relaxation CP-SAT does not expose and would be a separate project. It also does not improve with a
   longer horizon: at a four-week reference period the enumeration is `4^28` rather than `4^7`.
 - **Study.** `docs/studies/pattern-encoding.md`.
+- **Date.** 2026-08-13.
+
+## D-010 — Async job queue over synchronous HTTP
+
+- **Decision.** `POST /v1/replans` enqueues and returns `202` with a job id; `GET` polls; `DELETE`
+  cancels. No endpoint solves inside the request.
+- **Alternatives.** Synchronous HTTP, which is simpler and needs no job state. An event-driven design
+  reacting continuously to roster changes.
+- **Reason.** Synchronous works only for sub-second solves. At 30 s it produces timeouts, retries that
+  re-trigger an expensive solve, request pile-up, no progress feedback and no way to cancel — and the
+  retry storm is the dangerous one, because it multiplies exactly the load that caused it.
+  Event-driven suits continuous replanning but makes *"why did my roster change?"* hard to answer,
+  which is the question this project exists to answer well.
+- **Consequences.** Measured, the premise is weaker than it looked: **nothing in the committed set
+  takes more than 12.4 ms**, so at present sizes a synchronous endpoint would have been adequate and
+  this is insurance against instance sizes the project does not yet serve. The insurance is cheap and
+  the shape is hard to retrofit — a caller written against a synchronous API cannot be moved to
+  polling without a version bump — so it stays. It is also what makes the fallback ladder's budget
+  meaningful: a request that may take 30 s needs somewhere to put a partial answer.
+
+  Cancelling a *running* solve marks the job and discards its result but does not stop the CPU work,
+  which needs a solution callback wired through `model.solve`. Stated in `service.md` rather than left
+  to be discovered under load.
+- **Date.** 2026-08-13.
+
+## D-011 — Stateless solver, and an in-process queue that is not
+
+- **Decision.** `run_job` takes a payload and returns a payload. No database reads anywhere in the
+  solve path. The job store holds requests in memory, keyed by tenant.
+- **Alternatives.** Let the solver read tenant profiles and rosters from a database directly, which
+  removes a serialisation layer and a class of contract bugs.
+- **Reason.** A solve that reads from a database cannot be replayed, and optimisation is close to
+  undebuggable without replay: the input is large, the output is sensitive to every field, and "it
+  returned something odd last Tuesday" is unanswerable unless last Tuesday's exact input is
+  reconstructible. Every job therefore keeps its request, seed and profile version after completion —
+  a job that has discarded its input cannot be replayed however good its telemetry is.
+- **Consequences.** The distinction that matters is between the *solver* and the *queue*. The solver
+  is stateless as specified. The queue is in-process, so replicas do not share it and a restart loses
+  it — the honest limit of this tier, and a contained change: swapping the store for Redis or SQS
+  touches nothing below `service/`, precisely because the solver reads nothing.
+
+  Statelessness is also what makes the T2 benchmark machinery and the production path the same code.
+  `benchmarks/methods.py` and `run_job` call the same solver with the same payloads, so a benchmark
+  number is a claim about the deployed system rather than about a laboratory copy of it.
 - **Date.** 2026-08-13.
 
 ## D-014 — Horizon-boundary state supplied by the caller, not solved over a longer horizon
@@ -814,7 +896,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   disruption is never traded away.
 - **Reason.** That guarantee is the problem. Under a lexicographic ordering no cost saving, however
   large, buys a single unit of disruption. This collapses the disruption/cost Pareto frontier to one
-  point, and that frontier is the headline chart in [`benchmarks.md`](../benchmarks.md). An objective
+  point, and that frontier is the headline chart in [`benchmarks.md`](benchmarks.md). An objective
   that makes the money chart trivial is the wrong objective.
 - **Consequences.** The weights have to sit on one scale, which forces the shortfall term to dominate
   by a derived bound rather than by a number that merely looks large (`D-057`). The exchange rate
@@ -1374,7 +1456,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Decision.** `Solution` carries CP-SAT's own wall time, and every benchmark row reports it
   alongside the end-to-end measurement taken around the whole call.
 - **Alternatives.** One stopwatch around `solve`.
-- **Reason.** At T2 sizes a search is about 3 ms and building the model in Python is about 7 ms, so
+- **Reason.** At T2 sizes a search is about 3 ms and building the model in Python is about 7 ms
+  (**since reduced to about 5 ms by `D-092`; the figure is left as measured, and the conclusion is
+  unaffected because build still dominates**), so
   an end-to-end number is mostly measuring model construction — which is identical for all four
   methods. The first version of this harness reported exactly that, and the four methods came out
   equally fast for a reason that has nothing to do with any of them. The warm start's effect is
@@ -1685,4 +1769,30 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   committed set takes more than 12.4 ms, so no benchmark, test or production payload would have
   reached this path — it needed a deliberately absurd budget, which is the same technique the whole
   rung-forcing exercise rests on.
+- **Date.** 2026-08-13.
+
+## D-095 — Finish declaration: name ratified, publication deferred
+
+- **Decision.** T3 is declared finished. The repo keeps the name `roster-replan-optimizer`. The
+  public/private fork is **deferred rather than executed**: the project stays private for now.
+  `PLAN.md` is archived to `docs/archive/` and is no longer maintained.
+- **Alternatives.** Rename to something shorter, such as `roster-replan`. Publish now, which was
+  `PLAN.md`'s own recommended default for completion.
+- **Reason.** The name is accurate and is load-bearing in three places — the package, the remote and
+  every cross-reference in the docs — so renaming costs a sweep and buys a shorter URL. On
+  publication, the project passes the IP-hygiene test it set itself: it is synthetic throughout, with
+  no tenant data, no vendor payloads and no wage data, so "would I be fine if this went public
+  tomorrow?" is already yes. The reason to wait is asymmetry rather than doubt. Publishing is
+  irreversible in practice — what is published is cached and indexed regardless of a later revert —
+  and staying private is not. Between two acceptable options where one can be undone, the reversible
+  one is the cheaper order to take them in.
+- **Consequences.** Finishing is recorded as a state of the repo rather than as an announcement, which
+  is the correct separation: the work is done whether or not anyone is shown it. The declaration in
+  [`finish.md`](finish.md) is complete, and it lists what did **not** ship with the same care as what
+  did — capture and replay, `D-001`, the flat cost model, and T4/T5 as designed upside.
+
+  One thing the declaration adds that `PLAN.md` did not ask for: `tests/test_specs.py`, which
+  mechanises the checkable half of "all specs true". It found a broken documentation link on its
+  first run, and it encodes the duplicate-ID check that would have caught `D-089` being assigned
+  twice.
 - **Date.** 2026-08-13.
