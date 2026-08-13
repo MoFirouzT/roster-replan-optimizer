@@ -69,6 +69,8 @@ SCORING = "roster_replan/scoring.py"
 VALIDATION = "roster_replan/validation.py"
 GENERATOR = "benchmarks/generator.py"
 SUITE = "benchmarks/suite.py"
+METHODS = "benchmarks/methods.py"
+GREEDY = "benchmarks/greedy.py"
 DOMAIN = "roster_replan/domain.py"
 
 MUTANTS: tuple[Mutant, ...] = (
@@ -301,6 +303,53 @@ MUTANTS: tuple[Mutant, ...] = (
         "    rng = random.Random(seed)",
         "    rng = random.Random(seed + len(params.event))",
         "tests/test_suite.py",
+    ),
+    # --- The method comparison ------------------------------------------------------
+    # A benchmark harness fails silently by construction: a wrong method still returns a
+    # roster, still finishes in milliseconds, and still fills a table. These four are the
+    # ways it could produce a flattering number without producing an error.
+    #
+    # The first is the one worth naming. A hint is a search suggestion, and the natural
+    # mistake is to implement it as a constraint -- which would make every warm-started
+    # replan return the best roster that *keeps the damage*, report it as the optimum, and
+    # look fast doing it.
+    Mutant(
+        "methods-hint-implemented-as-a-constraint",
+        "methods",
+        MODEL,
+        "            model.add_hint(var, int(key in hint))",
+        "            model.add(var == int(key in hint))",
+        "tests/test_methods.py",
+    ),
+    # Greedy's two defences of the pinned past are not equal, and the harness is what
+    # found that out. Deleting the `is_past` skip in `repair` survives -- `_legal` refuses
+    # a past slot anyway, because adding one is a `R-PIN-PAST` violation the checker
+    # names. So that skip is a statement of intent and a saving, not a defence, and the
+    # mutant that matters is the one on the other side: dropping an assignment the past
+    # pins.
+    Mutant(
+        "methods-greedy-drops-a-pinned-past-assignment",
+        "methods",
+        GREEDY,
+        "        and not instance.is_past(v.day, v.shift)",
+        "        and not v.historical",
+        "tests/test_methods.py",
+    ),
+    Mutant(
+        "methods-greedy-calls-anyone",
+        "methods",
+        GREEDY,
+        "    return not (after - before)",
+        "    return True",
+        "tests/test_methods.py",
+    ),
+    Mutant(
+        "methods-cost-baseline-still-prices-deviation",
+        "methods",
+        METHODS,
+        "        published_weight=0,",
+        "        published_weight=params.published_weight,",
+        "tests/test_methods.py",
     ),
 )
 

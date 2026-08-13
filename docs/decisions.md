@@ -1193,3 +1193,142 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   in a working tree that looked clean at a glance. The harness now retries the restore until it holds
   and checks every touched path against git before exiting, reporting a leak as its own failure mode.
 - **Date.** 2026-08-13.
+
+## D-078 — The greedy baseline is solver-free by contract, and its tie-break is stated
+
+- **Decision.** `benchmarks/greedy.py` is its own module, forbidden by an import-linter contract from
+  reaching `model`, `disruption`, `scoring` or `ortools`. Its legality oracle is the checker. Its
+  candidate order is written down: hours already rostered this week, then employee index.
+- **Alternatives.** A function inside `methods.py`. Eligibility read from `model.exclusions()`.
+  Whatever candidate order iteration happens to produce.
+- **Reason.** The baseline's whole claim is that it is not the thing it is a baseline for. A baseline
+  that consults the model inherits the model's bugs and stops being independent evidence, and a
+  docstring saying "solver-free" is not a check. It cannot live in `methods.py`, which runs the three
+  solver methods, so the contract needs a module boundary to attach to. The tie-break is stated for a
+  different reason: "nearest-eligible" names an ordering that does not exist until somebody writes it
+  down, and an undefined choice among equally eligible people makes the baseline's number
+  irreproducible — a change to it would be indistinguishable from a change to the method.
+- **Consequences.** `_legal` asks the checker only about the candidate's own assignments. Adding one
+  person to one shift can break a rule about that person or overstaff the slot, and the slot is never
+  filled past `required`, so the narrow question is the whole question — at a fraction of the cost of
+  re-checking the full roster, which matters because this method's time is one of the reported
+  numbers. The greedy loop's `is_past` skip turned out **not** to be a defence: `_legal` refuses a
+  past slot anyway, because adding one is a `R-PIN-PAST` violation the checker names. The mutation
+  harness established that by surviving, and the comment now says so, so that nobody later reads the
+  skip as the thing protecting the past.
+- **Date.** 2026-08-13.
+
+## D-079 — Every method is scored on one yardstick, whatever it optimised
+
+- **Decision.** All four methods are scored with `scoring.score` under the scenario's own shipped D2
+  profile. A method's own objective decides what it searches for and never how it is measured.
+- **Alternatives.** Score each method under the objective it optimised.
+- **Reason.** Scoring under its own objective makes the comparison a tautology: each method wins the
+  axis it was pointed at, the cold cost solve reports zero disruption because its profile prices none,
+  and the table says nothing. There is one comparison worth making and it requires one scale.
+- **Consequences.** `cold-cost` optimises a profile with every change weight zeroed and is then
+  measured on a profile that prices them at full weight, which is exactly the point — that is what
+  "the status quo is disruptive" means. The invariant that makes the whole table checkable follows
+  from the shared scale: the disruption solve is optimal, so no method may score below it on
+  `Score.total`, and `test_optimum_dominates` asserts it per case. Comparing on total rather than on
+  disruption alone is deliberate: greedy reaches a lower disruption on eight cases by leaving a shift
+  unstaffed, and that is a different point on the frontier rather than a better answer.
+- **Date.** 2026-08-13.
+
+## D-080 — The cost baseline keeps the incumbent attached and zeroes the change weights
+
+- **Decision.** `cold-cost` solves the same instance, with `now` and the incumbent still attached,
+  under a profile whose publication, move, cancel, call-in and concentration weights are all zero and
+  whose `cost_weight` is 1.
+- **Alternatives.** Solve with `incumbent=None` and `now=None`, which is the literal reading of "cold".
+- **Reason.** Dropping the incumbent unpins the past. A baseline free to reassign shifts that have
+  already started is not a legal roster and is not a baseline for anything — and dropping `now` also
+  changes which shortfall counts as historical, so the two scores would no longer be on one scale.
+  Zeroing the weights reaches the same place legitimately: the model, the coverage priority and the
+  pinned past are identical, and exactly one thing differs, which is that deviation is free.
+- **Consequences.** The baseline is **indifferent**, and that is the finding rather than a defect.
+  The cost model is a flat rate (`D-050`), coverage is an equality with a hard ceiling, so every fully
+  staffed roster costs the same and CP-SAT returns whichever it reaches first. Measured across three
+  solver seeds, its disruption moves by a median of 80 points and by as much as 260 on the same case,
+  on 45 of the 72 — so a single seed's number would have been an accident reported as a result. The
+  disruption methods move by zero across the same seeds. Both figures are in `benchmarks.md`, and the
+  seed sweep exists because of this record.
+- **Date.** 2026-08-13.
+
+## D-081 — Search time is reported separately from end-to-end time
+
+- **Decision.** `Solution` carries CP-SAT's own wall time, and every benchmark row reports it
+  alongside the end-to-end measurement taken around the whole call.
+- **Alternatives.** One stopwatch around `solve`.
+- **Reason.** At T2 sizes a search is about 3 ms and building the model in Python is about 7 ms, so
+  an end-to-end number is mostly measuring model construction — which is identical for all four
+  methods. The first version of this harness reported exactly that, and the four methods came out
+  equally fast for a reason that has nothing to do with any of them. The warm start's effect is
+  invisible on that clock and clear on the other.
+- **Consequences.** Two columns, and they answer different questions. End-to-end is the latency T3's
+  service owes a caller, and it is the number that says model construction is the bottleneck at this
+  size — which is what the per-tenant compiled-model cache in T3 is for. Search time is the only one
+  that compares one search against another.
+- **Date.** 2026-08-13.
+
+## D-082 — The warm start helps, and only where the right clock can see it
+
+- **Decision.** `replan.md` asked for this result to be filed either way. It is not a null: the hint
+  reduces search time on 201 of 216 paired runs, with a median paired ratio of 0.907. It is
+  invisible end to end, and it never changes the answer.
+- **Alternatives.** Report the end-to-end number, which shows nothing, or drop the hint as not worth
+  its complexity.
+- **Reason.** The claim `replan.md` warned against is a warm-start speedup that is really an objective
+  effect. The cold *disruption* baseline separates them, and it is the comparison used here: same
+  objective, same instance, same solver seed, hint or no hint. What is left is the hint, and it is
+  worth about 9% of a 3 ms search.
+- **Consequences.** A 9% saving on 3 ms is not the headline the phrase "warm-started replan" suggests,
+  and `benchmarks.md` says so in those words. The effect that carries the results is the **objective**:
+  the disruption profile cuts mean disruption from 323 to 66 against the cost baseline, and the hint
+  is a rounding error beside it. The finding also has a T5 consequence — learned warm starts are
+  chasing 9% of the smaller half of the latency budget, and that is worth knowing before building
+  them. Whether the hint matters at sizes where search dominates construction is unanswered here and
+  needs instances this set does not contain.
+- **Date.** 2026-08-13.
+
+## D-083 — The committed set is not widened to manufacture a gap against greedy
+
+- **Decision.** Greedy ties the optimal replan exactly on 64 of the 72 committed cases. That is
+  reported as the result, and no harder scenario class is added in response to it.
+- **Alternatives.** Extend the distribution with a high-damage class until the optimiser's advantage
+  is visible in the headline average.
+- **Reason.** The cases were committed before these numbers existed (`D-073`, `D-075`), and adding a
+  class *because* the existing ones do not flatter the thesis is the same act `D-075` refuses at
+  generation time, moved one step later where it is even harder to see. The honest statement is
+  available and is more useful: on a one-week horizon where a disruption damages one to three
+  assignments, calling the nearest eligible person is usually optimal, and the optimiser earns its
+  place on the eight cases where the repair needs a chain the planner would not find — all of them in
+  the tight, thin-availability, flexi-heavy or multi-absence classes, where greedy leaves a shift
+  unstaffed that a chain would have covered.
+- **Consequences.** The damage axis is now named as the one the distribution does not vary: median
+  damage is 1 assignment and the maximum over all 72 cases is 3. A class that varies it is a
+  legitimate future addition, and if it is added it is added as an axis with a stated range like every
+  other, not as a repair to a disappointing table. The result also sharpens what the optimiser is
+  *for* at this scale: not beating the planner on the common case, but never being the one to leave a
+  shift uncovered, and being right on the case the planner cannot see.
+- **Date.** 2026-08-13.
+
+## D-084 — Benchmark results are not committed; the analysis is
+
+- **Decision.** `benchmarks/results.json` is generated and gitignored. What the repository carries is
+  the analysis in `benchmarks.md`, the hardware and versions it was measured on, and the command that
+  regenerates it.
+- **Alternatives.** Commit the raw rows the way `benchmarks/manifest.json` is committed. Commit the
+  summary table instead of the rows.
+- **Reason.** The manifest is committed because a fingerprint is exact: it changes only when the
+  instances change, so a diff to it is a signal. A results row carries wall-clock milliseconds, so it
+  changes on every run and on every machine. A 750 KB file that always shows a diff is a file whose
+  diff nobody reads, and `D-067` is this repo's standing record of what that trains people to do.
+  Committing the summary instead has the opposite fault: the summary embeds the segmentation choices
+  `benchmarks.md` argues for, and a reader has to be able to redo them differently.
+- **Consequences.** The numbers in `benchmarks.md` are backed by a stated command, a stated seed set
+  and stated hardware rather than by a checked-in artifact, which is the honest position given they
+  are timings. The comparisons meant to survive a change of machine are the paired ones — warm against
+  cold, seed against seed — and they are reported as ratios for that reason. Anything that must be
+  exact and diffable belongs in the manifest, which is where `D-073` and `D-074` put it.
+- **Date.** 2026-08-13.

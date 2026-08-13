@@ -9,6 +9,7 @@ people whose shifts were never in question are moved so the solver can shave a m
 This service answers it differently:
 **reproduce the roster with minimum disruption to everyone else.**
 Past shifts are pinned, published shifts are penalised for changing, and the solve is warm-started from the roster it is repairing.
+The penalty is what carries the result; the warm start is a small speedup, and the benchmarks say so in those terms.
 
 > Generation is not a separate feature.
 > It is the cold-start case of replanning — a replan from an empty roster.
@@ -41,23 +42,36 @@ Per-tenant policy lives in a profile document from day one, because across thous
 
 ## Headline results
 
-Measured on `benchmarks/instances/` (seeded generator, `[N-INSTANCES]` instances across
-`[N-CLASSES]` scenario classes, 8–25 employees, one-week horizon).
-Full method in [`docs/benchmarks.md`](docs/benchmarks.md).
+Measured on the committed set in `benchmarks/manifest.json` (seeded generator, 72 cases across
+12 scenario classes, 8–25 employees, one-week horizon), 3 solver seeds each, single-threaded.
+Full method, segmentation and caveats in [`docs/benchmarks.md`](docs/benchmarks.md).
 
-| Method | p50 solve | p95 solve | Disruption (D2) | Cost delta |
-| --- | --- | --- | --- | --- |
-| Cold re-solve, cost objective | `[B-1]` | `[B-2]` | `[B-3]` | baseline |
-| Greedy nearest-eligible repair | `[B-4]` | `[B-5]` | `[B-6]` | `[B-7]` |
-| Cold solve, disruption objective | `[B-8]` | `[B-9]` | `[B-10]` | `[B-11]` |
-| **Warm-started replan (this)** | `[B-12]` | `[B-13]` | `[B-14]` | `[B-15]` |
+Weeks that were fully staffable before the disruption — 62 of the 72 cases. Every method is scored on
+the same D2 yardstick whatever it optimised; `changes` is assignments differing from the published
+roster, `short` is positions left unstaffed.
 
-The trade-off is a choice, not a constant — see the disruption/cost frontier in
-[`docs/benchmarks.md`](docs/benchmarks.md). Absorbing a Saturday sick call costs either a few more
-euros or a few more disrupted people, and the planner picks the point.
+| Method | p50 search | p95 search | Disruption (D2) | Changes | Short |
+| --- | --- | --- | --- | --- | --- |
+| Cold re-solve, cost objective | 3.35 ms | 10.4 ms | 322.8 | 13.09 | 0.16 |
+| Greedy nearest-eligible repair | — | — | 56.5 | 2.02 | 0.27 |
+| Cold solve, disruption objective | 3.30 ms | 10.8 ms | 66.1 | 2.35 | 0.16 |
+| **Warm-started replan (this)** | 3.02 ms | 8.6 ms | 66.1 | 2.35 | 0.16 |
 
-`[PLACEHOLDER — every [B-n] is filled at T2. If any remain at the finish declaration, the project
-is not finished.]`
+**The objective is what does the work**, not the warm start. Against a cold cost re-solve on identical
+instances with identical coverage, the disruption objective cuts the score from 323 to 66 and the
+number of people moved from 13.1 to 2.4. The warm start is worth about 9% of a 3 ms search — real,
+paired on 201 of 216 runs, and small enough that the honest framing is the one above.
+
+**Greedy is not the weak baseline it looks like.** It ties the optimal replan exactly on 64 of the 72
+cases. Its lower average disruption is bought by leaving more shifts unstaffed, which is the trade
+the shortfall weight exists to refuse. The optimiser earns its place on the 8 cases where the repair
+needs a chain — move an uninvolved person so somebody else comes free — and on never being the one to
+leave a shift uncovered.
+
+The frontier is coverage, not cost: with a flat rate and a hard coverage ceiling, every fully staffed
+roster costs the same paid hours, so the cost axis collapses. See
+[`docs/benchmarks.md`](docs/benchmarks.md) for the per-class table and for what this set does *not*
+show — nothing here ever came close to a time budget, and median damage is one assignment.
 
 ---
 
@@ -110,15 +124,17 @@ Test layers, invariants and the harness design: [`docs/specs/validation.md`](doc
 The scaling problem here is **many small instances** and **interactive latency**, not one large instance.
 Benchmarks are built accordingly; throughput and p95 across tenants, not a single 5000-employee monolith.
 
-Levers, in the order they paid off:
+Levers, and what is actually measured about each:
 
-- domain presolve (eliminating impossible employee/shift pairs before the solver sees them)
-- symmetry breaking over interchangeable employees
-- the `regular` automaton constraint for legal shift sequences
-- warm starts from the previous solution
-- per-tenant compiled-model caching, because at these sizes model *building* can cost more than solving.
+- domain presolve (eliminating impossible employee/shift pairs before the solver sees them) — shipped, not yet isolated
+- symmetry breaking over interchangeable employees — not yet built
+- the `regular` automaton constraint for legal shift sequences — not yet built
+- warm starts from the previous solution — **measured: 9% of search time, paired on 216 runs**
+- per-tenant compiled-model caching — **measured: model building costs ~7 ms against ~3 ms of search**, so at these sizes it is the larger half of the latency
 
-Details and the studies behind each, including the ones that produced no measurable effect: [`docs/studies/README.md`](docs/studies/README.md).
+The last one was expected to be a footnote and is the more useful finding of the two. Details, and
+the studies still outstanding: [`docs/studies/README.md`](docs/studies/README.md) and
+[`docs/benchmarks.md`](docs/benchmarks.md).
 
 ## Deliberately out of scope
 

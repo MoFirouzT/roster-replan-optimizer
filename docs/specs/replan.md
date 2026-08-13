@@ -259,16 +259,22 @@ can repair it, and including it adds a constant that makes two runs with differe
 Tomorrow's roster is ~95% of today's, so the previous solution is a strong hint: `add_hint` on every
 assignment variable from the incumbent.
 
-**The measurement is T2's, and it must isolate two effects that are easy to conflate.** A warm-started
-replan is faster than a cold *cost-objective* solve for two independent reasons: the hint, and the fact
-that a disruption objective has its optimum near the incumbent. Only the cold
-*disruption-objective* baseline separates them. Without that baseline a warm-start speedup claim is
-measuring the objective, not the hint.
+The hint is a **separate argument to `solve`** rather than being read off `instance.incumbent`, even
+though the shipped replan passes the same roster to both. Fusing them would make the measurement below
+impossible to take: solving with the objective and without the hint is precisely the baseline that
+separates the two effects.
 
-**File the null.** If hinting does not beat the disruption objective alone, that result goes in
-`benchmarks.md` as a null. It is a genuinely useful finding — it would say the objective is doing the
-work — and burying it would be the kind of quiet omission this project's documentation methodology
-exists to prevent.
+**Measured, and it is not a null** (`D-082`). A warm-started replan is faster than a cold
+*cost-objective* solve for two independent reasons — the hint, and the fact that a disruption
+objective has its optimum near the incumbent — so only the cold *disruption-objective* baseline can
+tell them apart. Paired on case and solver seed across the committed set, the hint reduces CP-SAT's
+search time on 201 of 216 runs, median paired ratio 0.907.
+
+**And it is small.** That is 9% of a 3 ms search, invisible in end-to-end latency because building
+the model costs about 7 ms. The objective is what carries the result: it cuts mean disruption from
+323 to 66 against the cost baseline, and the hint is a rounding error beside it. The hint never
+changes the answer, which is asserted rather than assumed — a hint implemented as a constraint would
+return the best roster that keeps the damage and report it as the optimum.
 
 ## Generation as cold start
 

@@ -19,7 +19,7 @@ pythonpath = ["tests"]
 # enforceable; the no-shared-thresholds half is a review obligation no linter can
 # discharge, since none can tell a shared constant from a coincidentally equal one.
 [tool.importlinter]
-root_package = "roster_replan"
+root_packages = ["roster_replan", "benchmarks"]
 include_external_packages = true
 
 [[tool.importlinter.contracts]]
@@ -64,6 +64,19 @@ name = "The objective encoding never reaches the scorer"
 type = "forbidden"
 source_modules = ["roster_replan.disruption"]
 forbidden_modules = ["roster_replan.scoring", "roster_replan.checker", "roster_replan.model"]
+
+# The greedy baseline's whole claim is that it is not the solver in disguise. A baseline
+# that quietly consults the thing it is a baseline for measures nothing.
+[[tool.importlinter.contracts]]
+name = "The greedy baseline is solver-free"
+type = "forbidden"
+source_modules = ["benchmarks.greedy"]
+forbidden_modules = [
+    "roster_replan.model",
+    "roster_replan.disruption",
+    "roster_replan.scoring",
+    "ortools",
+]
 
 [[tool.importlinter.contracts]]
 name = "The shared schema depends on nothing"

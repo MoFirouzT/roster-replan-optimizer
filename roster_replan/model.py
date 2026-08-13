@@ -410,10 +410,21 @@ def _consec_days(built: Built, instance: Instance) -> None:
 
 @dataclass(frozen=True, slots=True)
 class Solution:
+    """`search_seconds` is CP-SAT's own wall time, and it is reported separately from
+    whatever the caller measured around this function on purpose.
+
+    At T2 sizes a solve is milliseconds and building the model in Python is a comparable
+    number, so an end-to-end stopwatch is mostly measuring model construction -- which is
+    identical for every method and would make four methods look equally fast for a reason
+    that has nothing to do with any of them. End-to-end latency is the number T3's service
+    owes a caller; this is the number that separates a search from another search.
+    """
+
     roster: Roster
     objective: int
     status: str
     shortfall: dict[tuple[int, int], int]
+    search_seconds: float = 0.0
 
 
 def solve(
@@ -422,6 +433,7 @@ def solve(
     seed: int = 7,
     time_limit: float = 30.0,
     workers: int = 1,
+    hint: Roster | None = None,
 ) -> Solution | list[Gate]:
     """Solve, or return the rule instances that make it impossible.
 
@@ -434,10 +446,24 @@ def solve(
     which needs iterative deletion on top of this -- solve, drop a gate, re-solve, keep
     what remains necessary. That reduction belongs with the explainer rather than here,
     but the gap is real and should not be discovered then.
+
+    `hint` is the warm start of `replan.md`, and it is a **separate argument from
+    `instance.incumbent` on purpose**. The two are the same roster in the shipped replan,
+    and keeping them one parameter would have made the T2 measurement impossible to
+    state: the disruption objective and the hint are two independent reasons a replan
+    beats a cold solve, and a benchmark that cannot solve with the objective and without
+    the hint is measuring their sum.
     """
     built = build(instance)
     model = built.model
     _objective(built, instance)
+
+    if hint is not None:
+        # Every variable, not only the ones the hint sets. A partial hint states the adds
+        # and leaves CP-SAT to guess the drops, which is the half of a repair that carries
+        # the disruption.
+        for key, var in built.x.items():
+            model.add_hint(var, int(key in hint))
 
     solver = cp_model.CpSolver()
     solver.parameters.num_workers = workers
@@ -460,6 +486,7 @@ def solve(
         objective=round(solver.objective_value),
         status=solver.status_name(status),
         shortfall={k: solver.value(v) for k, v in built.shortfall.items()},
+        search_seconds=solver.wall_time,
     )
 
 
