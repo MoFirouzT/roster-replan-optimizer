@@ -1918,3 +1918,42 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   `D-093` rejects the compiled-model cache partly on that balance. If it ever reversed, both would
   need rereading, and a silent reversal is exactly what happened last time.
 - **Date.** 2026-08-13.
+
+## D-097 — The explainer starts with shortfalls, and answers from the checker
+
+- **Decision.** T4's first component explains **why a shift is short**, not why a solve was infeasible.
+  `roster_replan/explain.py` imports the checker and nothing else; an import-linter contract forbids
+  it `model`, `disruption` and `ortools`.
+- **Alternatives.** Start with the infeasibility explainer `PLAN.md` names first — assumption literals
+  to minimal core to prose. Derive the reasons from `model.exclusions()`, which already retains them
+  (`D-045`) and would need no recomputation.
+- **Reason.** `D-047` re-scoped this before T4 opened and the measurement confirms it: with a soft
+  coverage floor the empty roster satisfies every hard rule, so **a cold solve is essentially never
+  infeasible**. Across the committed set, **16 of 72 cases return an optimal roster that still leaves a
+  shift short — 24 unstaffed positions — and none is infeasible.** An explainer built for infeasibility
+  first would be built for a case that does not occur. The minimal-core reduction `D-048` defers is
+  still owed, and is now correctly ordered behind this.
+
+  Answering from the checker rather than from presolve is the other half. An explanation derived from
+  the model's own exclusion table is the solver's account of itself: a wrong exclusion produces a
+  wrong explanation that agrees with it, and nothing shows. Asking the independent reading means a
+  wrong exclusion makes the explanation **contradict** the roster, which is a finding rather than a
+  consistent lie. The cost is recomputing what presolve knew — microseconds against a solve.
+- **Consequences.** The design yields an invariant worth more than the feature. Because
+  `shortfall_weight` dominates (`D-057`), an optimal solver adds anyone it legally can, so every
+  person off an under-staffed slot must be blocked by something. An employee the checker says could
+  have been added is not a gap in the explanation but a **defect report** — the roster is suboptimal,
+  or the two readings disagree about eligibility. `Shortfall.unexplained` carries them and is asserted
+  empty across all 72 cases, which makes this a fifth reading of the rules rather than a presentation
+  layer: it can fail on a roster the model, the checker, the differential harness and the golden
+  record all accept, because it asks a question none of them asks.
+
+  A person blocked by two rules is counted under both. Naming one "primary" reason would imply that
+  relaxing it frees them, and it does not — the report is meant to answer *what would have to change*.
+
+  One test defect surfaced from the mutation harness: every committed roster is legal, so no
+  employee's own row is ever already broken and the subtraction of pre-existing violations was a
+  no-op everywhere. It matters on the one shape that does occur — an incumbent whose past is illegal
+  and `R-PIN-PAST` forces the solver to keep — where without it that person's existing breach is
+  reported as the reason they cannot work an unrelated shift later in the week.
+- **Date.** 2026-08-13.

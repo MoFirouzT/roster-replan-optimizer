@@ -91,6 +91,20 @@ forbidden_modules = [
 # `service.md` puts it the other way round -- the boundary is deliberately boring and the
 # intricate part is small -- and this is the direction that keeps it true: the intricate
 # part must never learn about HTTP.
+# An explanation derived from the model's own presolve table is the solver's account of
+# itself: a wrong exclusion would produce a wrong explanation that agrees with it. Asking
+# the independent reading instead means a wrong exclusion contradicts the roster, which is
+# a finding rather than a consistent lie.
+[[tool.importlinter.contracts]]
+name = "The explainer answers from the checker, never from the model"
+type = "forbidden"
+source_modules = ["roster_replan.explain"]
+forbidden_modules = [
+    "roster_replan.model",
+    "roster_replan.disruption",
+    "ortools",
+]
+
 [[tool.importlinter.contracts]]
 name = "The solver core never reaches the service layer"
 type = "forbidden"
@@ -103,6 +117,7 @@ source_modules = [
     "roster_replan.validation",
     "roster_replan.repair",
     "roster_replan.ladder",
+    "roster_replan.explain",
 ]
 forbidden_modules = ["roster_replan.service", "fastapi", "pydantic", "starlette"]
 

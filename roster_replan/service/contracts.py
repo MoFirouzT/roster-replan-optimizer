@@ -392,6 +392,23 @@ class ViolationOut(Strict):
     shift: int | None = None
 
 
+class ShortfallOut(Strict):
+    """One under-staffed slot and why, on the wire.
+
+    `summary` is rendered here rather than left to the caller so that every consumer — the
+    API, a log line, and T4's prose layer — reads the same sentence. `D-013` requires the
+    LLM to phrase a finding it did not identify, and this is the finding.
+    """
+
+    day: int
+    shift: int
+    required: int
+    assigned: int
+    short: int
+    by_rule: dict[str, int]
+    summary: str
+
+
 class AnswerOut(Strict):
     """The ladder's answer, on the wire.
 
@@ -409,6 +426,7 @@ class AnswerOut(Strict):
     violations: list[ViolationOut] = Field(default_factory=list)
     core: list[ViolationOut] = Field(default_factory=list)
     attempts: list[str] = Field(default_factory=list)
+    shortfalls: list[ShortfallOut] = Field(default_factory=list)
     seconds: float = 0.0
 
 
@@ -438,6 +456,18 @@ def answer_out(answer) -> AnswerOut:
             for g in answer.core
         ],
         attempts=list(answer.attempts),
+        shortfalls=[
+            ShortfallOut(
+                day=f.day,
+                shift=f.shift,
+                required=f.required,
+                assigned=f.assigned,
+                short=f.short,
+                by_rule=f.by_rule(),
+                summary=f.summary(),
+            )
+            for f in answer.shortfalls
+        ],
         seconds=answer.seconds,
     )
 

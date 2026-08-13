@@ -77,6 +77,7 @@ LADDER = "roster_replan/ladder.py"
 JOBS = "roster_replan/service/jobs.py"
 COMPILED = "roster_replan/compiled.py"
 MILP = "benchmarks/milp.py"
+EXPLAIN = "roster_replan/explain.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 
@@ -596,6 +597,41 @@ MUTANTS: tuple[Mutant, ...] = (
         '    if instance.disruption is None or instance.disruption.metric not in ("D0", "D1", "D2"):',
         "    if False:",
         "tests/test_milp.py",
+    ),
+    # --- The shortfall explainer ------------------------------------------------------
+    # The invariant is the asset here: an unexplained employee means the roster is wrong,
+    # not the explanation. A version that never reports one passes 72 cases silently.
+    Mutant(
+        "explain-never-reports-unexplained",
+        "explain",
+        EXPLAIN,
+        "            else:\n                unexplained.append(employee)",
+        "            else:\n                pass",
+        "tests/test_explain.py",
+    ),
+    Mutant(
+        "explain-ignores-rules-already-broken",
+        "explain",
+        EXPLAIN,
+        "    before = _hard_rules(instance, frozenset(own), employee)",
+        "    before = set()",
+        "tests/test_explain.py",
+    ),
+    Mutant(
+        "explain-explains-the-pinned-past-too",
+        "explain",
+        EXPLAIN,
+        "        if instance.is_past(day, shift):\n            continue",
+        "        if False:\n            continue",
+        "tests/test_explain.py",
+    ),
+    Mutant(
+        "explain-reports-only-the-first-rule",
+        "explain",
+        EXPLAIN,
+        "            counts.update(set(entry.rules))",
+        "            counts.update(set(entry.rules[:1]))",
+        "tests/test_explain.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

@@ -57,6 +57,7 @@ from dataclasses import dataclass, field
 
 from .checker import check
 from .domain import Instance, Roster
+from .explain import Shortfall, explain
 from .model import Gate, Solution, Unproven, solve
 from .repair import repair
 
@@ -98,6 +99,11 @@ class Answer:
     core: tuple[Gate, ...] = ()
 
     attempts: tuple[str, ...] = field(default_factory=tuple)
+
+    # Why each under-staffed slot is short. Present on every rung, because a shortfall is
+    # the ordinary outcome rather than the exceptional one (`D-047`): 16 of the 72 committed
+    # cases return an optimal roster that still leaves a shift unstaffed.
+    shortfalls: tuple[Shortfall, ...] = field(default_factory=tuple)
 
     @property
     def degraded(self) -> bool:
@@ -179,6 +185,7 @@ def answer(
             reason=f"{blame}, so the published roster was repaired slot by slot instead",
             seconds=time.perf_counter() - started,
             shortfall=_shortfall(repaired, instance),
+            shortfalls=explain(repaired, instance),
             violations=(),
             core=core,
             attempts=tuple(attempts),
@@ -196,6 +203,7 @@ def answer(
         ),
         seconds=time.perf_counter() - started,
         shortfall=_shortfall(incumbent, instance),
+        shortfalls=explain(incumbent, instance),
         violations=_violations(incumbent, instance),
         core=core,
         attempts=tuple(attempts),
@@ -224,6 +232,7 @@ def _from_solve(
             if not instance.is_past(day, shift)
         ),
         violations=_violations(outcome.roster, instance),
+        shortfalls=explain(outcome.roster, instance),
         attempts=tuple(attempts),
     )
 
