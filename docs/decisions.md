@@ -1034,6 +1034,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   conflict — acceptable for T1's diagnostic use, not acceptable for a planner-facing explanation. The
   gap is recorded in `model.md` so it is a known cost at the start of T4 rather than a discovery in
   the middle of it.
+- **Amended by `D-100`.** The deferral was right and the diagnosis was wrong. Measured at T4, the
+  sufficient core is 150-plus gates — far worse than anticipated — but iterative deletion is not what
+  fixes that. Setting the objective before asking is what inflates it.
 - **Date.** 2026-08-12.
 
 ## D-049 — Weighted sum, not lexicographic ordering
@@ -2043,4 +2046,74 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   fix and is the better design anyway: two tied optima under D2 share an objective *and* a change
   count, so a baseline accidentally solved at the wrong seed is invisible in every scalar and visible
   only in the roster — the mutation harness caught exactly that, twice, before the field existed.
+- **Date.** 2026-08-13.
+
+## D-099 — Profile review is deterministic, and enabling an unencoded rule is a defect
+
+- **Decision.** Stages 2 to 4 of `config.md` — structural lawfulness, contradiction and subsumption,
+  feasibility probe — are built in `roster_replan/profile.py` and run with no model available. A
+  profile that enables one of the five registry-declared, unencoded optional rules is **rejected**.
+- **Alternatives.** Build the natural-language parse first, since it is the visible feature. Accept
+  enabled optional rules as a forward declaration of intent.
+- **Reason.** `config.md` states the constraint and it decides the order: *"deterministic profile
+  editing works fully with no LLM; the NL layer is an accelerator, never a dependency."* An
+  accelerator built before the thing it accelerates has nothing to fall back to, and the same
+  argument ordered `prose.py` before any model call — a deterministic layer that already works makes
+  the model optional rather than load-bearing.
+
+  Accepting an enabled-but-unencoded rule would be worse than ignoring it. The tenant would hold a
+  profile stating that Sunday work is restricted, the solver would restrict nothing, and no test
+  anywhere would fail. That is the registry describing intent rather than code — the specific failure
+  `rules.md` was written to prevent — reaching production through configuration instead of through
+  documentation.
+- **Consequences.** Two categories, deliberately not merged. A **contradiction** is a property of the
+  profile alone and is rejected: `min_period_hours` above every shift's length means no shift is legal
+  whatever week arrives, which needs no solver to see. **Subsumption** is reported and not rejected:
+  `max_consecutive_days` of 9 over seven days forbids nothing, the profile is valid, and the tenant
+  may have meant it — but nothing else in the system would ever tell them the protection is inert.
+
+  The probe is skipped when a contradiction was found, because solving parameters that cannot all
+  hold yields an infeasibility whose cause is the profile and whose explanation would be about the
+  week. It uses the **caller's** sample rather than a generated one, which also keeps `benchmarks`
+  out of the runtime.
+
+  The round-trip eval stays outstanding, and what it would prove is now stated: a round trip over
+  canonical English tests a renderer against its own parser and is close to a tautology. The eval
+  worth running takes free-form descriptions, and that needs stage 1.
+- **Date.** 2026-08-13.
+
+## D-100 — The objective inflates the infeasibility core; minimisation is a null on top
+
+- **Decision.** `roster_replan/core.py` reduces a core by deletion, and asks the feasibility question
+  **with no objective set**. `explain_infeasibility` reports the minimal core and how large the
+  sufficient one was.
+- **Alternatives.** Report CP-SAT's core as it comes, which is what T1 did (`D-048`). Minimise the
+  core produced by `solve`, which is what `D-048` specified.
+- **Reason.** `D-048` deferred minimisation on the grounds that a sufficient core "can name rule
+  instances that are not actually necessary". Measured, that understates it badly: on five constructed
+  infeasible instances `solve` returns **159 to 219 gates naming eight rules**, where the real conflict
+  is two — the past is illegal, and `R-PIN-PAST` forces it to be kept. A planner handed that has no
+  way to tell which two.
+
+  But **deletion is not the lever**. Asking the same question as pure feasibility, with no objective,
+  returns **2 to 3 gates** — an ~80x reduction from one line rather than from a loop of solves. Running
+  deletion afterwards then drops **zero** gates on all five cases. The deferred work was aimed at the
+  wrong cause.
+- **Consequences.** The deletion loop is kept even though it is currently a null, for a reason worth
+  separating from its measured effect: it **guarantees** minimality where dropping the objective merely
+  achieves it. Every gate is shown necessary rather than observed to be few, and the guarantee is what
+  the explainer is specified against.
+
+  The two changes compose, and only in one order. Deletion costs one solve per candidate gate, so
+  minimising a 160-gate core would be 160 solves; on a 2-gate core it is three, about 13 ms. **Dropping
+  the objective is what makes the guarantee affordable.**
+
+  Minimal is not smallest. A different deletion order reaches a different minimal core, so the order is
+  fixed to keep the result reproducible — a planner-facing explanation needs that as much as a test
+  does.
+
+  One mutant was removed rather than left failing: "solves with the objective set" is not expressible
+  as a source swap, because `_satisfiable` has no instance to build an objective from. The property is
+  asserted directly instead, against `solve` itself. A mutant that cannot fail is a false pass waiting
+  to happen.
 - **Date.** 2026-08-13.

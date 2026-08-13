@@ -80,6 +80,8 @@ MILP = "benchmarks/milp.py"
 EXPLAIN = "roster_replan/explain.py"
 PROSE = "roster_replan/prose.py"
 WHATIF = "roster_replan/whatif.py"
+PROFILE = "roster_replan/profile.py"
+CORE = "roster_replan/core.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 
@@ -697,6 +699,64 @@ MUTANTS: tuple[Mutant, ...] = (
         "            skills=frozenset(),",
         "tests/test_whatif.py",
     ),
+    # --- Profile review -----------------------------------------------------------------
+    # A config check that silently passes is worse than none: the tenant believes their
+    # policy was validated. Each of these makes a bad profile look acceptable.
+    Mutant(
+        "profile-accepts-unencoded-optional-rules",
+        "profile",
+        PROFILE,
+        "    unenforced = profile.enabled_optional_rules & set(OPTIONAL_RULES)",
+        "    unenforced = set()",
+        "tests/test_profile.py",
+    ),
+    Mutant(
+        "profile-probes-a-contradictory-profile-anyway",
+        "profile",
+        PROFILE,
+        "    if defects or sample is None:",
+        "    if sample is None:",
+        "tests/test_profile.py",
+    ),
+    Mutant(
+        "profile-skips-lawfulness-before-probing",
+        "profile",
+        PROFILE,
+        "    defects = validate_instance(instance)\n    if defects:",
+        "    defects = []\n    if defects:",
+        "tests/test_profile.py",
+    ),
+    Mutant(
+        "profile-inert-rule-reported-as-a-defect",
+        "profile",
+        PROFILE,
+        "    if params.max_consecutive_days is not None and params.max_consecutive_days >= days:",
+        "    if False:",
+        "tests/test_profile.py",
+    ),
+    # --- Minimal cores ------------------------------------------------------------------
+    # A core that is smaller but no longer explains anything is the failure here, and it
+    # looks like success: fewer rules, cleaner output, wrong.
+    Mutant(
+        "core-drops-necessary-gates",
+        "core",
+        CORE,
+        "        if _satisfiable(built, necessary + candidate, solver):\n            # Without this gate the model can be satisfied, so it is doing real work.\n            necessary.append(gate)",
+        "        if False:\n            necessary.append(gate)",
+        "tests/test_core.py",
+    ),
+    Mutant(
+        "core-keeps-everything",
+        "core",
+        CORE,
+        "    while candidate:\n        gate = candidate.pop()",
+        "    while False:\n        gate = candidate.pop()",
+        "tests/test_core.py",
+    ),
+    # No mutant for "solves with the objective set": it is not expressible as a swap here,
+    # because `_satisfiable` has no `instance` to build an objective from. The property is
+    # asserted directly instead, by `test_the_objective_is_what_inflates_the_core`, which
+    # compares against `solve()` itself.
     Mutant(
         "studies-patterns-skip-the-legality-check",
         "studies",

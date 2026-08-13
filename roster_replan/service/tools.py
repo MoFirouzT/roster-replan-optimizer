@@ -35,9 +35,11 @@ from typing import Any, Callable
 
 from pydantic import BaseModel, Field
 
+from ..core import minimal_core
 from ..explain import explain
 from ..ladder import answer as ladder_answer
 from ..prose import render_all
+from ..profile import Profile, review
 from ..validation import validate_instance
 from ..whatif import KINDS, Change, compare
 from . import contracts
@@ -98,6 +100,12 @@ class WhatIfIn(Strict):
 
 class ValidateIn(Strict):
     instance: InstanceIn
+    profile_version: str = "unversioned"
+    enabled_optional_rules: list[str] = Field(default_factory=list)
+    probe: bool = Field(
+        default=True,
+        description="solve the supplied week under the profile before accepting it",
+    )
 
 
 # --- Handlers -----------------------------------------------------------------------
@@ -126,14 +134,21 @@ def _explain(payload: ExplainIn) -> dict:
     )
     findings = explain(answer.roster, instance)
 
+    # The core reported is the **minimal** one, not the sufficient set the ladder carries.
+    # `D-100`: asked with the objective set, CP-SAT returns 150-plus gates naming eight
+    # rules where two are doing the work, and a planner handed that has no way to tell
+    # which. Recomputed only when there is an infeasibility to explain.
+    reduction = minimal_core(instance, seed=payload.seed) if answer.core else None
+
     return {
         "answered": "shortfall" if not answer.core else "infeasibility",
         "rung": answer.rung,
         "reason": answer.reason,
         "core": [
             {"rule": g.rule, "employee": g.employee, "day": g.day, "shift": g.shift}
-            for g in answer.core
+            for g in (reduction.minimal if reduction else ())
         ],
+        "core_reduced_from": len(reduction.sufficient) if reduction else 0,
         "shortfalls": [
             {
                 "day": f.day,
@@ -198,10 +213,28 @@ def _side(outcome) -> dict:
 
 
 def _validate(payload: ValidateIn) -> dict:
-    """Checks and reports. Does not save -- see the module docstring."""
-    defects = validate_instance(contracts.to_domain(payload.instance))
+    """Stages 2 to 4 of `config.md`, and never stage 1.
+
+    Structural lawfulness, then the profile's own contradictions and inert rules, then a
+    probe if a sample week was supplied. All deterministic: *"deterministic profile editing
+    works fully with no LLM; the NL layer is an accelerator, never a dependency."*
+
+    Checks and reports. **Does not save** -- see the module docstring.
+    """
+    instance = contracts.to_domain(payload.instance)
+    defects = validate_instance(instance)
+
+    candidate = Profile(
+        version=payload.profile_version,
+        shift_types=instance.shift_types,
+        params=instance.params,
+        disruption=instance.disruption,
+        enabled_optional_rules=frozenset(payload.enabled_optional_rules),
+    )
+    conflicts, notes, result = review(candidate, instance if payload.probe else None)
+
     return {
-        "lawful": not defects,
+        "lawful": not defects and not conflicts,
         "defects": [
             {
                 "field": d.field,
@@ -209,8 +242,18 @@ def _validate(payload: ValidateIn) -> dict:
                 "observed": repr(d.observed),
                 "required": repr(d.required),
             }
-            for d in defects
+            for d in list(defects) + list(conflicts)
         ],
+        "remarks": [{"field": n.field, "message": n.message} for n in notes],
+        "probe": (
+            None
+            if result is None
+            else {
+                "solved": result.solved,
+                "shortfall": result.shortfall,
+                "blocking": list(result.blocking),
+            }
+        ),
     }
 
 
@@ -270,8 +313,9 @@ TOOLS: tuple[Tool, ...] = (
     Tool(
         name=VALIDATE_PROFILE,
         description=(
-            "Check a payload is well-formed and lawful without solving it. Reports defects; "
-            "does not save anything."
+            "Check a profile: structural lawfulness, contradictions between its own rules, "
+            "rules that cannot bind, and a feasibility probe on the supplied week. Fully "
+            "deterministic. Reports defects and remarks; does not save anything."
         ),
         request=ValidateIn,
         handler=_validate,
