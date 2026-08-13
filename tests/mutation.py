@@ -74,6 +74,8 @@ GREEDY = "roster_replan/repair.py"
 METRIC_STUDY = "benchmarks/metrics.py"
 PATTERNS = "benchmarks/patterns.py"
 LADDER = "roster_replan/ladder.py"
+JOBS = "roster_replan/service/jobs.py"
+CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 
 MUTANTS: tuple[Mutant, ...] = (
@@ -462,6 +464,49 @@ MUTANTS: tuple[Mutant, ...] = (
         "        attempts.append(GREEDY)\n        return Answer(\n            roster=frozenset(),\n            rung=INCUMBENT,",
         "        attempts.append(GREEDY)\n        return Answer(\n            roster=frozenset(),\n            rung=EXACT,",
         "tests/test_ladder.py",
+    ),
+    # --- The T3 boundary -------------------------------------------------------------
+    # Fairness and the replay round trip are both claims no single response can show, so
+    # both would ship on a code review without these.
+    Mutant(
+        "service-queue-is-a-plain-fifo",
+        "service",
+        JOBS,
+        "            if queue:\n                self._rotation.append(tenant)",
+        "            if queue:\n                self._rotation.appendleft(tenant)",
+        "tests/test_service.py",
+    ),
+    Mutant(
+        "service-round-trip-drops-unavailability",
+        "service",
+        CONTRACTS,
+        "                unavailability=[\n                    IntervalIn(start=i.start, end=i.end) for i in e.unavailability\n                ],",
+        "                unavailability=[],",
+        "tests/test_service.py",
+    ),
+    Mutant(
+        "service-infinite-band-becomes-a-number",
+        "service",
+        CONTRACTS,
+        "                            None if math.isinf(b.within_hours) else b.within_hours",
+        "                            b.within_hours",
+        "tests/test_service.py",
+    ),
+    Mutant(
+        "service-skips-lawfulness-validation",
+        "service",
+        JOBS,
+        "        defects = validate_instance(instance)",
+        "        defects = []",
+        "tests/test_service.py",
+    ),
+    Mutant(
+        "service-solver-threads-ignore-concurrency",
+        "service",
+        JOBS,
+        "    return max(1, (os.cpu_count() or 1) // max(1, concurrency))",
+        "    return max(1, os.cpu_count() or 1)",
+        "tests/test_service.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

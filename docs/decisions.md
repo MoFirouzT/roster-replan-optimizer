@@ -1581,3 +1581,48 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   reached this path — it needed a deliberately absurd budget, which is the same technique the whole
   rung-forcing exercise rests on.
 - **Date.** 2026-08-13.
+
+## D-090 — The wire schema is its own schema, not a serialisation of the domain
+
+- **Decision.** `service/contracts.py` defines a parallel set of Pydantic models with explicit
+  conversion in both directions. The domain dataclasses are never exposed at the boundary. A request
+  Pydantic accepts but `validation.py` refuses becomes a job in state `rejected`, returned with `422`
+  and readable at the same URL a result would have occupied.
+- **Alternatives.** Serialise `domain.Instance` directly, or make the domain types Pydantic models.
+- **Reason.** `service.md` asks for versioned contracts "so a model change never breaks a caller",
+  and reusing the dataclasses defeats that in one step: every internal field becomes public API, and
+  renaming an attribute becomes a breaking change for every caller. The cost is a parallel file and
+  two conversion functions; the benefit is that `domain.py` stays free to change and the thing that
+  must not change lives in a file whose only job is to not change.
+- **Consequences.** Two things JSON cannot carry had to be decided rather than discovered. An
+  unbounded notice band is `null`, because `NoticeBand.within_hours` is `inf` on the last band and
+  `Infinity` is not valid JSON — a strict parser at a caller would have rejected our own output. A
+  `Roster` is a list of triples in sort order, so two identical rosters serialise identically and a
+  response body does not depend on set iteration order.
+
+  **The round trip is the identity, and is tested as one over four committed instances and through
+  the real serialiser.** This is not tidiness: `PLAN.md` requires every solve's input, seed and
+  profile version to be persisted for replay, and a wire format that cannot express something the
+  solver can breaks that guarantee *silently* — the payload still parses, it just describes a
+  slightly different problem. A mutant that drops `unavailability` from the round trip is caught by
+  that test and by nothing else.
+- **Date.** 2026-08-13.
+
+## D-091 — Round-robin fairness across tenants, not weighted
+
+- **Decision.** One queue per tenant and a rotation between them. Each scheduling turn takes one job
+  from the next tenant that has one, so a tenant with 500 queued jobs gets one slot per rotation,
+  exactly like a tenant with one.
+- **Alternatives.** A single FIFO. Weighted scheduling by plan tier, contract value or queue age.
+- **Reason.** `service.md` requires that "one large customer cannot starve two thousand small ones",
+  and a FIFO fails it precisely when it matters: a tenant submitting 500 replans at 09:00 takes the
+  next 500 slots. Weighting was rejected for now because a per-tenant weight needs a priority nothing
+  in this project can justify — plan tier, contract value and queue age are all defensible and none
+  is derivable from a payload. Equal shares is the honest default, and inventing a weighting to look
+  sophisticated would encode a business decision nobody made.
+- **Consequences.** `next_batch` is where a weight goes when there is a reason for one, and the
+  rotation is the only thing that would change. Fairness is a claim about *scheduling* and cannot be
+  observed in any single response, so it is asserted directly against the rotation rather than
+  through the API — a FIFO passes every other test in `test_service.py` and fails only that one. The
+  mutation harness carries a mutant that turns the rotation back into a FIFO.
+- **Date.** 2026-08-13.

@@ -3,10 +3,16 @@ name = "roster-replan-optimizer"
 version = "0.0.0"
 description = "Minimum-disruption shift-roster replanning under labour constraints."
 requires-python = ">=3.11"
-dependencies = ["ortools>=9.14"]
+dependencies = [
+    "fastapi>=0.141.1",
+    "ortools>=9.14",
+    "uvicorn>=0.52.3",
+]
 
 [dependency-groups]
 dev = [
+    "anyio>=4.14.2",
+    "httpx>=0.28.1",
     "import-linter>=2.13",
     "pytest>=9.1.1",
 ]
@@ -80,6 +86,25 @@ forbidden_modules = [
     "roster_replan.scoring",
     "ortools",
 ]
+
+# The solver has to stay runnable, testable and replayable with no web layer present.
+# `service.md` puts it the other way round -- the boundary is deliberately boring and the
+# intricate part is small -- and this is the direction that keeps it true: the intricate
+# part must never learn about HTTP.
+[[tool.importlinter.contracts]]
+name = "The solver core never reaches the service layer"
+type = "forbidden"
+source_modules = [
+    "roster_replan.model",
+    "roster_replan.checker",
+    "roster_replan.domain",
+    "roster_replan.disruption",
+    "roster_replan.scoring",
+    "roster_replan.validation",
+    "roster_replan.repair",
+    "roster_replan.ladder",
+]
+forbidden_modules = ["roster_replan.service", "fastapi", "pydantic", "starlette"]
 
 [[tool.importlinter.contracts]]
 name = "The shared schema depends on nothing"

@@ -1,24 +1,68 @@
 # Service
 
-> **Status: outline.** Spec-first component — fill before implementing (T3).
+> **Status: built.** `roster_replan/service/` — contracts, job queue, endpoints, telemetry.
+> The tool surface remains T4. Reconciled with the code; `[TODO]`s below are what is not built.
 
-## Pattern
+    uv run uvicorn roster_replan.service.app:app
+
+## Pattern `[built]`
 
 Async job queue. POST enqueue / GET poll / DELETE cancel.
+
+| Route | Behaviour |
+| --- | --- |
+| `POST /v1/replans` | `202` and a job id, with `Location`. `422` and the defects if unlawful |
+| `GET /v1/replans/{id}` | the job, and its answer once terminal. `404` if unknown |
+| `DELETE /v1/replans/{id}` | cancel. Terminal jobs are returned unchanged |
+| `GET /v1/health` | solver health, not HTTP health — see [Telemetry](#telemetry) |
+
+**A rejected request still gets a job id** (`D-090`). A payload Pydantic accepts and
+`validation.py` refuses returns `422` *and* a readable job in state `rejected`, so the
+caller's flow is the same either way — poll the id — and the defects sit at the URL a result
+would have occupied.
 
 Synchronous HTTP works only for sub-second solves; at 30s–5min it produces timeouts, retries that
 re-trigger expensive solves, request pile-up, no progress feedback and no cancellation. Event-driven
 suits continuous replanning but makes *"why did my roster change?"* hard to answer.
 
-## Statelessness
+## Statelessness `[built]`
 
 Payload in, payload out. **No database reads inside the solver service.** This is what makes solves
 testable, replayable, and reproducible offline from a persisted input — debugging optimisation in
 production is close to impossible without it.
 
-## Contracts
+`run_job` satisfies this literally: it takes a payload, returns a payload, and reads nothing.
+Each job keeps its request, seed and profile version after completion, which is what
+`PLAN.md`'s seeded-determinism-end-to-end requirement actually needs — a job that has
+discarded its input cannot be replayed however good its telemetry is.
+
+**The queue itself is in-process, and that is the tier's honest limit.** State lives in a
+dict, so replicas do not share a queue and a restart loses it. The *solver* is stateless, so
+swapping the store for Redis or SQS is a contained change and touches nothing below
+`service/`. `[TODO]` an external store, when there is a second replica.
+
+## Contracts `[built]`
 
 Pydantic at the boundary. Versioned API contracts, so a model change never breaks a caller.
+
+**The wire schema is a separate schema, not a serialisation of `domain.py`** (`D-090`).
+Reusing the domain dataclasses would be less code and would publish every internal field as
+public API, making a rename a breaking change for every caller — precisely the coupling the
+versioning exists to prevent.
+
+Two validation layers, and they answer different questions. Pydantic answers *is this
+well-formed*; `validation.validate_instance` answers *is this lawful* — a derogation with no
+recorded basis, a shortfall weight that does not dominate. Folding the second into Pydantic
+validators would hide domain knowledge inside a schema.
+
+Two things JSON cannot carry are decided at this boundary. An unbounded notice band is
+`null`, because `inf` is not valid JSON. A `Roster` is a list of triples, normalised in sort
+order so two identical rosters serialise identically — a response body that depends on set
+iteration order is not comparable between runs.
+
+**The round trip is the identity, and is tested as one.** A wire format that cannot express
+something the solver can would break the replay guarantee silently: the payload still
+parses, it just describes a slightly different problem.
 
 ## Fallback ladder `[built — roster_replan/ladder.py]`
 
@@ -63,20 +107,53 @@ The ladder's first version reported one as the other, because `solve` returned a
 `list[Gate]` for both. See the record; the fix is a third return type, and the distinction
 matters most to T4's explainer, which is specified to turn a core into prose.
 
-## Telemetry
+## Telemetry `[built — GET /v1/health]`
 
 Web observability says nothing about solver health: latency and error rate stay green while the
 optimiser quietly returns garbage. Required signals: solve-time distribution, terminating status
 (optimal / feasible / infeasible / timeout), objective value, optimality gap, constraint-violation
 count from the checker, fallback rate.
 
+All of them are on `GET /v1/health`. A `200` from this API means a roster came back, not that
+it was a good one — the fallback ladder guarantees an answer, so a service falling to its
+greedy rung on every request looks perfect to any HTTP monitor. `rungs` and `fallback_rate`
+are what would show it; `violations_returned` counts the worst case, a roster breaking a hard
+rule returned with a `200`, and it is counted by the independent checker rather than by the
+solver marking its own work.
+
+Distributions are reported as p50/p95/max rather than means: a mean hides the tail, and the
+tail is what a budget is set against. `[TODO]` pushing these to a metrics backend, which is a
+deployment choice; the signals are what this project owes.
+
 ## Runtime
 
 Solver workloads are not web workloads — CPU-bound, memory-hungry, bursty, long-running.
-Autoscale on queue depth, not CPU. Right-size solver threads to container cores (CP-SAT with 8
-workers in a 1-vCPU container is *slower*). Cache the compiled model per tenant; at these instance
-sizes, building the model can cost more than solving it. Backpressure and weighted scheduling across
-tenants so one large customer cannot starve two thousand small ones.
+Autoscale on queue depth, not CPU.
+
+**Threads against cores `[built]`.** Concurrency is chosen first and each solve gets an equal
+share of what remains, so their product fits the box. CP-SAT with 8 workers in a 1-vCPU
+container is *slower*, and over-subscription is not merely wasteful — the portfolio search
+assumes the threads it was promised.
+
+**Fairness `[built]`.** Per-tenant queues with a rotation, not one FIFO: a tenant with 500
+queued jobs gets one slot per rotation, exactly like a tenant with one. Round-robin rather
+than weighted (`D-091`), because a per-tenant weight needs a priority nothing in this project
+can currently justify.
+
+**Solves run off the event loop `[built]`.** CP-SAT blocks, so a solve on the loop would
+stall every other request in the process — including the polls asking how it is doing.
+
+**Cancelling a running solve does not stop the CPU work.** The job is marked cancelled at
+once and its result discarded, so the caller's contract holds, but the search runs to its
+budget. Interrupting needs a solution callback wired through `model.solve`. `[TODO]`, and
+stated because the misreading — that `DELETE` frees a core — only shows up under load.
+
+**`[TODO]` Per-tenant compiled-model cache.** The largest available latency win and the one
+piece of the runtime section not built: building the model costs ~7 ms against ~3 ms of
+search ([`studies/presolve.md`](../studies/presolve.md)), so caching removes more than every
+level-1 lever combined. It is not free — a replan changes availability, so the cached
+structure is only valid while the rule-relevant data is unchanged, and *when* that holds is a
+measurement rather than an assumption.
 
 ## Tool surface `[T4]`
 
