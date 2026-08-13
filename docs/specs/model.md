@@ -224,8 +224,9 @@ Eliminate them before the solver sees them.
 **Measured: a quarter of the model, 28% off build time and 16% off search, on 24 of 24 paired cases**
 ([`studies/presolve.md`](../studies/presolve.md)). Free, as claimed — the exclusion table is computed
 either way because the reasons have to be retained (`D-045`). Not "the largest single win", which was
-the earlier wording: build time dominates search at these sizes (`D-081`), and the largest available
-win is caching the compiled model, which removes the whole build rather than a quarter of it.
+the earlier wording: build time dominates search at these sizes (`D-081`), and this takes a quarter
+off the larger half. The largest single win is memoising `Instance.window` (`D-092`) — *not* caching
+the compiled model, which was the obvious candidate and hits 0 of 144 replan solves (`D-093`).
 
 `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX` are enforced *entirely* this way — by removing
 variables, not by adding rows.

@@ -101,7 +101,7 @@ no instance in the committed set takes more than 12.4 ms, so `time-boxed`, `gree
 `incumbent` would otherwise ship untested. `tests/test_ladder.py` forces each one, and the
 mutation harness carries a mutant per rung.
 
-### A timeout is not an infeasibility (`D-089`)
+### A timeout is not an infeasibility (`D-094`)
 
 The ladder's first version reported one as the other, because `solve` returned an empty
 `list[Gate]` for both. See the record; the fix is a third return type, and the distinction
@@ -148,12 +148,18 @@ once and its result discarded, so the caller's contract holds, but the search ru
 budget. Interrupting needs a solution callback wired through `model.solve`. `[TODO]`, and
 stated because the misreading — that `DELETE` frees a core — only shows up under load.
 
-**`[TODO]` Per-tenant compiled-model cache.** The largest available latency win and the one
-piece of the runtime section not built: building the model costs ~7 ms against ~3 ms of
-search ([`studies/presolve.md`](../studies/presolve.md)), so caching removes more than every
-level-1 lever combined. It is not free — a replan changes availability, so the cached
-structure is only valid while the rule-relevant data is unchanged, and *when* that holds is a
-measurement rather than an assumption.
+**Per-tenant compiled-model cache `[built — and it does not help replanning]`.** The premise
+here was right and the remedy was not (`D-093`). Building does cost more than solving, but a
+replan is triggered by a change to the model's own inputs — an absence changes which pairs
+survive presolve, which changes the variables — so the cache **hits 0 of 144 replan solves**.
+It ships enabled because a miss costs 0.6% of a build and a hit saves 170×, and because
+`what_if`, replay and retries do repeat an instance. It is **thread-local**: `CpModel` is not
+thread-safe, and a shared cache would hand one model to two concurrent solves.
+
+The latency win that was actually available came from profiling rather than from caching:
+memoising `Instance.window` removed 20% of build time (`D-092`), which is larger than presolve
+and larger than every level-1 lever in T2. See
+[`studies/model-cache.md`](../studies/model-cache.md).
 
 ## Tool surface `[T4]`
 

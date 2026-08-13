@@ -129,7 +129,17 @@ def _canonical(value):
     be worthless.
     """
     if dataclasses.is_dataclass(value):
-        return {f.name: _canonical(getattr(value, f.name)) for f in dataclasses.fields(value)}
+        # Only fields that participate in equality. A field excluded from `__eq__` must be
+        # excluded from a fingerprint too, or two instances that compare equal hash
+        # differently -- which is not a stylistic point here: `Instance._windows` is a
+        # memoisation cache, so its contents depend on which methods happened to be called
+        # before the digest was taken, and every hash in the committed manifest would move
+        # when an unrelated caller looked up one more shift window.
+        return {
+            f.name: _canonical(getattr(value, f.name))
+            for f in dataclasses.fields(value)
+            if f.compare
+        }
     if isinstance(value, (frozenset, set)):
         return sorted(_canonical(v) for v in value)
     if isinstance(value, (list, tuple)):

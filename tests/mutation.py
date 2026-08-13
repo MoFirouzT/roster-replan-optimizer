@@ -75,6 +75,7 @@ METRIC_STUDY = "benchmarks/metrics.py"
 PATTERNS = "benchmarks/patterns.py"
 LADDER = "roster_replan/ladder.py"
 JOBS = "roster_replan/service/jobs.py"
+COMPILED = "roster_replan/compiled.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 
@@ -507,6 +508,58 @@ MUTANTS: tuple[Mutant, ...] = (
         "    return max(1, (os.cpu_count() or 1) // max(1, concurrency))",
         "    return max(1, os.cpu_count() or 1)",
         "tests/test_service.py",
+    ),
+    # --- The compiled-model cache ----------------------------------------------------
+    # Every defect here returns a legal, plausible roster that answers the wrong question:
+    # a stale objective, or a model built from a payload before the disruption. Nothing in
+    # a status code, a violation count or a gap would show it.
+    Mutant(
+        "cache-blind-to-unavailability",
+        "cache",
+        COMPILED,
+        '            f"{[(i.start, i.end) for i in person.unavailability]};"',
+        '            f"{[]};"',
+        "tests/test_cache.py",
+    ),
+    Mutant(
+        "cache-keeps-a-stale-hint",
+        "cache",
+        COMPILED,
+        "    model.clear_hints()",
+        "    pass",
+        "tests/test_cache.py",
+    ),
+    Mutant(
+        "cache-blind-to-absences",
+        "cache",
+        COMPILED,
+        '            f"{[(i.start, i.end) for i in person.absences]};"',
+        '            f"{[]};"',
+        "tests/test_cache.py",
+    ),
+    Mutant(
+        "cache-ignores-the-incumbent",
+        "cache",
+        COMPILED,
+        '        parts.append(";".join(map(str, sorted(instance.incumbent))))',
+        "        pass",
+        "tests/test_cache.py",
+    ),
+    Mutant(
+        "cache-is-unbounded",
+        "cache",
+        COMPILED,
+        "        if len(self._entries) > self.capacity:",
+        "        if False:",
+        "tests/test_cache.py",
+    ),
+    Mutant(
+        "cache-leaks-across-tenants",
+        "cache",
+        COMPILED,
+        "        key = (tenant, fingerprint(instance))",
+        "        key = (\"-\", fingerprint(instance))",
+        "tests/test_cache.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

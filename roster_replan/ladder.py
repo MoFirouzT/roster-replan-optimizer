@@ -116,12 +116,21 @@ def answer(
     seed: int = 7,
     budget_seconds: float = 30.0,
     workers: int = 1,
+    built=None,
 ) -> Answer:
-    """Solve, and fall back rather than fail. Never raises for an unsolvable instance."""
+    """Solve, and fall back rather than fail. Never raises for an unsolvable instance.
+
+    `built` is an optional pre-built model from `compiled.ModelCache`. The ladder does not
+    own the cache and does not create one: caching policy is a deployment concern, and a
+    module that silently memoised across calls would make a solver that is supposed to be
+    replayable depend on what it was asked before.
+    """
     started = time.perf_counter()
     attempts: list[str] = []
 
-    outcome = solve(instance, seed=seed, time_limit=budget_seconds, workers=workers)
+    outcome = solve(
+        instance, seed=seed, time_limit=budget_seconds, workers=workers, built=built
+    )
 
     if isinstance(outcome, Solution):
         attempts.append(EXACT if outcome.status == "OPTIMAL" else TIME_BOXED)

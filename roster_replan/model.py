@@ -725,6 +725,7 @@ def solve(
     time_limit: float = 30.0,
     workers: int = 1,
     hint: Roster | None = None,
+    built: Built | None = None,
 ) -> Solution | Unproven | list[Gate]:
     """Solve, or say why not -- distinguishing a proof from a timeout.
 
@@ -746,8 +747,13 @@ def solve(
     state: the disruption objective and the hint are two independent reasons a replan
     beats a cold solve, and a benchmark that cannot solve with the objective and without
     the hint is measuring their sum.
+
+    `built` accepts an already-constructed model, which is how `compiled.ModelCache` avoids
+    rebuilding one. It must have been built from **this** instance: nothing here checks and
+    nothing here could, so the cache's fingerprint is what makes reuse safe. A model built
+    from a different payload would solve the wrong problem and return it as an answer.
     """
-    built = build(instance)
+    built = build(instance) if built is None else built
     model = built.model
     _objective(built, instance)
 

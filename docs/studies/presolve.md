@@ -38,8 +38,13 @@ at once.
 
 **It is not "the largest single win", and the spec is now corrected.** Build time dominates search
 time at these sizes (`D-081`), and presolve takes 28% off the larger half — real, but a factor of
-1.4, not the order of magnitude the phrase suggests. The largest available win at this scale is
-caching the compiled model, which removes the whole build rather than a quarter of it.
+1.4, not the order of magnitude the phrase suggests.
+
+An earlier version of this paragraph named caching the compiled model as the largest available win.
+That was a guess and it was wrong — measured, the cache hits **0 of 144** replan solves, because a
+replan changes the model's own inputs. The largest single win turned out to be memoising
+`Instance.window`, worth about 20% of build time and found by profiling rather than by reasoning about
+encodings. See [`model-cache.md`](model-cache.md) and `D-092`.
 
 **The search-time figure is the weakest of the four numbers** and is reported last for that reason.
 Search is about 3 ms, 16% of it is half a millisecond, and half a millisecond is near the resolution

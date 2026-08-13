@@ -1556,32 +1556,6 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Study.** `docs/studies/rest-gap-encoding.md`.
 - **Date.** 2026-08-13.
 
-## D-089 — A timeout and an infeasibility are different answers, and `solve` now says which
-
-- **Decision.** `solve` returns three things, not two: a `Solution`, a `list[Gate]` meaning **proved
-  infeasible**, or an `Unproven` meaning the search stopped with no solution and no proof. Previously
-  the last two shared a type.
-- **Alternatives.** Keep the two-way split and let callers infer exhaustion from an empty core. Raise
-  on a timeout.
-- **Reason.** An empty `list[Gate]` is type-identical to "proved infeasible, with an empty core", so
-  no caller could tell a proof from a stopwatch. Three consumers turn that into a real failure. The
-  fallback ladder reported *no legal roster exists* when the truth was *we did not look for long
-  enough*. `methods.py` recorded a timeout as `INFEASIBLE`, which would have put a stopwatch reading
-  into a benchmark as a proof. And T4's explainer is specified to consume a core and phrase it, so it
-  would have narrated a conflict nobody demonstrated — the exact failure `D-013` exists to prevent,
-  arriving through the data rather than through the LLM.
-- **Consequences.** The ladder's cold branch reads `Unproven` and never a core, which is not merely
-  defensive: **a cold solve cannot be infeasible at all**, because the coverage floor is soft and the
-  empty roster satisfies every hard constraint (`D-018`). So exhaustion is the only cold failure, and
-  the branch that would report a cold core is unreachable by construction. That reasoning is asserted
-  by test rather than left in a comment, because it silently stops holding if the floor ever hardens.
-- **How it was found.** Not by review. The ladder was given a 1 ms budget to force its lower rungs,
-  and it answered "no legal roster exists" for an instance that solves in 10 ms. Nothing in the
-  committed set takes more than 12.4 ms, so no benchmark, test or production payload would have
-  reached this path — it needed a deliberately absurd budget, which is the same technique the whole
-  rung-forcing exercise rests on.
-- **Date.** 2026-08-13.
-
 ## D-090 — The wire schema is its own schema, not a serialisation of the domain
 
 - **Decision.** `service/contracts.py` defines a parallel set of Pydantic models with explicit
@@ -1625,4 +1599,90 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   observed in any single response, so it is asserted directly against the rotation rather than
   through the API — a FIFO passes every other test in `test_service.py` and fails only that one. The
   mutation harness carries a mutant that turns the rotation back into a FIFO.
+- **Date.** 2026-08-13.
+
+## D-092 — `Instance.window` memoised: the largest single win in the solve path
+
+- **Decision.** `Instance.window` caches its results per `(day, shift)` in a field excluded from
+  `init`, equality and `repr`.
+- **Alternatives.** Leave it pure and pursue the compiled-model cache `service.md` asks for. Hoist the
+  computation into each caller.
+- **Reason.** Profiling `build` put **60% of its time in this one method** — about 3,474 calls per
+  build to compute the 21 distinct values a one-week horizon with three shift types has. Since build
+  (~5 ms) costs more than search (~3 ms) at these sizes (`D-081`), that made it the largest single
+  cost in the whole solve path. It takes about **20% off build time**, measured on a cold cache per
+  build: the saving is collapsing 3,474 calls to 21 *within* one build, not reuse across requests, so
+  it is a production win rather than a benchmark artifact. That is larger than presolve, larger than
+  the warm start, and larger than every level-1 lever in T2 — all of which compared *encodings*, which
+  is why none of them could see it.
+- **Consequences.** Safe without invalidation: `window` is a pure function of `(day, shift)` and
+  immutable shift types, and `Interval` is frozen, so a shared instance is indistinguishable from a
+  fresh one. This is the only thing in `domain.py` that is neither a data container nor a stated
+  convention, and it earns the exception by being the largest measured cost in the project.
+
+  **It broke the benchmark manifest immediately, and that is the guard working.** `suite.py`
+  fingerprints instances by walking `dataclasses.fields`, so the cache leaked into every committed
+  hash and made it depend on which methods had been called first. `_canonical` now walks only fields
+  with `compare=True` — a field excluded from `__eq__` must be excluded from a fingerprint, or two
+  equal objects hash differently. The manifest then reproduced byte-for-byte, which is also the
+  cleanest evidence that memoisation changed no instance.
+- **Study.** `docs/studies/model-cache.md`.
+- **Date.** 2026-08-13.
+
+## D-093 — The compiled-model cache ships enabled, and does not help replanning
+
+- **Decision.** `compiled.ModelCache` is built, wired into the service, and enabled. It is keyed on a
+  fingerprint of everything `build` reads, bounded, and **thread-local rather than shared**.
+- **Alternatives.** Skip it, given the measured hit rate. Share one cache per process.
+- **Reason.** `service.md` asks for it on a correct premise — building costs more than solving — but
+  the remedy does not follow for the replan path, and the measurement says so plainly: **0 hits in 144
+  replan solves**. A replan is triggered by a change to the model's own inputs; an absence changes
+  which pairs survive presolve, which changes the variables, so a replan of a week is never the same
+  model as the week. It ships anyway because the economics are one-sided — a miss costs 0.6% of a
+  build, a hit saves 170× — and because the workloads that *do* repeat an instance are real: T4's
+  `what_if` sweep, replay, and retries. It is enabled on those grounds, not on the grounds that it
+  helps replanning, and `test_the_replan_path_does_not_hit` asserts the zero so a future hit means
+  something has stopped distinguishing two models.
+- **Consequences.** **Thread-local, because `CpModel` is not thread-safe.** A shared cache would hand
+  the same model object to two concurrent solves whenever their fingerprints matched, and both would
+  set an objective and assumptions on it at once — a data race whose output is a plausible roster.
+  Thread-local storage removes the sharing instead of guarding it, so there is no lock to get right
+  and concurrency stays real; the cost is one cache per worker thread.
+
+  The key includes the incumbent, which looks like an objective input and is not: `D-058` makes
+  `build` create a variable for any pair the incumbent assigned even when presolve excluded it. The
+  tidy constraints-in-objective-out split is wrong in exactly that place, and wrong in the direction
+  that drops the variables a deviation is counted on.
+
+  Two test defects surfaced from the mutation harness rather than from review: an absence test that
+  passed because the two instances it compared also differed in their incumbent, and a
+  `clear_objective()` call that was dead because `minimize` replaces rather than accumulates. Both are
+  in the study.
+- **Study.** `docs/studies/model-cache.md`.
+- **Date.** 2026-08-13.
+
+## D-094 — A timeout and an infeasibility are different answers, and `solve` now says which
+
+- **Decision.** `solve` returns three things, not two: a `Solution`, a `list[Gate]` meaning **proved
+  infeasible**, or an `Unproven` meaning the search stopped with no solution and no proof. Previously
+  the last two shared a type.
+- **Alternatives.** Keep the two-way split and let callers infer exhaustion from an empty core. Raise
+  on a timeout.
+- **Reason.** An empty `list[Gate]` is type-identical to "proved infeasible, with an empty core", so
+  no caller could tell a proof from a stopwatch. Three consumers turn that into a real failure. The
+  fallback ladder reported *no legal roster exists* when the truth was *we did not look for long
+  enough*. `methods.py` recorded a timeout as `INFEASIBLE`, which would have put a stopwatch reading
+  into a benchmark as a proof. And T4's explainer is specified to consume a core and phrase it, so it
+  would have narrated a conflict nobody demonstrated — the exact failure `D-013` exists to prevent,
+  arriving through the data rather than through the LLM.
+- **Consequences.** The ladder's cold branch reads `Unproven` and never a core, which is not merely
+  defensive: **a cold solve cannot be infeasible at all**, because the coverage floor is soft and the
+  empty roster satisfies every hard constraint (`D-018`). So exhaustion is the only cold failure, and
+  the branch that would report a cold core is unreachable by construction. That reasoning is asserted
+  by test rather than left in a comment, because it silently stops holding if the floor ever hardens.
+- **How it was found.** Not by review. The ladder was given a 1 ms budget to force its lower rungs,
+  and it answered "no legal roster exists" for an instance that solves in 10 ms. Nothing in the
+  committed set takes more than 12.4 ms, so no benchmark, test or production payload would have
+  reached this path — it needed a deliberately absurd budget, which is the same technique the whole
+  rung-forcing exercise rests on.
 - **Date.** 2026-08-13.
