@@ -100,7 +100,7 @@ is not finished.]`
 ## Correctness
 
 The model and the checker are two independent implementations of the same specification.
-They share no code, enforced in CI, and the differential harness is how we know which one is wrong.
+They share no rule logic — no predicate, no threshold — enforced in CI, and the differential harness is how we know which one is wrong.
 Solver objectives are held against exhaustively enumerated optima on committed micro-instances, so the correctness claim rests on ground truth rather than on the solver agreeing with itself.
 
 Test layers, invariants and the harness design: [`docs/specs/validation.md`](docs/specs/validation.md).
@@ -124,7 +124,7 @@ Details and the studies behind each, including the ones that produced no measura
 
 Authentication, persistence, a user interface, and demand forecasting.
 All data committed to this repository is synthetic.
-The forecast → optimise seam is documented in [`docs/specs/model.md`](docs/specs/model.md) as an interface, not implemented.
+The forecast → optimise interface is documented in [`docs/specs/model.md`](docs/specs/model.md), not implemented.
 
 ## Quickstart
 

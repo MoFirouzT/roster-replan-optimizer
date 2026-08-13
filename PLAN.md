@@ -38,7 +38,7 @@ The tier gates are the defence, and they are built so that none of them can be p
   Go back to `docs/specs/rules.md` before writing more code.
 - **No tier starts before the previous tier's gate passes.**
   T5 in particular is forbidden until T4 items ship;
-  LNS is the single most seductive way to lose three months here.
+  LNS is the single most tempting way to lose three months here.
 - **T3 is a legitimate finish.**
   T4 and T5 are upside, each independently shippable.
 

@@ -1,16 +1,17 @@
 # Model
 
-> **Status: reconciled with `model.py`.** Index sets, decision variables, the gate mechanism, presolve
-> and symmetry describe what is built. Still outline: the full payload schema (`[TODO]` under Input
-> contract) and the forecast seam, which is interface-only by design.
+> **Status: reconciled with `model.py` and `domain.py`.** Index sets, decision variables, the gate
+> mechanism, presolve, symmetry and the payload schema describe what is built. Still outline: the wire
+> format (JSON, versioning, the Pydantic boundary — all T3), and the forecast interface, which is
+> interface-only by design.
 
 The CP-SAT formulation. Rule semantics live in [`rules.md`](rules.md); this file defines the index
 sets, variables and encodings those rules are expressed over.
 
 ## Index sets and notation
 
-Every symbol used by a rule predicate in [`rules.md`](rules.md) is defined here. Contract types and
-the full payload schema are still `[TODO]`; the symbols below are settled and in use.
+Every symbol used by a rule predicate in [`rules.md`](rules.md) is defined here. The symbols below
+and the payload schema are settled and in use.
 
 | Symbol | Type | Meaning |
 |---|---|---|
@@ -22,8 +23,8 @@ the full payload schema are still `[TODO]`; the symbols below are settled and in
 | `x[e, d, s]` | bool | `1` iff employee `e` is assigned shift instance `(d, s)` |
 | `x̄[e, d, s]` | bool, data | The **incumbent** published roster. Absent on a cold solve |
 | `req[d, s]` | int ≥ 0, data | Required headcount for a shift instance |
-| `start(d, s)`, `end(d, s)` | timestamp | Absolute bounds of a shift instance, `[start, end)` |
-| `now` | timestamp, data | The replan instant. Required for a replan, absent on a cold solve |
+| `start(d, s)`, `end(d, s)` | hours | Bounds of a shift instance from the horizon start, `[start, end)` |
+| `now` | hours, data | The replan instant. Required for a replan, absent on a cold solve |
 | `absences[e]` | interval set, data | Periods `e` cannot work as a matter of fact |
 | `unavailability[e]` | interval set, data | Periods `e` declared they will not work |
 | `skills[e] ⊆ K` | set, data | Skills `e` holds |
@@ -63,8 +64,49 @@ exactly as the other begins do not overlap.
 
 ## Input contract
 
-`[TODO]` Full payload schema. The fields below are settled and are recorded here because another
-spec depends on them.
+[`roster_replan/domain.py`](../../roster_replan/domain.py) is the normative schema; this section
+describes it. It is the **only** module the model and the checker may both import, and what it may
+hold is fixed by the [independence rule](rules.md#independence-rule): data containers and the stated
+conventions, no rule predicate and no rule threshold (`D-038`, `D-039`).
+
+`[TODO]` The wire format — JSON, versioning and the Pydantic boundary — lands with the service in T3.
+What follows is the in-process schema those contracts will serialise.
+
+### Time is hours from the horizon start, not a calendar timestamp
+
+Every time quantity — shift bounds, `now`, `published_through`, interval endpoints — is a float
+counting hours from the start of the horizon. Values before the horizon are negative, which is what
+makes `last_shift_end_before_horizon[e]` an ordinary number rather than a special case.
+
+Calendar timestamps belong at the API boundary in T3. The rules are arithmetic, and keeping them off
+the calendar keeps them testable without one: no timezone, no DST discontinuity, and a micro-instance
+that reads as `Interval(6.0, 12.0)` rather than as a date.
+
+### The containers
+
+| Container | Carries |
+| --- | --- |
+| `Instance` | `days`, `shift_types`, `employees`, `open_shifts`, `params`, and the replan inputs `now`, `incumbent`, `published_through`, `disruption` |
+| `ShiftType` | `label`, `start_hour` (within its day), `span_hours`, `break_hours`; `work_hours` derived (`D-037`) |
+| `OpenShift` | `day`, `shift`, `required`, `required_skills`, `skill_mix` — the `(d, s)` pairs that make up `O` |
+| `Employee` | `name`, `contract`, `skills`, `absences`, `unavailability` (`D-020`), the caller-computed quantities below, the per-day eligibility gates (`D-032`), and `hourly_rate` |
+| `SkillMixEntry` | `skill`, `minimum`, `hard`, `provenance` — class declared per entry (`D-025`) |
+| `RuleParams` | Every rule threshold, supplied explicitly with no defaults (`D-039`), plus `derogation_basis` |
+| `Disruption` | Objective parameters; [`replan.md`](replan.md) owns their semantics |
+| `NoticeBand` | `within_hours`, `multiplier` — tested in order, last one unbounded |
+
+The roster itself is a `frozenset` of `(employee, day, shift)` triples: the assignments that are `1`.
+
+### `None` means "not supplied", never a default
+
+`max_hours_this_week`, `max_daily_hours`, `last_shift_end_before_horizon`, `flexi_eligible` and
+`dimona_ok` are all optional in the container and **mandatory in practice** — input validation rejects
+a payload that omits one where a rule needs it, rather than substituting anything.
+
+The failure mode this avoids is specific. A defaulted `max_hours_this_week` is the per-week ceiling
+`D-014` exists to reject. An empty `flexi_eligible` would *deny* eligibility where the caller merely
+forgot to say, which is a different answer wearing the same shape. Neither is detectable downstream,
+because both produce a perfectly plausible roster.
 
 ### Caller-computed quantities
 
@@ -75,7 +117,7 @@ solve consumes them as opaque data.
 |---|---|---|---|
 | `max_hours_this_week[e]` | hours, per employee | caller | `R-MAX-WEEKLY` |
 | `consecutive_days_worked_before_horizon[e]` | days, per employee | caller | `R-CONSEC-DAYS` |
-| `last_shift_end_before_horizon[e]` | timestamp, per employee | caller | `R-REST-GAP`, `R-WEEKLY-REST` |
+| `last_shift_end_before_horizon[e]` | hours (negative), per employee | caller | `R-REST-GAP`, `R-WEEKLY-REST` |
 
 `max_hours_this_week[e]` is the reference-period budget described in
 [`rules.md`](rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget): the caller resolves
@@ -104,9 +146,13 @@ the rules need:
 | `w[e, d]` | bool | worked-day indicator, reified for `R-CONSEC-DAYS` |
 | `r[e, j]` | bool | `R-WEEKLY-REST` candidate-window selector |
 
-**A variable exists** for every eligible pair, and additionally for an *ineligible* pair the incumbent
-already assigned to a past shift. Without that second case an already-illegal past cannot be
-represented, and "the past itself is illegal" becomes indistinguishable from a clean solve.
+**A variable exists** for every eligible pair, and additionally for any pair the incumbent assigned,
+eligible or not (`D-058`). Without that second case an already-illegal past cannot be represented and
+"the past itself is illegal" becomes indistinguishable from a clean solve — and, just as important, a
+deviation from the incumbent becomes uncountable, so the objective silently understates the cost of
+exactly the change the replan exists to make. Such a pair is still ineligible: the exclusion becomes a
+*gated* `x = 0` rather than an outright fixing (`D-059`), so a roster assigning it is reported rather
+than merely rejected.
 
 **Durations are carried in minutes.** CP-SAT is integral and `work_hours` is not. The conversion is
 arithmetic rather than a rule threshold, so it lives in the model rather than in the shared schema.
@@ -121,20 +167,20 @@ rule, and are deliberately not restated here. This section owns only what cuts a
 
 ### Assumption literals
 
-**Every hard constraint instance is gated on an assumption literal.** Not decoration — three separate
-things depend on it:
+**Every hard constraint instance is gated on an assumption literal** (`D-002`). Not decoration — three
+separate things depend on it:
 
 1. A failed solve returns the conflicting rule instances rather than a bare `INFEASIBLE`.
 2. The differential harness needs the model to *report* violations, not merely refuse rosters. With all
    assignments fixed, each gate can be true exactly when its constraint holds, so **maximising the
-   number of true gates leaves precisely the violated constraints false** — one solve enumerates them
-   all, where a core would explain one conflict and hide the rest.
+   number of true gates leaves precisely the violated constraints false** (`D-044`) — one solve
+   enumerates them all, where a core would explain one conflict and hide the rest.
 3. The *monotone objective under relaxation* property test needs relaxation to be expressible.
 
 `R-COVER`'s ceiling is gated as `o[d, s] == 0` rather than folded into the slack's domain, so that an
-overstaffed roster can be reported instead of silently rejected.
+overstaffed roster can be reported instead of silently rejected (`D-043`).
 
-**Sufficient, not minimal.** CP-SAT returns a set of assumptions that explains the infeasibility, with
+**Sufficient, not minimal** (`D-048`). CP-SAT returns a set of assumptions that explains the infeasibility, with
 no guarantee it is the smallest. T4's explainer is specified against a *minimal* core, which needs
 iterative deletion on top — solve, drop a gate, re-solve, keep what stays necessary. That reduction
 belongs with the explainer; the gap is recorded here so it is not discovered there.
@@ -159,7 +205,7 @@ Eliminate them before the solver sees them. Often the largest single win, and fr
 `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX` are enforced *entirely* this way — by removing
 variables, not by adding rows.
 
-**The exclusion reasons must be retained.** A removed pair can never be reported by a constraint that
+**The exclusion reasons must be retained** (`D-045`). A removed pair can never be reported by a constraint that
 does not exist, so presolve keeps a map from excluded pair to the rules that excluded it. Without it an
 assignment to an ineligible person would be invisible rather than rejected.
 
@@ -178,7 +224,7 @@ its own — quantify this rather than assuming it).
 already breaks symmetry partially, and adding lexicographic constraints before measuring how much would
 be optimising against a guess. T2 study.
 
-## The forecast seam `[interface only, not implemented]`
+## The forecast interface `[not implemented]`
 
 Upstream of the optimiser sits demand forecasting — availability, absences, peak moments, weather,
 revenue, skills. Structurally identical to a dispatch problem: forecast → optimise → commit under

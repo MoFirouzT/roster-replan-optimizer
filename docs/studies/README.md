@@ -2,7 +2,7 @@
 
 Analyses behind decisions, including **nulls and rejected alternatives**.
 
-Their value is almost entirely as interview material, so retrievability is the point. One line per
+Their value is almost entirely as interview material, so being able to find one again is the point. One line per
 study, **including the ones that found no effect** — a measured null is a stronger signal than an
 unmeasured win.
 

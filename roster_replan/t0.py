@@ -102,7 +102,7 @@ def solve(
 
     if baseline is None:
         # Cold start has no preference to express; pick the flattest workload so the
-        # roster being repaired later is a plausible one rather than an artefact.
+        # roster being repaired later is a plausible one rather than a side effect.
         peak = model.new_int_var(0, len(DAYS), "peak")
         for e in range(len(EMPLOYEES)):
             model.add(peak >= sum(x[e, d, s] for d, s in slots()))

@@ -45,7 +45,7 @@ SHIFTS = (
 # Every instance runs on a **7-day horizon** even where only two or three shifts are open,
 # and that is not incidental. `R-WEEKLY-REST` requires its 35-hour window to fall inside the
 # horizon, so a 3-day instance cannot hold one alongside work on more than a single day --
-# the rule would bind everywhere for a reason that is an artefact of the horizon rather than
+# the rule would bind everywhere for a reason that belongs to the horizon rather than
 # of the roster. Lowering the parameter instead would need a derogation basis, and inventing
 # a legal one to quiet the validator is exactly the dishonesty `rules.md` exists to prevent.
 #
@@ -160,7 +160,7 @@ def _rest_gap_binds() -> Instance:
 
 def _rest_gap_across_the_horizon_start() -> Instance:
     """A shift that ended at 02:00 on day 0 constrains that morning. A week boundary is an
-    artefact of the payload, not of the employee's working life."""
+    side effect of the payload, not of the employee's working life."""
     return instance(
         employees=[
             person("Ana", last_shift_end_before_horizon=2.0),

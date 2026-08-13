@@ -1,4 +1,4 @@
-"""The objective: D0-D4, commensuration, and brute-force stage (b).
+"""The objective: D0-D4, the weighted trade-off, and brute-force stage (b).
 
 Two things are being tested, and they are different. That each metric is *encoded*
 correctly is checked by comparing `disruption.py` against `scoring.py` -- the same
@@ -283,7 +283,7 @@ def test_metrics_only_diverge_when_there_is_slack():
     A tightly-covered instance has one legal repair, so every metric returns it and the
     choice of metric is invisible. This matters for T2: an instance generator that does
     not vary coverage tightness would report "the metrics agree" as a finding, when it is
-    an artefact of the instances.
+    a side effect of the instances.
     """
     from roster_replan.domain import Interval
 

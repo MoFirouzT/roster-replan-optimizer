@@ -4,17 +4,17 @@ The objective. [`rules.md`](rules.md) owns what is *legal*; this file owns what 
 
 > **Status: D0–D4 defined, D2 shipped.** The remaining `[TODO]`s are the cost model, which is a
 > deliberate placeholder until T2 supplies real wage data, and calibration of the exchange rate, which
-> cannot be done from first principles — see [Commensuration](#commensuration-with-cost-and-coverage).
+> cannot be done from first principles — see [Trading disruption against cost](#trading-disruption-against-cost-and-coverage).
 
 ## What disruption is a function of
 
-Disruption compares the roster being produced against the one people were already told about. It is a
-function of three things, and forgetting the third is the usual mistake:
+Disruption compares the roster being produced against the one people were already told about
+(`D-005`). It is a function of three things, and forgetting the third is the usual mistake:
 
 1. **The incumbent** `x̄` — what the roster was.
-2. **The publication state** — how much of it people actually know. An unpublished draft can be churned
-   freely; a published week cannot.
-3. **`now`** — how much notice a change gives. The same change is cheap a fortnight out and expensive
+2. **The publication state** — how much of it people actually know. An unpublished draft can be
+   reshuffled freely; a published week cannot.
+3. **`now`** — how much notice a change gives. The same change is cheap two weeks out and expensive
    tonight.
 
 The atomic unit is a **changed assignment**: a pair `(e, d, s)` where `x[e, d, s] ≠ x̄[e, d, s]`. Two
@@ -30,8 +30,9 @@ the whole plan for that slot, including its emptiness.
 
 ### Publication state, concretely
 
-`published_through` — a timestamp, supplied by the caller, exactly parallel to `now`. A slot `(d, s)` is
-published iff `start(d, s) < published_through`. One number, easy for a caller to get right, and it
+`published_through` — hours from the horizon start, supplied by the caller, exactly parallel to `now`
+and on the same scale as every other time quantity (see [`model.md`](model.md#input-contract)). A slot
+`(d, s)` is published iff `start(d, s) < published_through` (`D-051`). One number, easy for a caller to get right, and it
 matches the dominant real pattern: *"the schedule is out through Sunday the 14th."*
 
 **Limitation, stated:** a wave-published roster — some shifts announced, others held back within the
@@ -60,7 +61,7 @@ study exists to show it rather than to assert it.
 |---|---|---|
 | D0 | Count of changed assignments | rejected — a published cancellation and an unpublished move score alike |
 | D1 | D0 weighted by publication state | superseded |
-| D2 | D1 × notice multiplier, with a step at 24h | **shipped default** |
+| D2 | D1 × notice multiplier, with a step at 24h | **shipped default** (`D-006`) |
 | D3 | D2 with paired changes recognised as one move, priced by change type | configurable |
 | D4 | D3 + convex per-employee concentration penalty | configurable |
 
@@ -86,7 +87,7 @@ P(d, s) = published_weight   if start(d, s) < published_through
           draft_weight       otherwise
 ```
 
-`draft_weight` is small but **not zero**. Zero would leave the optimiser indifferent among draft
+`draft_weight` is small but **not zero** (`D-052`). Zero would leave the optimiser indifferent among draft
 rosters, and indifference costs two things worth keeping: stable output across runs, and a warm start
 that resembles its hint. A small weight buys both and distorts nothing, because the number of
 assignments is pinned by coverage rather than chosen freely.
@@ -102,7 +103,7 @@ N(d, s)      = the multiplier of the first band whose threshold notice falls wit
 
 Default bands: **notice < 24h → ×4**, otherwise **×1**. A step rather than a smooth decay, for two
 reasons: contractual and statutory notice periods are themselves steps (`R-PUB-NOTICE`), and a step is
-explicable to a planner where a decay curve invites argument about its shape. The band table is a
+easy to explain to a planner, where a decay curve invites argument about its shape. The band table is a
 parameter, so a tenant that wants a second step at 72h configures one.
 
 **D2 depends on `now`.** The same pair of rosters scores differently at different times of day, which is
@@ -110,7 +111,8 @@ correct and worth stating: golden tests must therefore pin `now`, not only the i
 
 ### D3 — change type, and moves counted once
 
-D0–D2 all count a moved shift twice — once as a drop, once as an add. Experientially it is one event:
+D0–D2 all count a moved shift twice — once as a drop, once as an add (`D-053`). To the person it
+happened to it is one event:
 *"your Saturday moved from the morning to the evening."* D3 is the definition that notices.
 
 Per `(employee, day)`, let `drops` and `adds` be the counts of changed slots of each kind. Then:
@@ -131,20 +133,20 @@ falsifiable claim in this file. T2's capture-and-replay work can test it directl
 resolving real disruptions reveal which trade they actually make. If the corpus contradicts the
 ordering, the ordering changes and this paragraph becomes a `decisions.md` entry.
 
-**Simplification, stated:** `P` and `N` are evaluated per **day** here rather than per slot, read from
-the day's **anchor slot** — its earliest *open* shift. A change is communicated about a day, and pairing
+**Simplification, stated** (`D-054`). `P` and `N` are evaluated per **day** here rather than per slot,
+read from the day's **anchor slot** — its earliest *open* shift. A change is communicated about a day, and pairing
 drops with adds requires a common granularity.
 
 The anchor is deliberately the earliest open shift and **not** the earliest *affected* one, which is the
 more intuitive choice and is wrong twice over: the weight would depend on which slots the solution
-changed, making the objective non-linear, and it would be unmatchable between the model's encoding and
+changed, making the objective non-linear, and it would be impossible to match between the model's encoding and
 an independent scorer, since one iterates variables and the other iterates changes. Solution-independence
-is not a nicety here — it is what makes the two readings comparable at all.
+is not a nice-to-have here — it is what makes the two readings comparable at all.
 
 The cost is that a move from an early shift to a late one inside a long day is priced by the day's
 earliest notice rather than by the affected shift's.
 
-**`extend` is not in D3, and cannot be.** The outline listed extending a shift as a change type; with
+**`extend` is not in D3, and cannot be** (`D-056`). The outline listed extending a shift as a change type; with
 fixed shift instances a shift's boundaries are data, so there is no roster the model can express in
 which one is extended. It becomes representable in T5's generation mode and is a change type only there.
 
@@ -161,8 +163,8 @@ D4       = D3 + concentration_weight × Σ_e f(events_e)
 `f` is convex with escalating marginal cost — `f(0)=0, f(1)=1, f(2)=3, f(3)=6`, the triangular numbers,
 so the *n*-th change to one person costs *n*.
 
-**Encoding.** A convex piecewise-linear function of an integer variable needs no piecewise machinery
-when it is being minimised: introduce `t_e` and lower-bound it by every segment's line.
+**Encoding** (`D-055`). A convex piecewise-linear function of an integer variable needs no piecewise
+machinery when it is being minimised: introduce `t_e` and lower-bound it by every segment's line.
 
 ```
 t_e ≥ k · events_e − k(k−1)/2     for k = 1 … concentration_tiers
@@ -174,9 +176,10 @@ exactly. Linear, no products, no auxiliary booleans. This is why D4 does not nee
 outline reached for: a max-term is the `concentration_tiers = 1` special case, and it is insensitive to
 everything below the maximum.
 
-## Commensuration with cost and coverage
+## Trading disruption against cost and coverage
 
-**Decision: weighted, not lexicographic** — and the reason is that the frontier is the deliverable.
+**Decision: weighted, not lexicographic** (`D-049`) — and the reason is that the frontier is the
+deliverable.
 
 Lexicographic ordering (feasibility → disruption → cost) guarantees disruption is never traded away, but
 it also means no cost saving however large buys one unit of disruption. That collapses the
@@ -185,7 +188,7 @@ disruption/cost Pareto frontier to a single point, and that frontier is the head
 objective.
 
 So the objective is a weighted sum, and the exchange rate `cost_weight` is **swept** to trace the
-frontier rather than fixed by assertion. The honest claim is not "here is the correct exchange rate" but
+frontier rather than fixed by assertion (`D-050`). The honest claim is not "here is the correct exchange rate" but
 *"we cannot know your exchange rate; here is the frontier, and here is our default and why."*
 
 ### The four levels, and why only two of them trade
@@ -197,7 +200,7 @@ frontier rather than fixed by assertion. The honest claim is not "here is the co
 | Disruption | D2 by default |
 | Cost | Traded against disruption at `cost_weight` |
 
-### The domination bound is derivable, not chosen
+### The domination bound is derivable, not chosen (`D-057`)
 
 Understaffing reduces disruption: an unstaffed shift is a shift nobody was moved onto. So if the
 shortfall weight is too low, **the optimiser buys stability by leaving shifts empty** — a failure mode
@@ -234,6 +237,11 @@ on this — weekend and night differentials, and the difference between marginal
 belong here and none are modelled. **`[TODO]` T2**, alongside the wage data that would make them
 meaningful. Until then, cost differences between two rosters of equal hours are zero, which is honest
 but blunt, and the frontier's cost axis should be read as *paid hours* rather than as euros.
+
+**And `cost_weight` ships at `0`**, so the term is not merely blunt — it is switched off, and the
+shipped objective is pure disruption. That is the right default while the cost model is a placeholder:
+a weight on a number that cannot tell two equal-hours rosters apart would add noise and no signal. T2
+sweeps it (`D-050`), which is when the cost axis starts to mean anything.
 
 ## Understaffing: hard or soft
 

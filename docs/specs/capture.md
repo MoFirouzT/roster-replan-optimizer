@@ -47,7 +47,7 @@ it locates named individuals at specific places and times.
 - **Absence reasons are dropped.** Only the availability bit is retained.
 
 The last one is the load-bearing one. A sick call is health data under GDPR Article 9, carrying
-obligations that a benchmark corpus has no business incurring. The optimiser never needed the
+obligations that a benchmark corpus has no business taking on. The optimiser never needed the
 reason — it needs to know the person is unavailable — so discarding it costs nothing and removes
 the entire category from scope.
 
@@ -77,7 +77,7 @@ measuring nothing. Only externally observable outcomes are compared:
 | Solve wall-time | measured for this service, read from the vendor response for the incumbent |
 
 Results are reported as **paired per-instance deltas with win/loss/tie counts**, not as aggregate
-means. A mean conceals the distribution that matters here: a substitute that ties on ninety
+means. A mean hides the distribution that matters here: a substitute that ties on ninety
 instances and loses catastrophically on ten is not a substitute, and an average will not say so.
 
 ## The bar, stated before measuring
@@ -90,11 +90,11 @@ entry, never in response to a result.
 says.
 
 - Zero checker violations across the corpus. The independent legality layer is the product;
-  a single violation retracts the claim it exists to make.
+  a single violation breaks the claim it exists to make.
 - No instance with worse coverage than the incumbent. Understaffing is the outcome a planner
   notices within the hour, and no disruption improvement compensates for it.
 
-**Distributional bars.** Reported as paired per-instance comparisons.
+**Bars on the distribution.** Reported as paired per-instance comparisons.
 
 - Disruption (D2) **no worse on ≥ 90%** of instances, and **strictly better on ≥ 50%**.
   The first number is the parity claim, the second is the thesis.
@@ -104,7 +104,7 @@ says.
   incumbent score. Without this cap the 10% allowance is unbounded, and ten catastrophic losses
   would pass a bar designed to exclude exactly that.
 - **p95 solve time ≤ 1.5× the incumbent's, and ≤ 5s in absolute terms.**
-  The relative bound alone is gameable by a slow incumbent; the absolute bound is what the planner
+  The relative bound alone can be gamed by a slow incumbent; the absolute bound is what the planner
   waiting for the answer actually experiences.
 
 Solve time is the one metric whose comparison is confounded: this service is measured locally,

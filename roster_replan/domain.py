@@ -252,7 +252,7 @@ class Instance:
         prices changes per (employee, day), so it needs one slot per day to read `P` and
         `N` from. It must be **solution-independent** -- anchoring on the earliest
         *affected* slot would make the weight depend on which slots changed, which is
-        both non-linear and unmatchable between the two readings.
+        both non-linear and impossible to match between the two readings.
         """
         candidates = [o.shift for o in self.open_shifts if o.day == day]
         return min(candidates, key=lambda s: self.window(day, s).start)

@@ -140,7 +140,7 @@ def _cover(roster: Roster, instance: Instance) -> list[Violation]:
 
 # --- R-SKILL-MIX --------------------------------------------------------------------
 # Clamped to the headcount actually rostered: a missing body is R-COVER's finding, and
-# reporting it twice makes shortfalls uncomparable across instances.
+# reporting it twice makes shortfalls incomparable across instances.
 
 
 def _skill_mix(roster: Roster, instance: Instance) -> list[Violation]:

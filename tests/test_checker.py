@@ -102,7 +102,7 @@ def test_skill_mix_soft_entry_fires_soft(make_instance, person):
 def test_skill_mix_clamps_to_rostered_headcount(make_instance, person):
     """Two first-aiders cannot be required of a shift that only got one body -- the
     missing person is already R-COVER's finding, and double-counting it makes
-    shortfalls uncomparable across instances."""
+    shortfalls incomparable across instances."""
     medic = dataclasses.replace(person, skills=frozenset({"bar", "first-aid"}))
     shift = OpenShift(
         day=0,
