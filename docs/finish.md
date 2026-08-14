@@ -257,6 +257,7 @@ and saying so is more useful than filing it beside the ones that need an externa
 | `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each — every one is still `[CITE]`, and `rules.md` refuses a legality claim without provenance |
 | Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing — these are deployment choices, and `service.md` states each as the tier's honest limit |
 | **Whether the reference-period budget is a lossy approximation** — reopened by `D-116` | Nothing. It needs a pooled `max_hours_this_period` field, which `D-111` deferred and the horizon study is the argument for reinstating |
+| **A roster that reproduces on a different solver build** (`D-118`) | Nothing. The optimum is degenerate and the specification does not say which of the equally good rosters to return; a dominated tie-break would make it say so, at the cost of regenerating every committed objective value |
 
 The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the system
 under test**. Every benchmark number here shows a replan beats a re-solve *given a roster this model
@@ -326,14 +327,24 @@ contracts. The suite also could not be run the obvious way — without the repo 
 What CI found first was its own limit. Two timing guards are calibrated against the machine that
 recorded `timings.json`, and a shared runner is slower at Python and at CP-SAT by different factors,
 so both the milliseconds and the ratio between them move. Widening the band is what `D-096` already
-refused one level up, so they are deselected. **CI checks 762 of 765 tests, and the three it does not
-check are the three it cannot.**
+refused one level up, so they are deselected. **CI checks 762 of 766 tests, and the four it does not check
+are the four it cannot.**
+
+Its second finding was larger and is a defect in the product rather than in the tests (`D-118`). On a
+linux runner six tests failed for a reason unrelated to any of them: the optimum is **degenerate**, so
+which of the equally good rosters CP-SAT returns is a property of the binary, and every committed
+scenario diverges from its regeneration on a different one. The incumbent is solved, the disruption
+event picks whom to injure out of *that* roster, and the whole case follows. What that falsifies is a
+README sentence — a roster cannot be reproduced from its input, seed and profile version alone, only
+its objective value can. CI runs macOS for now, which matches the platform the artifacts were recorded
+on and **means CI can no longer tell anyone the project is portable**. The fix is an optimum that does
+not depend on the search, and it is listed above as not done.
 
 ### The state of the repo
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 765 |
+| Tests | 567 | 766 |
 | Mutants, each naming the layer that must catch it | 59 | 95 |
 | Import-linter contracts | 8 | 10 |
 | Decision records | 94, 2 open | 116, none open |

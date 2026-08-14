@@ -2873,3 +2873,51 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   clone could reproduce. If the runner is failing on something else, this change is still right and
   will not fix it.
 - **Date.** 2026-08-14.
+
+## D-118 — CI runs the platform the committed artifacts were recorded on, and the reproducibility claim is scoped
+
+- **Decision.** CI runs on `macos-latest`, matching the arm64 macOS wheel the committed scenarios,
+  goldens and manifest were produced with. `README.md`'s reproducibility claim gains the qualifier it
+  always needed: a roster reproduces **on the same solver build**, and the objective value reproduces
+  anywhere.
+- **Alternatives.** *A dominated lexicographic tie-break* making the optimum unique, so the same input
+  gives the same roster on any machine. *Mark the six failing tests `machine`*, as `D-114` and `D-117`
+  did for two others. *Rewrite them to assert the objective and legality* rather than which optimum
+  came back.
+- **Reason.** `D-117` had the cause right and the blast radius wrong. It treated the solved half of
+  `manifest.json` as the artifact carrying the solver build; the truth is that **every committed case
+  does**. The incumbent is solved, the disruption event picks whom to injure *out of that roster*, and
+  the whole scenario diverges from there — so a linux x86-64 runner fails six tests that have nothing
+  to do with the manifest: the demo scenario, two metric-divergence results, MILP agreement on
+  `tight/0`, the sample week's shortfall, and the profile probe's blocking rules.
+
+  That was established by reproduction rather than by inference, after two inferences had already been
+  wrong. Changing the seed the *generator* passes to its solve is exactly what a different binary does,
+  and it reproduces the runner's six failures on this machine.
+
+  Underneath is a **product defect rather than a test problem**, and it is stated here because a green
+  tick that hides it would be worth less than the red one: the README promised that a roster could be
+  reproduced from its input, seed and profile version, and that promise does not survive a change of
+  binary. The objective value does. Which of the equally optimal rosters comes back does not, and
+  nothing in the specification says which one should.
+
+  **The tie-break is the real fix and is deliberately not here.** It would make the promise true, and
+  an earlier draft of this reasoning rejected it as "changing the model to serve a test" — which was
+  wrong, because it serves a documented product claim. It is invasive: keeping the tie-break dominated
+  means growing the objective scale, which regenerates every golden and every committed objective
+  value. That deserves its own record and its own review, not a paragraph inside a CI fix.
+
+  **Marking the six** was rejected for what it would cost: the metrics, MILP, parse and profile layers
+  would stop running in CI, which is most of the evidence, to avoid an artifact problem.
+- **Consequences.** CI is a workaround wearing its reason on its sleeve, and the workflow says so.
+  What it now checks is that the code works on the platform the artifacts came from — which is worth
+  having and is less than it looks like: **CI can no longer tell you the project is portable**, because
+  it is only run where it is known to work. That is a real loss and it is the price of A over B.
+
+  macOS runners bill at a multiplier on private repositories and are free on public ones, so this is
+  cheap exactly when `D-095`'s deferred publication happens and dearer until then.
+
+  `D-117`'s split stands and is still right — the generated half of the manifest travels and the solved
+  half does not — but its framing of the problem as *the manifest's* was too narrow, and this record is
+  the correction.
+- **Date.** 2026-08-14.

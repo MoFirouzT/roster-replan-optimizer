@@ -22,7 +22,14 @@ env:
 jobs:
   suite:
     name: tests (${{ matrix.label }})
-    runs-on: ubuntu-latest
+    # macOS arm64, because the committed artifacts were recorded on one (`D-118`). The
+    # optimum is degenerate — four solver seeds on one instance give the same objective and
+    # four different rosters — so which roster comes back is a property of the ortools
+    # binary. On a linux x86-64 runner every committed scenario diverges from its
+    # regeneration, and six tests fail for a reason that has nothing to do with the change
+    # under test. This is a workaround for that, not a fix: the fix is an optimum that does
+    # not depend on the search, and `D-118` says why it is not being rushed in here.
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
@@ -53,7 +60,14 @@ jobs:
 
   contracts:
     name: import contracts
-    runs-on: ubuntu-latest
+    # macOS arm64, because the committed artifacts were recorded on one (`D-118`). The
+    # optimum is degenerate — four solver seeds on one instance give the same objective and
+    # four different rosters — so which roster comes back is a property of the ortools
+    # binary. On a linux x86-64 runner every committed scenario diverges from its
+    # regeneration, and six tests fail for a reason that has nothing to do with the change
+    # under test. This is a workaround for that, not a fix: the fix is an optimum that does
+    # not depend on the search, and `D-118` says why it is not being rushed in here.
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5

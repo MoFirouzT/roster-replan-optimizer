@@ -132,7 +132,9 @@ show — nothing here ever came close to a time budget, and median damage is one
 
 - **The solver service is stateless**:
   payload in, payload out, no database reads.
-  Every solve's input, profile version and seed are persisted by the caller, so any roster produced in production can be reproduced offline.
+  Every solve's input, profile version and seed are persisted by the caller, so any roster produced in production can be reproduced offline **on the same solver build**.
+  That qualifier is measured, not defensive: the optimum is degenerate, so among equally good rosters CP-SAT returns whichever its search reaches first, and the search path belongs to the binary as much as to the seed ([`D-118`](docs/decisions.md)).
+  The objective value reproduces anywhere; the roster does not.
 - **Async by construction.**
   Solves take real time;
   synchronous HTTP breaks on timeouts, retry storms and the absence of cancellation.
@@ -224,7 +226,7 @@ by a model.
 The suite and the import contracts are the two things CI runs on every push:
 
 ```bash
-uv run pytest -q          # 765 tests, about a minute
+uv run pytest -q          # 766 tests, about a minute
 uv run lint-imports       # the 10 contracts that carry the independence rule
 ```
 
