@@ -45,7 +45,7 @@ assumed, and [`finish.md`](docs/finish.md) for what did not ship.
   Solutions that fail the checker are never returned.
 - **Explain a short shift:**
   name the rule that blocked every person who could have filled it, in planner language —
-  *9 of the 12 staff do not hold a skill the shift requires; 5 would not get the minimum rest*.
+  *6 of the 12 staff do not hold a skill the shift requires; 5 would not get the minimum rest*.
   This is the common case: with a soft coverage floor a shift comes back **priced** rather than refused.
 - **Explain infeasibility:**
   in the rare case where no legal roster exists, return the *minimal* set of blocking rules with the day, shift and employee involved.
@@ -200,26 +200,26 @@ The demo command at the top of this file prints:
 
 ```text
 tenant horeca-demo, profile horeca-2026.1
-12 staff, 21 open shifts, 37 assignments published
+12 staff, 21 open shifts, 35 assignments published
 replanning at hour 129 of the horizon
 
 answer: exact — proven optimal
 disruption 100040, gap 0.0%
-solved in 12 ms
+solved in 14 ms
 
 1 changed assignment(s):
-  dropped    E03  Sat 15:00-23:00 (E)
+  dropped    E02  Sat 15:00-23:00 (E)
 
 Sat 15:00-23:00 (E) is 1 short of its 3 required staff.
   6 of the 12 staff do not hold a skill the shift requires (R-SKILL).
   5 of the 12 staff would not get the minimum rest between shifts (R-REST-GAP).
-  E03, E05 and E07 are absent or unavailable then (R-AVAIL).
-  E06, E10 and E11 would exceed their hours for the day (R-MAX-DAILY).
-  E00 and E01 would exceed their hours for the week (R-MAX-WEEKLY).
+  4 of the 12 staff are absent or unavailable then (R-AVAIL).
+  4 of the 12 staff would exceed their hours for the day (R-MAX-DAILY).
+  E01, E05 and E08 would exceed their hours for the week (R-MAX-WEEKLY).
 ```
 
 The scenario file is the real wire format, so it doubles as the worked example of what a caller
-sends. The shortfall is the honest outcome: E03 called in sick and **nobody could legally replace
+sends. The shortfall is the honest outcome: E02 called in sick and **nobody could legally replace
 them** — the explanation says why, person by person, and every line is derived rather than phrased
 by a model.
 

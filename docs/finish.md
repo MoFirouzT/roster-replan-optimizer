@@ -71,7 +71,9 @@ non-linear expressiveness are load-bearing for three other commitments — at a 
 **The D0–D4 study delivered what `replan.md` promised**: the five metrics genuinely disagree, on
 23 of 72 cases, at roughly 100% relative regret in both directions — and the divergence found in the
 wild reproduces the Ana/Bram example the spec invented to argue it was possible. *(Re-run over the
-widened set: 26 of 84, same structure, and `D-060` confirmed on a curve — `D-106`.)*
+widened set: 26 of 84, same structure, and `D-060` confirmed on a curve — `D-106`. Then 10 of 84
+once `D-119` moved the instances underneath it, which is what that rate turned out to measure; the
+structure held and the curve did not — `D-120`.)*
 
 ### What is not done
 
@@ -244,6 +246,13 @@ encoding. The one real find was not a lever but a **sampling bug**: `studies.py`
 instances positionally, so adding two classes silently swapped two others out, and two results moved
 in ways that read exactly like findings. The sample is named now.
 
+*(That divergence rate is now **10 of 84**, and the curve is withdrawn — `D-120`. Canonicalising the
+optimum replaced every instance in the set, and the rate fell by a factor of two and a half without
+the method changing at all. The structure held: the same D0/D1/D2 against D3/D4 split, the same
+symmetric regret, and a worked example reproducing to the point on another seed of the same class.
+**26 of 84 was never a robust figure, and nothing said so**, because nothing had moved the instances
+underneath it before.)*
+
 ### What is still not done
 
 Three of these four are blocked on something outside this repository, which is the honest reason
@@ -351,11 +360,19 @@ not depend on the search, and it is listed above as not done.
 | Studies, including nulls | 8 | 12 |
 | Python | ~12,000 lines | ~18,800 lines |
 
-The mutation harness has been run in full since every layer above landed: **89 mutants, all caught by
-the layer named to catch them**. It also had to be hardened twice while doing it — an editor's
-format-on-save watcher wrote mutated text back under it three times, once *minutes after* a run had
-finished, and the verdict now lives in a file rather than in stdout because reading it through a pipe
-destroyed two runs.
+The mutation harness has been run in full since every layer above landed: **95 mutants, all caught by
+the layer named to catch them**, on a clean tree, `verdict: clean` and `trustworthy: true`. That is
+the first run whose verdict means what it says, because the harness had to be hardened a third time
+first (`D-112`): it had been reporting `clean` while a mutated file sat in the working tree, since its
+clean-tree check skips files that were already modified and `trustworthy` was derived from that check
+alone.
+
+The two earlier hardenings were the same failure in cruder forms — an editor's format-on-save watcher
+wrote mutated text back under it three times, once *minutes after* a run had finished, and the verdict
+lives in a file rather than in stdout because reading it through a pipe destroyed two runs. Three
+hardenings in, the pattern is worth naming: **every one of them was the harness being confidently
+wrong rather than merely failing**, which is exactly the failure mode it exists to catch in everything
+else.
 
 ## Archived
 

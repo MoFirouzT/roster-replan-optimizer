@@ -5,11 +5,20 @@ fact they produce different rosters is the deliverable rather than a problem to 
 tests that, and tests the constraint `D-060` puts on it: that they can only diverge where there is
 slack.
 
-**Answer.** Yes, on 26 of the 84 committed cases — and where they diverge, they diverge severely:
+**Answer.** Yes, on 10 of the 84 committed cases — and where they diverge, they diverge severely:
 each metric scores the other's answer at roughly double its own optimum. But the divergence is
 **entirely between D0/D1/D2 on one side and D3/D4 on the other**. Within each side, nothing separates
 them on this instance set. `D-060` survives as a mechanism and fails as a test, because the quantity
 it was going to be tested against turns out to be the wrong one.
+
+> **Re-measured after `D-119`, and the rate moved a long way: 26 of 84 became 10 of 84** (`D-120`).
+> Nothing about the method changed and nothing about it could — `metrics.py` builds its own models
+> and never calls `model.solve`, so canonicalising the optimum cannot reach it. **The instances
+> changed.** A canonical incumbent is a different published roster, so the event lands on a different
+> person and every replan in the set is a new one. The divergence rate is a property of the instances,
+> and it turns out to be a far less robust number than the structure underneath it, which held: the
+> same split between D0/D1/D2 and D3/D4, the same ~100% symmetric regret, and a worked example that
+> reproduces to the point on a different seed of the same class.
 
     uv run python -m benchmarks.metrics --write
 
@@ -46,11 +55,11 @@ metric, and the mean regret over those cases.
 
 | commit to ↓ · pay in → | D0 | D1 | D2 | D3 | D4 |
 | --- | --- | --- | --- | --- | --- |
-| **D0** | — | 0/84 | 0/84 | 26/84 · 417.7 | 26/84 · 417.3 |
-| **D1** | 0/84 | — | 0/84 | 26/84 · 417.7 | 26/84 · 417.3 |
-| **D2** | 0/84 | 0/84 | — | 26/84 · 417.7 | 26/84 · 417.3 |
-| **D3** | 26/84 · 2.2 | 26/84 · 22.3 | 26/84 · 52.3 | — | 0/84 |
-| **D4** | 26/84 · 2.2 | 26/84 · 22.3 | 26/84 · 52.3 | 0/84 | — |
+| **D0** | — | 0/84 | 0/84 | 10/84 · 420.0 | 10/84 · 419.8 |
+| **D1** | 0/84 | — | 0/84 | 10/84 · 420.0 | 10/84 · 419.8 |
+| **D2** | 0/84 | 0/84 | — | 10/84 · 420.0 | 10/84 · 419.8 |
+| **D3** | 10/84 · 2.2 | 10/84 · 22.0 | 10/84 · 34.0 | — | 0/84 |
+| **D4** | 10/84 · 2.2 | 10/84 · 22.0 | 10/84 · 34.0 | 0/84 | — |
 
 **The raw asymmetry is a units artifact, not a finding.** D3 multiplies by change-type weights of
 6–14, so its scores live on a larger scale. Normalised against the paying metric's own optimum, the
@@ -82,9 +91,15 @@ Anything claiming D4 behaves well is claiming it from the micro-instances, not f
 
 ## The one real divergence, worked
 
-`early-notice/1`, the first conflicting case, reproduces `replan.md`'s Ana/Bram example exactly —
+`early-notice/0`, the first conflicting case, reproduces `replan.md`'s Ana/Bram example exactly —
 which is worth something, since that example was invented at spec time to argue the metrics *could*
 differ, and here it arises on its own from a seeded generator.
+
+This derivation was originally written against `early-notice/1`, whose divergence `D-119` removed
+along with the rest of the old instances. **Seed 0 reproduces every number in the table below
+exactly** — the same two-against-four slots, the same 20/240 and 40/120. That is the more useful
+fact than either seed: the divergence is a property of the *class*, not of the one instance the study
+happened to inspect first.
 
 Employee 6 is published on day 3, shift 0, and becomes unavailable.
 
@@ -112,15 +127,18 @@ returns it. The class breakdown supports the mechanism cleanly at one end:
 
 | class | D2/D3 conflict |
 | --- | --- |
-| `headline`, `withdrawal` | 4/6 |
-| `loose`, `busy`, `scarce-skill`, `multi-absence`, `early-notice` | 3/6 |
-| `thin-availability` | 2/6 |
-| `flexi-heavy` | 1/6 |
-| `tight`, `overloaded`, `small`, `large`, `demand-spike` | **0/6** |
+| `scarce-skill`, `thin-availability` | 2/6 |
+| `headline`, `tight`, `busy`, `flexi-heavy`, `withdrawal`, `early-notice` | 1/6 |
+| `loose`, `overloaded`, `small`, `large`, `multi-absence`, `demand-spike` | **0/6** |
 
-`tight` never diverges, which is exactly what `D-060` predicts. `demand-spike` never diverges for a
-different and equally structural reason: an added headcount is a pure call-in with nothing to pair it
-against, so D3 has no move available and agrees with D2 by default.
+`demand-spike` never diverges for a structural reason that survived the re-measurement: an added
+headcount is a pure call-in with nothing to pair it against, so D3 has no move available and agrees
+with D2 by default.
+
+**`tight` now diverges once, and that is the clean `0/6` the previous run reported gone** (`D-120`).
+It is not a refutation of `D-060` so much as a demotion of this table: a class name is a *target*
+demand ratio, and what decides divergence is the room at the slot the event actually damaged. The
+repair-slack table below says that far more sharply than this one now does.
 
 ### The coverage axis, now that it has five points (`D-106`)
 
@@ -130,26 +148,25 @@ on the axis, and they make a shape:
 
 | demand ratio | class | conflict |
 | --- | --- | --- |
-| 0.35 | `loose` | 3/6 |
-| 0.70 | `headline` | **4/6** |
-| 0.80 | `busy` | 3/6 |
-| 0.90 | `tight` | **0/6** |
+| 0.35 | `loose` | **0/6** |
+| 0.70 | `headline` | 1/6 |
+| 0.80 | `busy` | 1/6 |
+| 0.90 | `tight` | 1/6 |
 | 0.95 | `overloaded` | **0/6** |
 
-Two things follow, and only the first was predicted.
+Two things follow, and neither is what the first run of this table reported (`D-120`).
 
-**`D-060`'s mechanism is confirmed rather than suggested.** Divergence falls to zero by 0.90 and
-stays there, and `overloaded` reaching 0/6 independently of `tight` is what rules out the reading
-that the zero was a property of one class. A tightly covered week really does have one legal repair,
-and every metric really does return it.
+**The curve is gone.** Divergence used to rise to 4/6 at 0.70 and fall to zero by 0.90; it is now
+flat at one case across the middle three and zero at both ends. Whatever shape the coverage axis has,
+this set at this rate cannot resolve it — six cases per point and ten conflicts in total is not
+enough to draw a curve through, and the previous run drew one anyway.
 
-**But divergence is not monotone in slack, and the loose end is the surprise.** `loose` at 0.35 —
-the slackest weeks in the set — conflicts *less* than `headline` at 0.70. Slack alone was never the
-claim, but a reader could be forgiven for expecting more room to mean more disagreement. The
-mechanism is in `D-071`: low demand is expressed by opening **fewer shift instances**, not by
-thinning a full grid, so a loose week has fewer shifts on the damaged day for D3 to move somebody
-into. Divergence needs slack *and* somewhere to put people, and the loose end runs out of the second
-while gaining the first.
+**Both ends still suppress divergence, and for the two different reasons already given.** `overloaded`
+at 0.95 has one legal repair, which is `D-060`'s mechanism. `loose` at 0.35 has the opposite problem
+and it is `D-071`'s: low demand is expressed by opening **fewer shift instances**, not by thinning a
+full grid, so a loose week has fewer shifts on the damaged day for D3 to move somebody into.
+Divergence needs slack *and* somewhere to put people, and the loose end runs out of the second while
+gaining the first.
 
 That is the same missing condition the rest of this study names — whether a **move** is available on
 the damaged day — arriving from the other direction. It is a property of the day, the set does not
@@ -159,18 +176,22 @@ But the **week-level minimum slot slack recorded in the instance set does not pr
 
 | week minimum slot slack | −2 | −1 | 0 | 1 | 2 | 3 | 4 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| conflict | 2/2 | 1/6 | 4/14 | 2/15 | 13/31 | 2/11 | 2/5 |
+| conflict | 2/3 | 1/6 | 3/12 | 0/19 | 3/29 | 1/11 | 0/4 |
 
 Non-monotone, and the most-constrained bucket has the highest rate. The instrument is at fault rather
 than the claim: `min_slot_slack` is a minimum over 21 slots, and a week can hold one impossible slot
 and abundant room everywhere else. The repair happens where the damage is. Measured **at the damaged
 slot** (`metrics.repair_slack`), the picture improves but does not become a law:
 
-| slack at the repair | −1 | 0 | 1 | 2 | 3 | 4 | 5 | 6+ |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| conflict | 0/2 | 2/3 | 0/9 | 1/8 | 0/6 | 3/4 | 1/5 | 19/47 |
+| slack at the repair | −2 | −1 | 0 | 1 | 2 | 3 | 4 | 5 | 6+ |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| conflict | 0/1 | 0/2 | 0/1 | 0/9 | 0/10 | 0/7 | 0/10 | 0/4 | **10/40** |
 
-Divergence concentrates where there is room, but plenty of roomy cases still agree.
+**This is the sharpest the study has ever been, and it got sharper by accident** (`D-120`). Every one
+of the ten divergences sits in the top bucket and every other bucket is a clean zero — where the
+previous instance set scattered conflicts across six of eight buckets. Read as a necessary condition
+it is now exact on this set: **no case with fewer than six spare eligible people at the damaged slot
+diverges at all.** Read as a sufficient one it is still nowhere close, at 10 of 40.
 
 **Conclusion: slack is necessary and nowhere near sufficient.** The missing condition is structural,
 and the worked example above names it — D3 diverges from D2 only when a **move** is available, meaning

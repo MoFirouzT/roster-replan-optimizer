@@ -1,6 +1,6 @@
 {
-  "build_over_search": 1.517,
-  "build_p50_ms": 4.87,
+  "build_over_search": 0.962,
+  "build_p50_ms": 4.98,
   "cases": [
     "headline/0",
     "tight/0",
@@ -9,5 +9,5 @@
     "loose/0",
     "scarce-skill/0"
   ],
-  "search_p50_ms": 3.21
+  "search_p50_ms": 5.18
 }

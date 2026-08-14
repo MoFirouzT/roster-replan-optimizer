@@ -47,9 +47,8 @@ slower at Python and by a different factor at CP-SAT's C++ search, so both quant
 and the ratio between them moves too. Marked `machine` and deselected in CI (`D-114`);
 widening the band instead is the mistake `D-096` already refused.
 
-`test_build_still_dominates_search` is **not** marked, and runs everywhere. It asserts an
-ordering rather than a calibration, and slower hardware only makes it more true: the Python
-side is what a slow machine punishes hardest.
+There is no longer a third test asserting that build outruns search: canonicalisation
+levelled the two clocks, and `D-119` retires the claim rather than restating it.
 
 Regenerate deliberately, and say why in `decisions.md`:
 
@@ -152,19 +151,17 @@ def test_the_absolute_timings_are_the_right_order_of_magnitude(quantity):
     )
 
 
-def test_build_still_dominates_search():
-    """The claim several documents reason *from*, rather than merely quote.
-
-    `D-081` separates the two clocks because build costs more than search at these sizes,
-    and `D-093` rejects the compiled-model cache partly on that balance. If it ever
-    reversed, those arguments would need rereading — so the ordering is asserted rather
-    than assumed.
-    """
-    current = measure()
-    assert current["build_p50_ms"] > current["search_p50_ms"], (
-        f"search ({current['search_p50_ms']} ms) now costs more than build "
-        f"({current['build_p50_ms']} ms), which reverses the premise of D-081 and D-093"
-    )
+# `test_build_still_dominates_search` was here, and it is deliberately gone (`D-119`).
+#
+# It asserted the ordering `D-081` and `D-093` reason from — that building the model costs
+# more than searching it. Canonicalising the optimum added a second search, and the balance
+# went from 1.52 to about 0.985: the two clocks are now level at a one-week horizon. The
+# premise is retired rather than re-asserted, because a test that pins a claim the code no
+# longer makes is worse than no test.
+#
+# The ratio guard above still watches the balance, and it is the thing that would notice it
+# moving again. `D-116` had already found the crossover sitting between one week and two;
+# canonicalisation brought it forward to one.
 
 
 if __name__ == "__main__":

@@ -58,7 +58,7 @@ def test_the_committed_scenario_still_matches_the_generator():
     regenerated, and say why in `decisions.md`.
     """
     request = ReplanRequest.model_validate_json(SCENARIO.read_text())
-    assert to_domain(request.instance) == suite.build("headline/0").instance
+    assert to_domain(request.instance) == suite.build("headline/3").instance
 
 
 def test_the_scenario_is_the_real_wire_format():

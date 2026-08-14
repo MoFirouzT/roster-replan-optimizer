@@ -34,7 +34,7 @@ from roster_replan.domain import ShiftType
 
 @pytest.fixture(scope="module")
 def sample():
-    return suite.build("headline/0").instance
+    return suite.build("headline/3").instance
 
 
 @pytest.fixture

@@ -764,7 +764,7 @@ def solve(
     """
     built = build(instance) if built is None else built
     model = built.model
-    _objective(built, instance)
+    expression = _objective(built, instance)
 
     if hint is not None:
         # Every variable, not only the ones the hint sets. A partial hint states the adds
@@ -793,26 +793,103 @@ def solve(
         ]
 
     roster = frozenset(key for key, var in built.x.items() if solver.value(var))
+    objective = round(solver.objective_value)
+    bound = round(solver.best_objective_bound)
+    seconds = solver.wall_time
+
+    # Only a proved optimum has an optimal face to canonicalise over. A time-boxed
+    # `FEASIBLE` is a roster the search happened to reach, and pinning its value would
+    # canonicalise the wrong set -- the caller is already told, by `status` and `gap`, that
+    # this answer is not proven.
+    if status == cp_model.OPTIMAL:
+        roster = _canonicalise(built, expression, objective, solver)
+        seconds += solver.wall_time
+
     return Solution(
         roster=roster,
-        objective=round(solver.objective_value),
+        objective=objective,
         status=solver.status_name(status),
         shortfall={k: solver.value(v) for k, v in built.shortfall.items()},
-        search_seconds=solver.wall_time,
-        bound=round(solver.best_objective_bound),
+        search_seconds=seconds,
+        bound=bound,
     )
 
 
-def _objective(built: Built, instance: Instance) -> None:
-    """Delegated to `disruption.py`, which owns the model's reading of `replan.md`."""
-    built.model.minimize(
-        sum(
-            objective_terms(
-                built.model, instance, built.x, built.shortfall, built.mix_shortfall
-            )
-            + fairness_terms(built.model, instance, built.x)
+def _objective(built: Built, instance: Instance):
+    """Delegated to `disruption.py`, which owns the model's reading of `replan.md`.
+
+    Returns the expression as well as setting it, because `_canonicalise` has to pin it.
+    """
+    expression = sum(
+        objective_terms(built.model, instance, built.x, built.shortfall, built.mix_shortfall)
+        + fairness_terms(built.model, instance, built.x)
+    )
+    built.model.minimize(expression)
+    return expression
+
+
+# --- The canonical optimum ------------------------------------------------------------
+# The objective is **flat across many rosters**, and by more than it looks: across the 84
+# committed cases at four solver seeds, the objective value is identical every time and the
+# roster differs on 24 of the replans and on all 84 cold weeks. So which optimum comes back
+# is not decided by the model at all -- it is decided by the search, and therefore by the
+# seed and by the ortools binary (`D-119`).
+#
+# That falsified a claim: a roster could not be reproduced from its input, seed and profile
+# version, only its objective value could. This is the second phase that makes the original
+# claim true. The optimal value is pinned as a constraint and a canonical criterion is
+# minimised over the optimal face, so **nothing about what is optimal changes** -- every
+# committed objective value is untouched by construction, and the roster becomes a function
+# of the model rather than of the search.
+#
+# The criterion is `Σ ordinal² · x` over the assignment keys in sorted order. Squared rather
+# than linear because it was measured: linear left a cold week with four rosters across four
+# seeds, and squared collapsed it to one *and* did so three times faster, because a steeper
+# gradient prunes harder. It is not a preference anybody holds about rosters -- any total
+# order would do, and this one is cheap.
+
+
+def _canonical_criterion(built: Built):
+    return sum(
+        (index + 1) * (index + 1) * built.x[key] for index, key in enumerate(sorted(built.x))
+    )
+
+
+def _canonicalise(built: Built, expression, value: int, solver: cp_model.CpSolver) -> Roster:
+    """Re-solve on the optimal face, minimising the canonical criterion.
+
+    **The pin is added and then taken back off**, which matters because `compiled.py`
+    caches built models and CP-SAT has no way to remove a constraint. `reset` can clear
+    hints and assumptions before reuse; it could not clear this, so a cached model would
+    carry one request's optimal value into the next request's solve and answer a question
+    nobody asked. Snapshotting the proto is the only removal CP-SAT offers, and it restores
+    the objective at the same time, so the model is handed back exactly as phase one left
+    it.
+    """
+    snapshot = type(built.model.proto)()
+    snapshot.copy_from(built.model.proto)
+    try:
+        return _on_the_optimal_face(built, expression, value, solver)
+    finally:
+        built.model.proto.copy_from(snapshot)
+
+
+def _on_the_optimal_face(
+    built: Built, expression, value: int, solver: cp_model.CpSolver
+) -> Roster:
+    built.model.add(expression == value)
+    built.model.minimize(_canonical_criterion(built))
+    status = solver.solve(built.model)
+    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        # Unreachable by construction -- the phase-one solution satisfies every constraint
+        # here, including the pin. Raising rather than falling back, because a silent
+        # fallback would return a non-canonical roster that looks exactly like a canonical
+        # one, which is the failure this whole mechanism exists to remove.
+        raise AssertionError(
+            f"the optimal face is unsatisfiable ({solver.status_name(status)}), which "
+            f"cannot happen unless the pin or the criterion is wrong"
         )
-    )
+    return frozenset(key for key, var in built.x.items() if solver.value(var))
 
 
 # --- The differential reporting surface ---------------------------------------------

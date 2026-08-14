@@ -51,7 +51,7 @@ class StubClient:
 
 @pytest.fixture(scope="module")
 def sample():
-    return suite.build("headline/0").instance
+    return suite.build("headline/3").instance
 
 
 @pytest.fixture

@@ -2921,3 +2921,102 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   half does not — but its framing of the problem as *the manifest's* was too narrow, and this record is
   the correction.
 - **Date.** 2026-08-14.
+
+## D-119 — The optimum is canonical, because the model should decide the roster and the search should not
+
+- **Decision.** `model.solve` runs a second phase on every proved optimum: the optimal objective value
+  is pinned as a constraint and a canonical criterion is minimised over the optimal face. The roster
+  returned is therefore a function of the model, not of the search. Nothing about *what is optimal*
+  changes, so every committed objective value is untouched by construction.
+- **Alternatives.** *Canonicalise cold solves only*, since that is where the degeneracy was first
+  measured. *A dominated tie-break folded into the primary objective*, which would need the objective
+  scale to grow. *Leave it*, and keep `D-118`'s scoped claim.
+- **Reason.** The claim being repaired is `README.md`'s: a roster can be reproduced offline from its
+  input, seed and profile version. `D-118` had to qualify it with *on the same solver build*, because
+  a linux runner and a macOS laptop return different rosters for the same input, which broke six tests
+  and sent CI to macOS to avoid the question.
+
+  **The degeneracy is not marginal.** Across the 84 committed cases at four solver seeds, the
+  objective value is identical every single time, and the roster differs on **24 of the 84 replans and
+  on all 84 cold weeks**. The value is fully determined by the model; the choice among equal optima was
+  determined by nothing anybody wrote down.
+
+  Canonicalising cold solves only was the recommendation until that measurement, on the reasoning that
+  a replan is pinned by its own objective. Two instances agreed and the set did not: 24 of 84 is not
+  the rare edge the argument assumed. It is `D-105`'s lesson landing again — the property was a
+  statement about where the sample was taken.
+
+  **The criterion is `Σ ordinal² · x`, and the exponent was measured rather than chosen.** A linear
+  criterion left a cold week with four rosters across four seeds; squaring collapsed it to one *and*
+  ran three times faster, because a steeper gradient prunes harder. No preference about rosters is
+  encoded by it — any total order would serve, and this one is cheap.
+
+  Folding a dominated tie-break into the primary objective was rejected on blast radius: keeping it
+  dominated means scaling every other weight, which moves every committed objective value and every
+  golden for a change that is supposed to be invisible to them.
+- **Consequences.** **Search time rises 61%, and `D-081`'s premise dies at one week.** The committed
+  balance moves from `build/search` 1.52 to 0.985 — build 4.87 ms against search 3.21 ms becomes 5.08
+  against 5.16. Building the model no longer costs more than searching it, which is the premise
+  `D-081` separates the two clocks for and `D-093` partly rejects the compiled-model cache on. Neither
+  decision flips: the cache was rejected on 0 hits in 144 solves, and `D-092`'s memoisation still cut
+  build time. What is retired is the *present-tense* claim, and with it
+  `test_build_still_dominates_search`, because a test pinning a claim the code no longer makes is
+  worse than no test. `D-116` had already located that crossover between one week and two;
+  this brought it forward to one.
+
+  Every committed artifact derived from a solve is regenerated: the manifest, and the demo scenario.
+  **The demo scenario moved from `headline/0` to `headline/3`**, and that is worth stating plainly
+  rather than burying in a diff. Under the canonical incumbent the sick call in `headline/0` lands on
+  somebody who *can* be covered, so the demo stopped showing a shortfall at all — and the shortfall
+  explanation is the whole point of that file, quoted at length in `README.md`. `headline/3` is the
+  same scenario class, the same Saturday sick call, from a week that was fully staffable, and it still
+  poses the question. Choosing it is a presentation decision and is recorded as one.
+
+  What remains unproven is the thing that started this: whether the canonical roster is stable across
+  *builds*, rather than merely across seeds on one machine. The test is putting CI back on
+  `ubuntu-latest` and watching, which `D-118` gave up on.
+- **Date.** 2026-08-14.
+
+## D-120 — The D0–D4 divergence rate is 10 of 84, and the number it replaces was never robust
+
+- **Decision.** [`studies/disruption-metrics.md`](studies/disruption-metrics.md) is re-measured on the
+  set as `D-119` leaves it. Divergence falls from **26 of 84 to 10 of 84**, the worked example moves
+  from `early-notice/1` to `early-notice/0`, and the coverage-axis curve the study drew is withdrawn.
+  `D-085`, `D-086` and `D-106` keep their figures as recorded; this supersedes them.
+- **Alternatives.** Keep the old numbers with a note. Re-run and report the new rate without
+  revisiting the conclusions drawn from the old one.
+- **Reason.** **The method did not change and could not have.** `metrics.py` builds its own models and
+  calls the solver directly, so the canonical optimum in `model.solve` never touches it, and the
+  regret measurement was tie-proof before and after: it holds `a` at its optimum and minimises `b`
+  over *all* of `a`'s optima, which is the most charitable reading of `a` available.
+
+  **The instances changed.** A canonical incumbent is a different published roster, so the disruption
+  event lands on a different person and every replan in the committed set is a new instance. The
+  divergence rate is a property of the instances, and this is the measurement of how little that
+  property travels: same generator, same classes, same seeds, and a rate that fell by a factor of
+  two and a half.
+
+  What held is the part worth having. The split is still **entirely** D0/D1/D2 against D3/D4, with
+  zero inside each side. The regret is still symmetric at about 100% of the paying metric's own
+  optimum. And the hand-derived worked example reproduces **to the point** on a different seed of the
+  same class — two changed slots against four, 20 against 240, 40 against 120. A structure that
+  survives its instances being replaced is a finding; a rate that does not is a measurement.
+
+  Two conclusions drawn from the old rate are withdrawn rather than restated. **The coverage-axis
+  curve is gone**: divergence used to rise to 4/6 at 0.70 and fall to zero by 0.90, and it is now flat
+  at one case across the middle and zero at both ends. Six cases per point and ten conflicts in total
+  cannot resolve a shape, and the previous run drew one anyway. **`tight` diverges once**, where
+  `D-060`'s cleanest confirmation was that it never did.
+- **Consequences.** `D-060`'s mechanism comes out of this *stronger*, from the instrument the study
+  already argued was the right one. Measured at the slot the event damaged, **all ten divergences sit
+  in the top slack bucket and every other bucket is a clean zero** — no case with fewer than six spare
+  eligible people at the damaged slot diverges at all, where the previous set scattered conflicts
+  across six of eight buckets. As a necessary condition that is now exact on this set; as a sufficient
+  one it remains nowhere close, at 10 of 40.
+
+  The rate is quoted in `README.md` and `finish.md` and both are corrected. What should not be
+  corrected is the impression the old number gave, so it is worth stating: **26 of 84 was never a
+  robust figure**, and nothing in the study said so, because nothing had moved the instances
+  underneath it before.
+- **Study.** [`docs/studies/disruption-metrics.md`](studies/disruption-metrics.md)
+- **Date.** 2026-08-14.

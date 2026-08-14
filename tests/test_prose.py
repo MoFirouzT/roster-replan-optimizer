@@ -36,7 +36,7 @@ from roster_replan.prose import (
 )
 from tests.test_specs import UNENCODED, _text, SPECS
 
-CASES = ["scarce-skill/0", "tight/0", "headline/0", "thin-availability/0"]
+CASES = ["scarce-skill/0", "tight/0", "headline/3", "thin-availability/0"]
 
 
 @pytest.fixture(scope="module")
@@ -114,19 +114,29 @@ def test_the_validator_catches_an_invented_count(findings):
 
 def test_a_named_employee_must_be_one_the_finding_blocked(findings):
     """Naming a real employee who is *not* in this finding is still an invention, and the
-    one a plausible-sounding rendering is most likely to commit."""
-    instance, results = findings["scarce-skill/0"]
-    finding = results[0]
+    one a plausible-sounding rendering is most likely to commit.
 
-    involved = {entry.employee for entry in finding.blocked} | set(finding.unexplained)
-    outsider = next(
-        instance.employees[e].name
-        for e in range(len(instance.employees))
-        if e not in involved
-    )
+    Scanned across the committed cases rather than pinned to one, because *which* case
+    leaves somebody outside a finding is a property of the roster that came back, and
+    `D-119` has just finished demonstrating how little that is worth relying on. A test
+    that names a case for a property the case merely happens to have is a test that breaks
+    for reasons unrelated to what it checks.
+    """
+    for instance, results in findings.values():
+        for finding in results:
+            involved = {entry.employee for entry in finding.blocked} | set(finding.unexplained)
+            outsiders = [
+                instance.employees[e].name
+                for e in range(len(instance.employees))
+                if e not in involved
+            ]
+            if not outsiders:
+                continue
+            text = render(finding, instance) + f"\n  {outsiders[0]} is unavailable."
+            assert outsiders[0] in unsupported_terms(text, finding, instance)
+            return
 
-    text = render(finding, instance) + f"\n  {outsider} is unavailable."
-    assert outsider in unsupported_terms(text, finding, instance)
+    pytest.fail("no committed case left an employee outside a finding, so nothing was tested")
 
 
 # --- What it refuses to invent ------------------------------------------------------
@@ -135,7 +145,7 @@ def test_a_named_employee_must_be_one_the_finding_blocked(findings):
 def test_no_weekday_without_a_calendar(findings):
     """`domain.py` has no calendar by design, so a weekday cannot be derived from a day
     index. Saying `day 5` is honest; guessing `Sat` is a fabricated fact."""
-    instance, _ = findings["headline/0"]
+    instance, _ = findings["headline/3"]
 
     without = slot(instance, 5, 1)
     assert "day 5" in without
@@ -148,13 +158,13 @@ def test_no_weekday_without_a_calendar(findings):
 def test_the_shift_label_is_printed_verbatim(findings):
     """`E` is the tenant's label. Expanding it to `Evening` is right for this generator and
     would be wrong for a tenant whose `E` means something else."""
-    instance, _ = findings["headline/0"]
+    instance, _ = findings["headline/3"]
     assert f"({instance.shift_types[1].label})" in slot(instance, 5, 1)
 
 
 def test_the_clock_rolls_over_midnight(findings):
     """A night shift starting at 23:00 runs to 07:00, not to 31:00."""
-    instance, _ = findings["headline/0"]
+    instance, _ = findings["headline/3"]
     night = next(
         (o.day, o.shift)
         for o in instance.open_shifts
@@ -168,13 +178,13 @@ def test_the_clock_rolls_over_midnight(findings):
 
 
 def test_a_fully_staffed_roster_says_so(findings):
-    instance, _ = findings["headline/0"]
+    instance, _ = findings["headline/3"]
     assert render_all((), instance) == "Every shift is fully staffed."
 
 
 def test_an_unexplained_employee_is_reported_as_a_defect(findings):
     """The most useful sentence this module can produce, so it must not be silently dropped."""
-    instance, _ = findings["headline/0"]
+    instance, _ = findings["headline/3"]
     finding = Shortfall(
         day=0,
         shift=0,
@@ -191,7 +201,7 @@ def test_an_unexplained_employee_is_reported_as_a_defect(findings):
 
 
 def test_small_groups_are_named_and_large_ones_counted(findings):
-    instance, _ = findings["headline/0"]
+    instance, _ = findings["headline/3"]
     many = Shortfall(
         day=0,
         shift=0,

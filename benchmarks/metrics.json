@@ -3,9 +3,9 @@
     "busy/0": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
+        "D0": 4,
+        "D1": 4,
+        "D2": 4,
         "D3": 4,
         "D4": 4
       },
@@ -13,35 +13,35 @@
       "damage": 1,
       "min_slot_slack": 0,
       "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 480,
-        "D4": 484
+        "D0": 4,
+        "D1": 40,
+        "D2": 100,
+        "D3": 1920,
+        "D4": 1930
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 7,
+      "repair_slack": 2,
       "rosters_differ": true,
       "tight_slots": 1
     },
@@ -51,8 +51,8 @@
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 4,
-        "D4": 4
+        "D3": 2,
+        "D4": 2
       },
       "class": "busy",
       "damage": 1,
@@ -60,79 +60,79 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 20,
-        "D3": 480,
-        "D4": 484
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 10,
-      "rosters_differ": true,
+      "repair_slack": 2,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "busy/2": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 8,
-        "D4": 8
+        "D0": 1,
+        "D1": 1,
+        "D2": 1,
+        "D3": 1,
+        "D4": 1
       },
       "class": "busy",
       "damage": 1,
       "min_slot_slack": 1,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 160,
-        "D3": 1680,
-        "D4": 1692
+        "D0": 1,
+        "D1": 10,
+        "D2": 10,
+        "D3": 400,
+        "D4": 402
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 240,
-        "D0->D4": 238,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 240,
-        "D1->D4": 238,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 240,
-        "D2->D4": 238,
-        "D3->D0": 4,
-        "D3->D1": 40,
-        "D3->D2": 100,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 4,
-        "D4->D1": 40,
-        "D4->D2": 100,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 6,
-      "rosters_differ": true,
+      "repair_slack": 1,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "busy/3": {
@@ -177,7 +177,7 @@
         "D4->D3": 0
       },
       "repair_slack": 2,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "busy/4": {
@@ -195,7 +195,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 80,
+        "D2": 20,
         "D3": 960,
         "D4": 964
       },
@@ -221,16 +221,16 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 3,
-      "rosters_differ": false,
+      "repair_slack": 8,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "busy/5": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
         "D3": 4,
         "D4": 4
       },
@@ -238,35 +238,35 @@
       "damage": 1,
       "min_slot_slack": 3,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 40,
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
         "D3": 480,
         "D4": 484
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
+        "D0->D3": 480,
+        "D0->D4": 480,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
+        "D1->D3": 480,
+        "D1->D4": 480,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
+        "D2->D3": 480,
+        "D2->D4": 480,
+        "D3->D0": 2,
+        "D3->D1": 20,
+        "D3->D2": 20,
         "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
+        "D4->D0": 2,
+        "D4->D1": 20,
+        "D4->D2": 20,
         "D4->D3": 0
       },
-      "repair_slack": 3,
+      "repair_slack": 7,
       "rosters_differ": true,
       "tight_slots": 0
     },
@@ -312,7 +312,7 @@
         "D4->D3": 0
       },
       "repair_slack": 7,
-      "rosters_differ": true,
+      "rosters_differ": false,
       "tight_slots": 1
     },
     "demand-spike/1": {
@@ -357,7 +357,7 @@
         "D4->D3": 0
       },
       "repair_slack": 4,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "demand-spike/2": {
@@ -537,55 +537,10 @@
         "D4->D3": 0
       },
       "repair_slack": 8,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "early-notice/0": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 2,
-        "D4": 2
-      },
-      "class": "early-notice",
-      "damage": 1,
-      "min_slot_slack": 0,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 240,
-        "D4": 244
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 3,
-      "rosters_differ": true,
-      "tight_slots": 1
-    },
-    "early-notice/1": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -596,7 +551,7 @@
       },
       "class": "early-notice",
       "damage": 1,
-      "min_slot_slack": 2,
+      "min_slot_slack": 0,
       "own": {
         "D0": 2,
         "D1": 20,
@@ -626,8 +581,53 @@
         "D4->D2": 20,
         "D4->D3": 0
       },
-      "repair_slack": 9,
+      "repair_slack": 7,
       "rosters_differ": true,
+      "tight_slots": 1
+    },
+    "early-notice/1": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "early-notice",
+      "damage": 1,
+      "min_slot_slack": 1,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 240,
+        "D4": 244
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 1,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "early-notice/2": {
@@ -671,56 +671,11 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
-      "rosters_differ": true,
+      "repair_slack": 6,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "early-notice/3": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "early-notice",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 120,
-        "D4": 124
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 120,
-        "D0->D4": 120,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 120,
-        "D1->D4": 120,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 120,
-        "D2->D4": 120,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 4,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "early-notice/4": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -761,73 +716,28 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
+      "repair_slack": 5,
       "rosters_differ": true,
       "tight_slots": 0
     },
-    "early-notice/5": {
+    "early-notice/4": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 6,
-        "D4": 6
+        "D3": 2,
+        "D4": 2
       },
       "class": "early-notice",
       "damage": 1,
-      "min_slot_slack": 3,
+      "min_slot_slack": 2,
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 20,
-        "D3": 180,
-        "D4": 186
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 60,
-        "D0->D4": 58,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 60,
-        "D1->D4": 58,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 60,
-        "D2->D4": 58,
-        "D3->D0": 4,
-        "D3->D1": 40,
-        "D3->D2": 40,
-        "D3->D4": 0,
-        "D4->D0": 4,
-        "D4->D1": 40,
-        "D4->D2": 40,
-        "D4->D3": 0
-      },
-      "repair_slack": 4,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "flexi-heavy/0": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 1,
-        "D1": 1,
-        "D2": 1,
-        "D3": 1,
-        "D4": 1
-      },
-      "class": "flexi-heavy",
-      "damage": 1,
-      "min_slot_slack": 1,
-      "own": {
-        "D0": 1,
-        "D1": 10,
-        "D2": 40,
-        "D3": 400,
-        "D4": 402
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
@@ -851,8 +761,98 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 1,
-      "rosters_differ": false,
+      "repair_slack": 4,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "early-notice/5": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "early-notice",
+      "damage": 1,
+      "min_slot_slack": 3,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 240,
+        "D4": 244
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 6,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "flexi-heavy/0": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 4,
+        "D4": 4
+      },
+      "class": "flexi-heavy",
+      "damage": 1,
+      "min_slot_slack": 2,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 480,
+        "D4": 484
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 480,
+        "D0->D4": 480,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 480,
+        "D1->D4": 480,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 480,
+        "D2->D4": 480,
+        "D3->D0": 2,
+        "D3->D1": 20,
+        "D3->D2": 20,
+        "D3->D4": 0,
+        "D4->D0": 2,
+        "D4->D1": 20,
+        "D4->D2": 20,
+        "D4->D3": 0
+      },
+      "repair_slack": 9,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "flexi-heavy/1": {
@@ -903,21 +903,21 @@
     "flexi-heavy/2": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 2,
-        "D4": 2
+        "D0": 1,
+        "D1": 1,
+        "D2": 1,
+        "D3": 1,
+        "D4": 1
       },
       "class": "flexi-heavy",
       "damage": 1,
       "min_slot_slack": 2,
       "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 960,
-        "D4": 964
+        "D0": 1,
+        "D1": 10,
+        "D2": 10,
+        "D3": 400,
+        "D4": 402
       },
       "regret": {
         "D0->D1": 0,
@@ -941,8 +941,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 9,
-      "rosters_differ": true,
+      "repair_slack": 3,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "flexi-heavy/3": {
@@ -996,8 +996,8 @@
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 4,
-        "D4": 4
+        "D3": 2,
+        "D4": 2
       },
       "class": "flexi-heavy",
       "damage": 1,
@@ -1005,7 +1005,97 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 20,
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 3,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "flexi-heavy/5": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "flexi-heavy",
+      "damage": 1,
+      "min_slot_slack": 4,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 8,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "headline/0": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 4,
+        "D4": 4
+      },
+      "class": "headline",
+      "damage": 1,
+      "min_slot_slack": 0,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
         "D3": 480,
         "D4": 484
       },
@@ -1024,35 +1114,80 @@
         "D2->D4": 480,
         "D3->D0": 2,
         "D3->D1": 20,
-        "D3->D2": 80,
+        "D3->D2": 20,
         "D3->D4": 0,
         "D4->D0": 2,
         "D4->D1": 20,
-        "D4->D2": 80,
+        "D4->D2": 20,
         "D4->D3": 0
       },
-      "repair_slack": 8,
+      "repair_slack": 9,
       "rosters_differ": true,
-      "tight_slots": 0
+      "tight_slots": 1
     },
-    "flexi-heavy/5": {
+    "headline/1": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
       },
-      "class": "flexi-heavy",
+      "class": "headline",
       "damage": 1,
-      "min_slot_slack": 4,
+      "min_slot_slack": 2,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 480,
-        "D4": 484
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 4,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "headline/2": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "headline",
+      "damage": 1,
+      "min_slot_slack": 2,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
@@ -1080,7 +1215,7 @@
       "rosters_differ": true,
       "tight_slots": 0
     },
-    "headline/0": {
+    "headline/3": {
       "base_shortfall": 0,
       "changes": {
         "D0": 1,
@@ -1091,7 +1226,7 @@
       },
       "class": "headline",
       "damage": 1,
-      "min_slot_slack": 0,
+      "min_slot_slack": 1,
       "own": {
         "D0": 1,
         "D1": 10,
@@ -1123,141 +1258,6 @@
       },
       "repair_slack": 1,
       "rosters_differ": false,
-      "tight_slots": 1
-    },
-    "headline/1": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "headline",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 9,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "headline/2": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "headline",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
-        "D4->D3": 0
-      },
-      "repair_slack": 9,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "headline/3": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "headline",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 9,
-      "rosters_differ": true,
       "tight_slots": 0
     },
     "headline/4": {
@@ -1266,8 +1266,8 @@
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 4,
-        "D4": 4
+        "D3": 2,
+        "D4": 2
       },
       "class": "headline",
       "damage": 1,
@@ -1276,32 +1276,32 @@
         "D0": 2,
         "D1": 20,
         "D2": 80,
-        "D3": 480,
-        "D4": 484
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
+      "repair_slack": 3,
       "rosters_differ": true,
       "tight_slots": 0
     },
@@ -1320,7 +1320,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 80,
+        "D2": 20,
         "D3": 960,
         "D4": 964
       },
@@ -1347,7 +1347,7 @@
         "D4->D3": 0
       },
       "repair_slack": 8,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "large/0": {
@@ -1365,7 +1365,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 80,
+        "D2": 20,
         "D3": 960,
         "D4": 964
       },
@@ -1391,11 +1391,101 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 5,
+      "repair_slack": 6,
       "rosters_differ": true,
       "tight_slots": 0
     },
     "large/1": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "large",
+      "damage": 1,
+      "min_slot_slack": 3,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 22,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "large/2": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "large",
+      "damage": 1,
+      "min_slot_slack": 1,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 4,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "large/3": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -1437,96 +1527,6 @@
         "D4->D3": 0
       },
       "repair_slack": 16,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "large/2": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "large",
-      "damage": 1,
-      "min_slot_slack": 0,
-      "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1920,
-        "D4": 1930
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 0,
-      "rosters_differ": true,
-      "tight_slots": 1
-    },
-    "large/3": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 2,
-        "D4": 2
-      },
-      "class": "large",
-      "damage": 1,
-      "min_slot_slack": 3,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 960,
-        "D4": 964
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 6,
       "rosters_differ": true,
       "tight_slots": 0
     },
@@ -1572,7 +1572,7 @@
         "D4->D3": 0
       },
       "repair_slack": 6,
-      "rosters_differ": true,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "large/5": {
@@ -1586,11 +1586,11 @@
       },
       "class": "large",
       "damage": 1,
-      "min_slot_slack": 4,
+      "min_slot_slack": 3,
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 80,
+        "D2": 20,
         "D3": 960,
         "D4": 964
       },
@@ -1616,8 +1616,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 5,
-      "rosters_differ": false,
+      "repair_slack": 3,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "loose/0": {
@@ -1662,55 +1662,10 @@
         "D4->D3": 0
       },
       "repair_slack": 9,
-      "rosters_differ": true,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "loose/1": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "loose",
-      "damage": 1,
-      "min_slot_slack": 3,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
-        "D4->D3": 0
-      },
-      "repair_slack": 4,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "loose/2": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -1725,7 +1680,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 20,
+        "D2": 80,
         "D3": 960,
         "D4": 964
       },
@@ -1751,7 +1706,52 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 3,
+      "repair_slack": 4,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "loose/2": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "loose",
+      "damage": 1,
+      "min_slot_slack": 2,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 2,
       "rosters_differ": false,
       "tight_slots": 0
     },
@@ -1796,8 +1796,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
-      "rosters_differ": false,
+      "repair_slack": 9,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "loose/4": {
@@ -1806,8 +1806,8 @@
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 6,
-        "D4": 6
+        "D3": 2,
+        "D4": 2
       },
       "class": "loose",
       "damage": 1,
@@ -1816,32 +1816,32 @@
         "D0": 2,
         "D1": 20,
         "D2": 80,
-        "D3": 720,
-        "D4": 730
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 240,
-        "D0->D4": 234,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 240,
-        "D1->D4": 234,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 240,
-        "D2->D4": 234,
-        "D3->D0": 4,
-        "D3->D1": 40,
-        "D3->D2": 100,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 4,
-        "D4->D1": 40,
-        "D4->D2": 100,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 9,
+      "repair_slack": 4,
       "rosters_differ": true,
       "tight_slots": 0
     },
@@ -1851,8 +1851,8 @@
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 4,
-        "D4": 4
+        "D3": 2,
+        "D4": 2
       },
       "class": "loose",
       "damage": 1,
@@ -1861,41 +1861,41 @@
         "D0": 2,
         "D1": 20,
         "D2": 80,
-        "D3": 480,
-        "D4": 484
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
+      "repair_slack": 4,
       "rosters_differ": true,
       "tight_slots": 0
     },
     "multi-absence/0": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
+        "D0": 6,
+        "D1": 6,
+        "D2": 6,
         "D3": 6,
         "D4": 6
       },
@@ -1903,37 +1903,37 @@
       "damage": 3,
       "min_slot_slack": 0,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1280,
-        "D4": 1288
+        "D0": 6,
+        "D1": 60,
+        "D2": 180,
+        "D3": 1440,
+        "D4": 1448
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 0,
+      "repair_slack": 7,
       "rosters_differ": true,
-      "tight_slots": 2
+      "tight_slots": 1
     },
     "multi-absence/1": {
       "base_shortfall": 0,
@@ -1951,8 +1951,8 @@
         "D0": 6,
         "D1": 60,
         "D2": 180,
-        "D3": 1440,
-        "D4": 1448
+        "D3": 2160,
+        "D4": 2170
       },
       "regret": {
         "D0->D1": 0,
@@ -1986,108 +1986,18 @@
         "D0": 8,
         "D1": 8,
         "D2": 8,
-        "D3": 10,
-        "D4": 10
+        "D3": 8,
+        "D4": 8
       },
       "class": "multi-absence",
-      "damage": 3,
+      "damage": 4,
       "min_slot_slack": 2,
       "own": {
         "D0": 8,
         "D1": 80,
         "D2": 200,
-        "D3": 1920,
-        "D4": 1934
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
-        "D4->D3": 0
-      },
-      "repair_slack": 2,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "multi-absence/3": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 6,
-        "D4": 6
-      },
-      "class": "multi-absence",
-      "damage": 3,
-      "min_slot_slack": 0,
-      "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 160,
-        "D3": 1280,
-        "D4": 1288
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 0,
-      "rosters_differ": true,
-      "tight_slots": 1
-    },
-    "multi-absence/4": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 6,
-        "D1": 6,
-        "D2": 6,
-        "D3": 6,
-        "D4": 6
-      },
-      "class": "multi-absence",
-      "damage": 3,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 6,
-        "D1": 60,
-        "D2": 180,
-        "D3": 1440,
-        "D4": 1448
+        "D3": 3120,
+        "D4": 3136
       },
       "regret": {
         "D0->D1": 0,
@@ -2111,7 +2021,97 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
+      "repair_slack": 2,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "multi-absence/3": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 6,
+        "D1": 6,
+        "D2": 6,
+        "D3": 6,
+        "D4": 6
+      },
+      "class": "multi-absence",
+      "damage": 4,
+      "min_slot_slack": 0,
+      "own": {
+        "D0": 6,
+        "D1": 60,
+        "D2": 120,
+        "D3": 2000,
+        "D4": 2012
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 0,
+      "rosters_differ": true,
+      "tight_slots": 1
+    },
+    "multi-absence/4": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 8,
+        "D1": 8,
+        "D2": 8,
+        "D3": 8,
+        "D4": 8
+      },
+      "class": "multi-absence",
+      "damage": 4,
+      "min_slot_slack": 2,
+      "own": {
+        "D0": 8,
+        "D1": 80,
+        "D2": 260,
+        "D3": 3120,
+        "D4": 3136
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 2,
       "rosters_differ": true,
       "tight_slots": 0
     },
@@ -2131,8 +2131,8 @@
         "D0": 6,
         "D1": 60,
         "D2": 180,
-        "D3": 1440,
-        "D4": 1448
+        "D3": 2160,
+        "D4": 2170
       },
       "regret": {
         "D0->D1": 0,
@@ -2201,102 +2201,12 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 8,
-      "rosters_differ": false,
+      "repair_slack": 9,
+      "rosters_differ": true,
       "tight_slots": 1
     },
     "overloaded/1": {
       "base_shortfall": 1,
-      "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "overloaded",
-      "damage": 1,
-      "min_slot_slack": 1,
-      "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1920,
-        "D4": 1932
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 2,
-      "rosters_differ": false,
-      "tight_slots": 0
-    },
-    "overloaded/2": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 1,
-        "D1": 1,
-        "D2": 1,
-        "D3": 1,
-        "D4": 1
-      },
-      "class": "overloaded",
-      "damage": 1,
-      "min_slot_slack": 1,
-      "own": {
-        "D0": 1,
-        "D1": 10,
-        "D2": 40,
-        "D3": 400,
-        "D4": 402
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 6,
-      "rosters_differ": false,
-      "tight_slots": 0
-    },
-    "overloaded/3": {
-      "base_shortfall": 0,
       "changes": {
         "D0": 2,
         "D1": 2,
@@ -2306,7 +2216,7 @@
       },
       "class": "overloaded",
       "damage": 1,
-      "min_slot_slack": 0,
+      "min_slot_slack": 1,
       "own": {
         "D0": 2,
         "D1": 20,
@@ -2336,9 +2246,99 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 7,
+      "repair_slack": 9,
       "rosters_differ": false,
-      "tight_slots": 2
+      "tight_slots": 0
+    },
+    "overloaded/2": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "overloaded",
+      "damage": 1,
+      "min_slot_slack": 1,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 8,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "overloaded/3": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 1,
+        "D1": 1,
+        "D2": 1,
+        "D3": 1,
+        "D4": 1
+      },
+      "class": "overloaded",
+      "damage": 1,
+      "min_slot_slack": -1,
+      "own": {
+        "D0": 1,
+        "D1": 10,
+        "D2": 40,
+        "D3": 400,
+        "D4": 402
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": -1,
+      "rosters_differ": false,
+      "tight_slots": 1
     },
     "overloaded/4": {
       "base_shortfall": 0,
@@ -2388,21 +2388,21 @@
     "overloaded/5": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
       },
       "class": "overloaded",
       "damage": 1,
       "min_slot_slack": 2,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 40,
-        "D3": 480,
-        "D4": 484
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
@@ -2426,8 +2426,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 3,
-      "rosters_differ": true,
+      "repair_slack": 5,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "scarce-skill/0": {
@@ -2490,7 +2490,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 80,
+        "D2": 20,
         "D3": 960,
         "D4": 964
       },
@@ -2516,8 +2516,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 9,
-      "rosters_differ": false,
+      "repair_slack": 10,
+      "rosters_differ": true,
       "tight_slots": 3
     },
     "scarce-skill/2": {
@@ -2576,7 +2576,7 @@
       },
       "class": "scarce-skill",
       "damage": 1,
-      "min_slot_slack": -1,
+      "min_slot_slack": -2,
       "own": {
         "D0": 2,
         "D1": 20,
@@ -2606,9 +2606,9 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": -1,
+      "repair_slack": -2,
       "rosters_differ": false,
-      "tight_slots": 1
+      "tight_slots": 2
     },
     "scarce-skill/4": {
       "base_shortfall": 7,
@@ -2661,8 +2661,8 @@
         "D0": 2,
         "D1": 2,
         "D2": 2,
-        "D3": 4,
-        "D4": 4
+        "D3": 2,
+        "D4": 2
       },
       "class": "scarce-skill",
       "damage": 1,
@@ -2671,29 +2671,29 @@
         "D0": 2,
         "D1": 20,
         "D2": 80,
-        "D3": 480,
-        "D4": 484
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
         "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
+        "D0->D3": 0,
+        "D0->D4": 0,
         "D1->D0": 0,
         "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
+        "D1->D3": 0,
+        "D1->D4": 0,
         "D2->D0": 0,
         "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
         "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
         "D4->D3": 0
       },
       "repair_slack": 6,
@@ -2742,7 +2742,7 @@
         "D4->D3": 0
       },
       "repair_slack": 5,
-      "rosters_differ": true,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "small/1": {
@@ -2786,8 +2786,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 6,
-      "rosters_differ": true,
+      "repair_slack": 2,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "small/2": {
@@ -2805,7 +2805,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 20,
+        "D2": 80,
         "D3": 960,
         "D4": 964
       },
@@ -2831,8 +2831,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 5,
-      "rosters_differ": true,
+      "repair_slack": 4,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "small/3": {
@@ -2850,7 +2850,7 @@
       "own": {
         "D0": 2,
         "D1": 20,
-        "D2": 20,
+        "D2": 80,
         "D3": 960,
         "D4": 964
       },
@@ -2877,7 +2877,7 @@
         "D4->D3": 0
       },
       "repair_slack": 1,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "small/4": {
@@ -2922,27 +2922,27 @@
         "D4->D3": 0
       },
       "repair_slack": 2,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 1
     },
     "small/5": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
       },
       "class": "small",
       "damage": 1,
       "min_slot_slack": 2,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 160,
-        "D3": 1200,
-        "D4": 1206
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
@@ -2966,11 +2966,101 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 2,
+      "repair_slack": 6,
       "rosters_differ": false,
       "tight_slots": 0
     },
     "thin-availability/0": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "thin-availability",
+      "damage": 1,
+      "min_slot_slack": 1,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 4,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "thin-availability/1": {
+      "base_shortfall": 2,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 4,
+        "D4": 4
+      },
+      "class": "thin-availability",
+      "damage": 1,
+      "min_slot_slack": -2,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 480,
+        "D4": 484
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 480,
+        "D0->D4": 480,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 480,
+        "D1->D4": 480,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 480,
+        "D2->D4": 480,
+        "D3->D0": 2,
+        "D3->D1": 20,
+        "D3->D2": 20,
+        "D3->D4": 0,
+        "D4->D0": 2,
+        "D4->D1": 20,
+        "D4->D2": 20,
+        "D4->D3": 0
+      },
+      "repair_slack": 6,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "thin-availability/2": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -3011,118 +3101,28 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 1,
-      "rosters_differ": false,
-      "tight_slots": 0
-    },
-    "thin-availability/1": {
-      "base_shortfall": 2,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "thin-availability",
-      "damage": 1,
-      "min_slot_slack": -2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
-        "D4->D3": 0
-      },
       "repair_slack": 5,
       "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "thin-availability/2": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "thin-availability",
-      "damage": 1,
-      "min_slot_slack": 1,
-      "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1920,
-        "D4": 1932
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 1,
-      "rosters_differ": false,
       "tight_slots": 0
     },
     "thin-availability/3": {
       "base_shortfall": 1,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
       },
       "class": "thin-availability",
       "damage": 1,
       "min_slot_slack": -1,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1920,
-        "D4": 1932
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
@@ -3146,8 +3146,8 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 2,
-      "rosters_differ": false,
+      "repair_slack": 10,
+      "rosters_differ": true,
       "tight_slots": 0
     },
     "thin-availability/4": {
@@ -3198,21 +3198,21 @@
     "thin-availability/5": {
       "base_shortfall": 1,
       "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 2,
-        "D4": 2
+        "D0": 1,
+        "D1": 1,
+        "D2": 1,
+        "D3": 1,
+        "D4": 1
       },
       "class": "thin-availability",
       "damage": 1,
-      "min_slot_slack": 0,
+      "min_slot_slack": -1,
       "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 960,
-        "D4": 964
+        "D0": 1,
+        "D1": 10,
+        "D2": 40,
+        "D3": 400,
+        "D4": 402
       },
       "regret": {
         "D0->D1": 0,
@@ -3236,9 +3236,9 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 7,
+      "repair_slack": -1,
       "rosters_differ": false,
-      "tight_slots": 2
+      "tight_slots": 1
     },
     "tight/0": {
       "base_shortfall": 3,
@@ -3288,21 +3288,21 @@
     "tight/1": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 2,
-        "D4": 2
+        "D0": 1,
+        "D1": 1,
+        "D2": 1,
+        "D3": 1,
+        "D4": 1
       },
       "class": "tight",
       "damage": 1,
       "min_slot_slack": 1,
       "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 960,
-        "D4": 964
+        "D0": 1,
+        "D1": 10,
+        "D2": 10,
+        "D3": 400,
+        "D4": 402
       },
       "regret": {
         "D0->D1": 0,
@@ -3326,28 +3326,28 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 10,
-      "rosters_differ": true,
+      "repair_slack": 3,
+      "rosters_differ": false,
       "tight_slots": 0
     },
     "tight/2": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
+        "D0": 1,
+        "D1": 1,
+        "D2": 1,
+        "D3": 1,
+        "D4": 1
       },
       "class": "tight",
       "damage": 1,
       "min_slot_slack": 1,
       "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1200,
-        "D4": 1206
+        "D0": 1,
+        "D1": 10,
+        "D2": 10,
+        "D3": 400,
+        "D4": 402
       },
       "regret": {
         "D0->D1": 0,
@@ -3378,21 +3378,21 @@
     "tight/3": {
       "base_shortfall": 0,
       "changes": {
-        "D0": 1,
-        "D1": 1,
-        "D2": 1,
-        "D3": 1,
-        "D4": 1
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
       },
       "class": "tight",
       "damage": 1,
-      "min_slot_slack": -1,
+      "min_slot_slack": 0,
       "own": {
-        "D0": 1,
-        "D1": 10,
-        "D2": 40,
-        "D3": 400,
-        "D4": 402
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
       },
       "regret": {
         "D0->D1": 0,
@@ -3416,56 +3416,11 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": -1,
+      "repair_slack": 2,
       "rosters_differ": false,
-      "tight_slots": 1
+      "tight_slots": 2
     },
     "tight/4": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 4,
-        "D1": 4,
-        "D2": 4,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "tight",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 4,
-        "D1": 40,
-        "D2": 100,
-        "D3": 1920,
-        "D4": 1930
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 0,
-        "D0->D4": 0,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 0,
-        "D1->D4": 0,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 0,
-        "D2->D4": 0,
-        "D3->D0": 0,
-        "D3->D1": 0,
-        "D3->D2": 0,
-        "D3->D4": 0,
-        "D4->D0": 0,
-        "D4->D1": 0,
-        "D4->D2": 0,
-        "D4->D3": 0
-      },
-      "repair_slack": 7,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "tight/5": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -3475,6 +3430,186 @@
         "D4": 2
       },
       "class": "tight",
+      "damage": 1,
+      "min_slot_slack": 1,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 1,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "tight/5": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 6,
+        "D4": 6
+      },
+      "class": "tight",
+      "damage": 1,
+      "min_slot_slack": 2,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 720,
+        "D4": 726
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 240,
+        "D0->D4": 238,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 240,
+        "D1->D4": 238,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 240,
+        "D2->D4": 238,
+        "D3->D0": 4,
+        "D3->D1": 40,
+        "D3->D2": 40,
+        "D3->D4": 0,
+        "D4->D0": 4,
+        "D4->D1": 40,
+        "D4->D2": 40,
+        "D4->D3": 0
+      },
+      "repair_slack": 6,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "withdrawal/0": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 4,
+        "D4": 4
+      },
+      "class": "withdrawal",
+      "damage": 1,
+      "min_slot_slack": 0,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 80,
+        "D3": 480,
+        "D4": 484
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 480,
+        "D0->D4": 480,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 480,
+        "D1->D4": 480,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 480,
+        "D2->D4": 480,
+        "D3->D0": 2,
+        "D3->D1": 20,
+        "D3->D2": 20,
+        "D3->D4": 0,
+        "D4->D0": 2,
+        "D4->D1": 20,
+        "D4->D2": 20,
+        "D4->D3": 0
+      },
+      "repair_slack": 9,
+      "rosters_differ": true,
+      "tight_slots": 1
+    },
+    "withdrawal/1": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "withdrawal",
+      "damage": 1,
+      "min_slot_slack": 2,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
+      "repair_slack": 4,
+      "rosters_differ": false,
+      "tight_slots": 0
+    },
+    "withdrawal/2": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "withdrawal",
       "damage": 1,
       "min_slot_slack": 2,
       "own": {
@@ -3506,11 +3641,11 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
-      "repair_slack": 2,
-      "rosters_differ": false,
+      "repair_slack": 6,
+      "rosters_differ": true,
       "tight_slots": 0
     },
-    "withdrawal/0": {
+    "withdrawal/3": {
       "base_shortfall": 0,
       "changes": {
         "D0": 1,
@@ -3521,7 +3656,7 @@
       },
       "class": "withdrawal",
       "damage": 1,
-      "min_slot_slack": 0,
+      "min_slot_slack": 1,
       "own": {
         "D0": 1,
         "D1": 10,
@@ -3553,189 +3688,9 @@
       },
       "repair_slack": 1,
       "rosters_differ": false,
-      "tight_slots": 1
-    },
-    "withdrawal/1": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "withdrawal",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 9,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "withdrawal/2": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "withdrawal",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 20,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 80,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 80,
-        "D4->D3": 0
-      },
-      "repair_slack": 9,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "withdrawal/3": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "withdrawal",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 9,
-      "rosters_differ": true,
       "tight_slots": 0
     },
     "withdrawal/4": {
-      "base_shortfall": 0,
-      "changes": {
-        "D0": 2,
-        "D1": 2,
-        "D2": 2,
-        "D3": 4,
-        "D4": 4
-      },
-      "class": "withdrawal",
-      "damage": 1,
-      "min_slot_slack": 2,
-      "own": {
-        "D0": 2,
-        "D1": 20,
-        "D2": 80,
-        "D3": 480,
-        "D4": 484
-      },
-      "regret": {
-        "D0->D1": 0,
-        "D0->D2": 0,
-        "D0->D3": 480,
-        "D0->D4": 480,
-        "D1->D0": 0,
-        "D1->D2": 0,
-        "D1->D3": 480,
-        "D1->D4": 480,
-        "D2->D0": 0,
-        "D2->D1": 0,
-        "D2->D3": 480,
-        "D2->D4": 480,
-        "D3->D0": 2,
-        "D3->D1": 20,
-        "D3->D2": 20,
-        "D3->D4": 0,
-        "D4->D0": 2,
-        "D4->D1": 20,
-        "D4->D2": 20,
-        "D4->D3": 0
-      },
-      "repair_slack": 8,
-      "rosters_differ": true,
-      "tight_slots": 0
-    },
-    "withdrawal/5": {
       "base_shortfall": 0,
       "changes": {
         "D0": 2,
@@ -3746,7 +3701,7 @@
       },
       "class": "withdrawal",
       "damage": 1,
-      "min_slot_slack": 3,
+      "min_slot_slack": 2,
       "own": {
         "D0": 2,
         "D1": 20,
@@ -3776,8 +3731,53 @@
         "D4->D2": 0,
         "D4->D3": 0
       },
+      "repair_slack": 3,
+      "rosters_differ": true,
+      "tight_slots": 0
+    },
+    "withdrawal/5": {
+      "base_shortfall": 0,
+      "changes": {
+        "D0": 2,
+        "D1": 2,
+        "D2": 2,
+        "D3": 2,
+        "D4": 2
+      },
+      "class": "withdrawal",
+      "damage": 1,
+      "min_slot_slack": 3,
+      "own": {
+        "D0": 2,
+        "D1": 20,
+        "D2": 20,
+        "D3": 960,
+        "D4": 964
+      },
+      "regret": {
+        "D0->D1": 0,
+        "D0->D2": 0,
+        "D0->D3": 0,
+        "D0->D4": 0,
+        "D1->D0": 0,
+        "D1->D2": 0,
+        "D1->D3": 0,
+        "D1->D4": 0,
+        "D2->D0": 0,
+        "D2->D1": 0,
+        "D2->D3": 0,
+        "D2->D4": 0,
+        "D3->D0": 0,
+        "D3->D1": 0,
+        "D3->D2": 0,
+        "D3->D4": 0,
+        "D4->D0": 0,
+        "D4->D1": 0,
+        "D4->D2": 0,
+        "D4->D3": 0
+      },
       "repair_slack": 8,
-      "rosters_differ": false,
+      "rosters_differ": true,
       "tight_slots": 0
     }
   },
