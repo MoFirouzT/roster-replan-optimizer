@@ -178,6 +178,14 @@ replacing many local constraints with one global one coarsens what a failure can
 is a real cost when the T4 deliverable is an explainer. Each study, including every null:
 [`docs/studies/README.md`](docs/studies/README.md).
 
+**"At these sizes" is now a measured boundary rather than a hedge.** The horizon study
+([`D-116`](docs/decisions.md)) runs the same model over one, two and four weeks: size grows
+*linearly*, not by the order of magnitude the spec had asserted, but search grows 23× where build
+grows 5.5× — so build stops dominating somewhere between one week and two, and every performance
+conclusion above is scoped to a week. A longer horizon is still refused, for the reason the spec did
+not give: four weeks solved at once reaches **identical coverage** to four weeks solved one at a
+time, and under pressure is two to six times slower for it.
+
 ## Deliberately out of scope
 
 Authentication, persistence, a user interface, and demand forecasting.
@@ -213,13 +221,16 @@ sends. The shortfall is the honest outcome: E03 called in sick and **nobody coul
 them** — the explanation says why, person by person, and every line is derived rather than phrased
 by a model.
 
-The suite and the import contracts are the two things CI runs on every push, and they run the
-same way here:
+The suite and the import contracts are the two things CI runs on every push:
 
 ```bash
-uv run pytest -q          # 752 tests, about a minute
+uv run pytest -q          # 765 tests, about a minute
 uv run lint-imports       # the 10 contracts that carry the independence rule
 ```
+
+CI runs the first with `-m "not machine"`, which drops three timing guards calibrated to the
+hardware that recorded `tests/timings.json` ([`D-114`](docs/decisions.md)). Everything else runs
+everywhere.
 
 Everything above — and the whole test suite — runs with no API key. One script does not:
 

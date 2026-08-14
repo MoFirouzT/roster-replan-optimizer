@@ -39,11 +39,14 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import statistics
 import time
 
-from benchmarks import lab, suite
+from benchmarks import generator, lab, suite
+from roster_replan.checker import check
 from roster_replan.disruption import objective_terms
 from roster_replan.domain import (
+    DAYS_PER_WEEK,
     Employee,
     Instance,
     Interval,
@@ -52,7 +55,7 @@ from roster_replan.domain import (
     ShiftType,
     shipped_d2,
 )
-from roster_replan.model import _orbits, build
+from roster_replan.model import _orbits, build, solve
 
 # A sample rather than all 72: each study builds and solves every case several times under
 # several configurations, and the committed set's classes are what vary the structure, not
@@ -360,6 +363,162 @@ def coverage_study() -> None:
         print(f"    {name:20}{by_class[name]}/6")
 
 
+# --- The horizon --------------------------------------------------------------------
+# Different in kind from the four above. Those compare two encodings of one problem; this
+# compares two *problems* -- a longer horizon against several short ones -- because that is
+# the shape of the claim `rules.md` makes without a measurement behind it (`D-116`).
+
+
+def _week_slice(instance: Instance, week: int, carried: dict) -> Instance:
+    """Week `week` of `instance` as a standalone seven-day instance.
+
+    This is the study playing the caller `model.md` describes: the boundary fields are
+    exactly what a caller solving one week at a time would have to compute from the week
+    before, and getting them wrong is how a chained solve would flatter itself.
+    """
+    offset = week * DAYS_PER_WEEK
+    shifts = tuple(
+        dataclasses.replace(o, day=o.day - offset)
+        for o in instance.open_shifts
+        if instance.week_of(o.day) == week
+    )
+    people = tuple(
+        dataclasses.replace(
+            person,
+            consecutive_days_worked_before_horizon=carried.get(index, (0, None))[0],
+            last_shift_end_before_horizon=carried.get(index, (0, None))[1],
+            unavailability=tuple(
+                Interval(i.start - offset * 24.0, i.end - offset * 24.0)
+                for i in person.unavailability
+            ),
+            flexi_eligible=(
+                None
+                if person.flexi_eligible is None
+                else frozenset(d - offset for d in person.flexi_eligible if d // DAYS_PER_WEEK == week)
+            ),
+            dimona_ok=(
+                None
+                if person.dimona_ok is None
+                else frozenset(d - offset for d in person.dimona_ok if d // DAYS_PER_WEEK == week)
+            ),
+        )
+        for index, person in enumerate(instance.employees)
+    )
+    return dataclasses.replace(
+        instance, days=DAYS_PER_WEEK, open_shifts=shifts, employees=people
+    )
+
+
+def _carry(instance: Instance, roster, week: int) -> dict:
+    """What each employee takes into the next week: the trailing run of worked days, and
+    when their last shift ended, stated negatively as `model.md` requires."""
+    end_of_week = (week + 1) * DAYS_PER_WEEK
+    carried = {}
+    for index in range(len(instance.employees)):
+        days = sorted({d for (e, d, _) in roster if e == index})
+        streak = 0
+        for day in range(end_of_week - 1, -1, -1):
+            if day in days:
+                streak += 1
+            else:
+                break
+        ends = [
+            instance.window(d, s).end for (e, d, s) in roster if e == index
+        ]
+        last = max(ends) - end_of_week * 24.0 if ends else None
+        carried[index] = (streak, last)
+    return carried
+
+
+def horizon_study() -> None:
+    """The two halves of a claim `rules.md` makes by assertion.
+
+    *"The obvious fix is to extend the solve horizon to the reference period. That is
+    rejected: it multiplies instance size by an order of magnitude and destroys the
+    interactive latency the whole service is built around."*
+
+    **Cost** is the first table: model size and both clocks at one, two and four weeks.
+    **Benefit** is the second: four weeks solved at once, against the same four weeks
+    solved one at a time with the boundary state carried between them, which is what the
+    service does today. A longer horizon is worth its cost only if it buys coverage the
+    chained solve cannot reach.
+    """
+    print("\n" + "=" * 78)
+    print("HORIZON -- what a longer one costs, and what it buys")
+    print("=" * 78)
+
+    seeds = (0, 1, 2)
+    print(f"\n{'days':>5} {'slots':>6} {'vars':>7} {'cons':>7} {'build ms':>9} {'search ms':>10}")
+    for days in (7, 14, 28):
+        rows = []
+        for seed in seeds:
+            scenario = generator.generate(seed, generator.ScenarioParams(days=days))
+            instance = scenario.instance
+            started = time.perf_counter()
+            built = build(instance)
+            build_ms = 1000 * (time.perf_counter() - started)
+            answer = solve(instance, built=built, time_limit=30.0)
+            rows.append(
+                (
+                    len(instance.open_shifts),
+                    len(built.model.proto.variables),
+                    len(built.model.proto.constraints),
+                    build_ms,
+                    1000 * answer.search_seconds,
+                )
+            )
+        median = [statistics.median(column) for column in zip(*rows)]
+        print(
+            f"{days:>5} {median[0]:>6.0f} {median[1]:>7.0f} {median[2]:>7.0f} "
+            f"{median[3]:>9.1f} {median[4]:>10.1f}"
+        )
+
+    # Both ends of the coverage axis, for `D-105`'s reason: on a slack month both methods
+    # staff everything and the comparison cannot say anything, so the tight setting is
+    # where the answer is allowed to change.
+    print(f"\n{'ratio':>6} {'seed':>5} {'one solve':>21} {'four chained':>21}")
+    print(f"{'':>6} {'':>5} {'short':>9} {'search ms':>11} {'short':>9} {'search ms':>11}")
+    for ratio in (0.70, 0.90):
+        for seed in seeds:
+            scenario = generator.generate(
+                seed, generator.ScenarioParams(days=28, demand_ratio=ratio)
+            )
+            whole = scenario.base
+
+            single = solve(whole, time_limit=30.0)
+            chained_short, chained_ms = 0, 0.0
+            stitched: set = set()
+            carried: dict = {}
+            for week in range(4):
+                part = _week_slice(whole, week, carried)
+                answer = solve(part, time_limit=30.0)
+                chained_short += sum(answer.shortfall.values())
+                chained_ms += 1000 * answer.search_seconds
+                stitched |= {
+                    (e, d + week * DAYS_PER_WEEK, s) for (e, d, s) in answer.roster
+                }
+                carried = _carry(part, answer.roster, 0)
+
+            # The guard this study needs, and the analogue of `_guard` above. The chained
+            # arm is only a fair comparison if its four weeks stitch back into a roster
+            # that is legal over the whole month -- if the boundary state is carried
+            # wrongly, the weekly solves are cheating across a seam nobody is checking.
+            # Asked of the independent reading, so a mistake here contradicts the checker
+            # rather than agreeing with the code that made it.
+            illegal = [v for v in check(frozenset(stitched), whole) if not v.soft]
+            if illegal:
+                raise AssertionError(
+                    f"the chained solve stitches into an illegal month at ratio {ratio}, "
+                    f"seed {seed}: {illegal[:3]} -- the carried boundary state is wrong, "
+                    f"so its coverage is not comparable with the single solve's"
+                )
+            print(
+                f"{ratio:>6.2f} {seed:>5} {sum(single.shortfall.values()):>9} "
+                f"{1000 * single.search_seconds:>11.1f} "
+                f"{chained_short:>9} {chained_ms:>11.1f}"
+            )
+
+
 def _guard(control: dict, treatment: dict) -> None:
     """No timing is reported until the two configurations agree about the answer."""
     disagreed = lab.agree(control, treatment)
@@ -377,6 +536,7 @@ STUDIES = {
     "patterns": pattern_study,
     "coverage": coverage_study,
     "rest-gap": rest_gap_study,
+    "horizon": horizon_study,
 }
 
 

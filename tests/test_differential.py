@@ -28,6 +28,7 @@ from roster_replan.domain import (
     shipped_d2,
 )
 from roster_replan.model import exclusions, solve, violations
+from roster_replan.validation import validate_instance
 
 # R-CONSEC-DAYS is compared at (rule, employee) rather than including the day. The two
 # readings legitimately differ in granularity: the checker names the first breaching day
@@ -538,6 +539,37 @@ def test_replan_absorbs_an_absence():
     assert [v for v in check(repaired.roster, replan) if not v.soft] == []
     changed = published.roster ^ repaired.roster
     assert changed, "a replan around an absence must change something"
+
+
+def test_a_fortnight_solves_and_verifies_end_to_end():
+    """What lifting `D-110`'s guard rests on (`D-113`): the whole path at two weeks, not
+    only the two rules that were fixed.
+
+    The demand is one week's, twice — 37 slots a week at 7.5h net, against eight people
+    budgeted 38h each. Per week that is 277.5h of work into 304h of budget and it fits.
+    Measured across the fortnight against the same 38h, as the encoding did before
+    `D-111`, it is 555h into 304h and there is no roster at all: this instance separates
+    the two readings of the budget by feasibility, not by a violation count.
+    """
+    base = week()
+    shifts = tuple(
+        dataclasses.replace(o, day=o.day + 7 * w) for w in range(2) for o in base.open_shifts
+    )
+    instance = dataclasses.replace(base, days=14, open_shifts=shifts)
+
+    assert validate_instance(instance) == [], "the request is well-formed at two weeks"
+    answer = solve(instance)
+    assert not isinstance(answer, list), f"infeasible: {answer}"
+    assert answer.status == "OPTIMAL"
+    assert [v for v in check(answer.roster, instance) if not v.soft] == []
+
+    worked: dict[tuple[int, int], float] = {}
+    for employee, day, shift in answer.roster:
+        key = (employee, instance.week_of(day))
+        worked[key] = worked.get(key, 0.0) + instance.shift_types[shift].work_hours
+    assert worked, "a fortnight of demand must produce assignments"
+    assert max(worked.values()) <= 38.0, "the budget binds inside each week"
+    assert {week_index for _, week_index in worked} == {0, 1}, "and both weeks are staffed"
 
 
 # --- Determinism -------------------------------------------------------------------

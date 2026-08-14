@@ -39,6 +39,18 @@ The milliseconds are still recorded, because they are what the documents quote a
 needs something to compare against. They are asserted only against a deliberately loose
 sanity band — enough to catch an order-of-magnitude regression, not a machine.
 
+## Two of these are calibrated, and calibrated tests do not travel
+
+`timings.json` was measured on one machine, and the ratio guard is portable *enough* for
+another laptop rather than portable in general. A shared CI runner is two to four times
+slower at Python and by a different factor at CP-SAT's C++ search, so both quantities move
+and the ratio between them moves too. Marked `machine` and deselected in CI (`D-114`);
+widening the band instead is the mistake `D-096` already refused.
+
+`test_build_still_dominates_search` is **not** marked, and runs everywhere. It asserts an
+ordering rather than a calibration, and slower hardware only makes it more true: the Python
+side is what a slow machine punishes hardest.
+
 Regenerate deliberately, and say why in `decisions.md`:
 
     uv run python -m tests.timings --write
@@ -105,6 +117,7 @@ def load() -> dict:
     return json.loads(RECORD.read_text())
 
 
+@pytest.mark.machine
 def test_the_build_to_search_balance_still_holds():
     """The guard that would have caught `D-092`.
 
@@ -126,6 +139,7 @@ def test_the_build_to_search_balance_still_holds():
     )
 
 
+@pytest.mark.machine
 @pytest.mark.parametrize("quantity", ["build_p50_ms", "search_p50_ms"])
 def test_the_absolute_timings_are_the_right_order_of_magnitude(quantity):
     """A loose sanity band. Deliberately not the real guard: see the module docstring."""

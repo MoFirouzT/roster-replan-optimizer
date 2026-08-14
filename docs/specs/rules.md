@@ -80,9 +80,18 @@ quarter or a year — not per calendar week. A per-week ceiling is therefore not
 approximation of it, and one that is wrong in both directions. It forbids a legal heavy week that
 a light week would compensate, and it permits thirteen consecutive weeks at the ceiling.
 
-The obvious fix is to extend the solve horizon to the reference period. That is rejected: it
-multiplies instance size by an order of magnitude and destroys the interactive latency the whole
-service is built around.
+The obvious fix is to extend the solve horizon to the reference period. That is rejected, and
+**measured rather than asserted** (`D-116`, [`studies/horizon.md`](../studies/horizon.md)): a longer
+horizon **buys nothing**. Four weeks solved at once and four weeks solved one at a time reach
+identical coverage on every case tried, at both ends of the tightness axis, and under pressure the
+single solve is two to six times slower for it. The weeks are barely coupled — `R-MAX-WEEKLY` binds
+inside a week and `R-WEEKLY-REST` is measured inside one, so what joins them is the seam that
+`last_shift_end_before_horizon` and `consecutive_days_worked_before_horizon` already carry.
+
+The cost was never the reason, though it was the one this spec used to give. Instance size grows
+**linearly** in the horizon, not by an order of magnitude, and four weeks answers in about 112 ms.
+What does grow faster than linearly is search, which is why `D-081`'s premise that build dominates is
+a statement about one week and not about this model in general.
 
 **Instead the reference period is resolved upstream and enters the solve as data.** The caller
 computes, per employee, the hours already worked in the current period and the working time
@@ -95,9 +104,10 @@ same sum. What a single number still cannot express is a *different* ceiling in 
 one, which is what a caller resolving a rolling reference period would supply — that is a payload
 change and it waits for the study that needs it.
 
-One week also remains a precondition of the request, and `validation.py` enforces it (`D-110`,
-narrowed by `D-111`) — no longer because the rules would be wrong, but because the stack around them
-is not yet verified past a week.
+A horizon of **whole weeks** is a precondition of the request, and `validation.py` enforces it
+(`D-113`, retiring `D-110`'s flat refusal). A week or less is answered as it always was; more than a
+week is answered when it is two, three or four of them; ten days is refused, because it ends in a
+stub week no roster can put a weekly rest inside.
 
 The cost is stated rather than hidden: **correctness now depends on a computation this service does
 not perform.** Two consequences follow, and both are binding.
@@ -642,16 +652,23 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   anchored candidate exists whenever any window does. The candidate count is therefore `|O| + 1`, not a
   function of time granularity — no discretisation, no chosen minute resolution.
 - **Checker encoding.** Sort the employee's assigned intervals, prepend
-  `last_shift_end_before_horizon[e]`, and take the maximum gap between consecutive intervals within the
-  horizon. Compare to the parameter. Independent of the candidate-window construction, which is the
-  point — the model searches, the checker measures.
-- **Known conservatism, stated rather than hidden** (`D-029`). The rest window is required to lie **within** the
-  horizon. A lawful roster whose 35-hour block straddles the horizon's end is therefore rejected. On a
-  seven-day horizon this is nearly harmless — one such block must exist inside any week — and it bites
-  on shorter horizons. The fix is a caller-supplied forward-looking commitment, symmetric with
+  `last_shift_end_before_horizon[e]`, and take the maximum gap between consecutive intervals **within
+  each week**, clipping the roster to that week's span. Compare to the parameter. Independent of the
+  candidate-window construction, which is the point — the model searches, the checker measures.
+- **Known conservatism, stated rather than hidden** (`D-029`, extended by `D-111`). The rest window is
+  required to lie **within the week it counts for**. A lawful roster whose 35-hour block straddles a
+  boundary is therefore rejected, and it counts for neither of the two weeks it spans.
+
+  At the horizon's own end this is nearly harmless on a seven-day horizon — one such block must exist
+  inside any week — and it bites on shorter ones. At an *internal* boundary it bites on every horizon
+  longer than a week, which is the price of measuring the rule per week rather than per rolling
+  seven-day window; the rolling form has no week to name, and naming the week is the reporting
+  coordinate `D-088` refused to trade away.
+
+  The fix for both is the same caller-supplied forward-looking commitment, symmetric with
   `last_shift_end_before_horizon`, and it is **deferred**: it would oblige the caller to promise
-  something about a week it has not planned yet, which is a heavier contract than the conservatism costs.
-  Revisit if short horizons become a real use case.
+  something about a week it has not planned yet, which is a heavier contract than the conservatism
+  costs. Revisit if short horizons, or rosters built around a straddling rest, become a real use case.
 - **Interaction with `R-SUNDAY`.** Art. 38ter §3 builds the 35 hours by adding art. 38ter §1's eleven
   hours to *either* Sunday rest (art. 11) or compensatory rest for Sunday work (art. 16); art. 17 gives
   shift workers a distinct form — 24 uninterrupted hours weekly with at least 18 of them falling on

@@ -30,6 +30,12 @@ testpaths = ["tests"]
 # `uv run python -m pytest` succeeds, and the difference is invisible to anyone who has not
 # hit it.
 pythonpath = [".", "tests"]
+# `machine` marks a test calibrated against the hardware that wrote `tests/timings.json`.
+# CI deselects them with `-m "not machine"`; everywhere else they run by default, because
+# on the machine the numbers came from they are exactly the guard `D-096` asks for.
+markers = [
+    "machine: calibrated to the machine that recorded tests/timings.json (D-114)",
+]
 
 # The independence rule from docs/specs/rules.md, mechanised. The module boundary is
 # enforceable; the no-shared-thresholds half is a review obligation no linter can

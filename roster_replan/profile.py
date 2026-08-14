@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 
-from .domain import Disruption, Instance, RuleParams, ShiftType
+from .domain import DAYS_PER_WEEK, Disruption, Instance, RuleParams, ShiftType
 from .explain import explain
 from .model import solve
 from .validation import InputDefect, validate_instance
@@ -95,7 +95,11 @@ def contradictions(profile: Profile) -> list[InputDefect]:
     """
     found: list[InputDefect] = []
     params = profile.params
-    horizon_hours = 7 * 24.0
+    # A week, not a horizon, and the difference started mattering with `D-111`. The rest
+    # window has to fit inside a *week* now, whatever the horizon is, so this constant is
+    # the rule's own span rather than a stand-in for the payload's. It was right before
+    # only because the two coincided, which is the same accident `D-110` was written about.
+    week_hours = DAYS_PER_WEEK * 24.0
 
     shortest = min((s.span_hours for s in profile.shift_types), default=0.0)
     longest = max((s.span_hours for s in profile.shift_types), default=0.0)
@@ -114,16 +118,16 @@ def contradictions(profile: Profile) -> list[InputDefect]:
             )
         )
 
-    if params.min_weekly_rest_hours >= horizon_hours:
+    if params.min_weekly_rest_hours >= week_hours:
         found.append(
             InputDefect(
                 field="params.min_weekly_rest_hours",
                 message=(
                     f"weekly rest of {params.min_weekly_rest_hours:g}h needs a gap at least "
-                    f"as long as the {horizon_hours:g}h horizon — nobody can ever work"
+                    f"as long as the {week_hours:g}h week — nobody can ever work"
                 ),
                 observed=params.min_weekly_rest_hours,
-                required=f"< {horizon_hours:g}",
+                required=f"< {week_hours:g}",
             )
         )
 

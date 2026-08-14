@@ -44,7 +44,10 @@ jobs:
       # `--frozen` so a lockfile that has drifted from `pyproject.toml` fails here rather
       # than resolving to something nobody committed.
       - run: uv sync --frozen ${{ matrix.extras }}
-      - run: uv run pytest -q
+      # `-m "not machine"` drops the two timing guards calibrated to the machine that wrote
+      # `tests/timings.json`. A shared runner is slower at Python and at CP-SAT by different
+      # factors, so both the milliseconds and the ratio between them move (`D-114`).
+      - run: uv run pytest -q -m "not machine"
 
   contracts:
     name: import contracts

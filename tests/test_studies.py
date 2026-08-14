@@ -20,7 +20,7 @@ import dataclasses
 import pytest
 from ortools.sat.python import cp_model
 
-from benchmarks import patterns, studies, suite
+from benchmarks import generator, patterns, studies, suite
 from roster_replan.checker import check
 from roster_replan.domain import (
     Employee,
@@ -270,6 +270,37 @@ def test_every_enumerated_pattern_is_legal_and_the_legal_ones_are_enumerated(cas
         assert row in patterns.enumerate_patterns(instance, employee), (
             f"{case}: employee {employee}'s published row is legal but was not enumerated"
         )
+
+
+def test_the_chained_solve_stitches_into_a_legal_month():
+    """The horizon study's own bookkeeping, asserted rather than trusted (`D-116`).
+
+    `_week_slice` and `_carry` are the study playing the caller `model.md` describes. If the
+    boundary state is carried wrongly, each weekly solve starts from a person with no
+    history — free of the rest gap and the consecutive-day streak that the week before
+    imposed — and the chained arm comes back cheaper than it has any right to be. Then the
+    study's finding would be an artifact of its own harness.
+
+    So the four weeks are stitched back together and handed to the independent reading. A
+    carry that forgets anything shows up as a violation at the seam.
+    """
+    whole = generator.generate(0, generator.ScenarioParams(days=14, demand_ratio=0.90)).base
+
+    stitched: set = set()
+    carried: dict = {}
+    first_carry = None
+    for week in range(2):
+        part = studies._week_slice(whole, week, carried)
+        answer = solve(part)
+        assert not isinstance(answer, list), f"week {week} infeasible: {answer}"
+        stitched |= {(e, d + 7 * week, s) for (e, d, s) in answer.roster}
+        carried = studies._carry(part, answer.roster, 0)
+        first_carry = first_carry or carried
+
+    assert any(
+        last is not None for _, last in first_carry.values()
+    ), "nobody worked in week one, so this asserts nothing about a boundary"
+    assert [v for v in check(frozenset(stitched), whole) if not v.soft] == []
 
 
 def _solve_with(instance, **flags) -> int:

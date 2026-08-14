@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .domain import FLEXI, Instance
+from .domain import DAYS_PER_WEEK, FLEXI, Instance
 from .scoring import max_change_weight
 
 # Statutory baselines, used only to decide whether a supplied parameter is a derogation
@@ -169,39 +169,37 @@ def _replan_pair(instance: Instance) -> list[InputDefect]:
     ]
 
 
-# --- The horizon a week's rules can be stated over ------------------------------------
-# `R-MAX-WEEKLY` and `R-WEEKLY-REST` are week rules, and both readings scope them to the
-# *horizon*: the model sums an employee's whole instance against one budget and asks for
-# one rest window anywhere in it, and the checker measures those same two things the same
-# way. At seven days the two scopes coincide. Past seven they do not, and the gap is
-# silent in both directions -- 35 hours of rest inside four weeks satisfies a rule that
-# means 35 hours inside each of them, and no value of `max_hours_this_week` can mean "this
-# much per week" when the sum it is compared against runs over four.
+# --- A horizon the week rules can be stated over --------------------------------------
+# `D-110` refused any horizon past a week, because both readings then scoped the week
+# rules to the horizon and would have agreed an unlawful roster was fine. `D-111` scoped
+# them to the week, so a longer horizon is answerable and this is what is left of the
+# guard (`D-113`): the horizon must not end **part-way through a week**.
 #
-# **The differential harness cannot catch this**, because both readings are wrong in the
-# same direction. That is the shared-*assumption* form of what `domain.py` forbids for
-# shared thresholds, and it is why the guard is here: a longer horizon is refused as a
-# request rather than answered with a roster both readings certify and the statute does
-# not (`D-110`).
+# `R-WEEKLY-REST` requires its window to lie inside the week it counts for, so a horizon
+# of ten days ends in a three-day stub that cannot hold 35 hours however the roster is
+# arranged. The model reports that honestly -- the gate goes false and the solve is
+# infeasible naming `R-WEEKLY-REST` -- and a planner reading "no legal roster exists"
+# because of a week that is mostly not in the payload has been told the truth and given
+# nothing to do with it.
 #
-# Shorter horizons stay legal. There `R-WEEKLY-REST` is too strict rather than too weak,
-# which `D-029` already records and prices as conservatism, and a weekly budget spent
-# inside part of a week is exactly what the caller supplies it for.
-
-MAX_HORIZON_DAYS = 7
+# **A week or less stays legal, unchanged.** There the same requirement is too *strict*
+# rather than unanswerable, which `D-029` records and prices as conservatism: one week is
+# the case the service has always served, and a three-day horizon still gets a roster.
 
 
 def _horizon_span(instance: Instance) -> list[InputDefect]:
-    if instance.days <= MAX_HORIZON_DAYS:
+    if instance.days <= DAYS_PER_WEEK or instance.days % DAYS_PER_WEEK == 0:
         return []
+    weeks = instance.days // DAYS_PER_WEEK
+    stub = instance.days % DAYS_PER_WEEK
     return [
         InputDefect(
             "days",
-            f"horizon of {instance.days} days: both readings scope R-MAX-WEEKLY and "
-            f"R-WEEKLY-REST to the horizon, so past {MAX_HORIZON_DAYS} days neither "
-            f"states the rule it is named for",
+            f"horizon of {instance.days} days ends {stub} day(s) into week {weeks + 1}. "
+            f"R-WEEKLY-REST needs its window inside the week it counts for, and no roster "
+            f"can put {instance.params.min_weekly_rest_hours:g}h inside a {stub}-day stub",
             instance.days,
-            f"<= {MAX_HORIZON_DAYS}",
+            f"{DAYS_PER_WEEK} or fewer, or a multiple of {DAYS_PER_WEEK}",
         )
     ]
 

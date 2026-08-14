@@ -207,10 +207,21 @@ def test_a_horizon_of_one_week_is_accepted(make_instance, person, one_shift):
     assert validate_instance(make_instance([person], [one_shift], days=7)) == []
 
 
-def test_a_horizon_beyond_one_week_is_a_defect(make_instance, person, one_shift):
-    (defect,) = validate_instance(make_instance([person], [one_shift], days=8))
+def test_a_horizon_of_whole_weeks_is_accepted(make_instance, person, one_shift):
+    """What `D-110` refused and `D-113` allows, once the rules were scoped to the week."""
+    assert validate_instance(make_instance([person], [one_shift], days=14)) == []
+    assert validate_instance(make_instance([person], [one_shift], days=28)) == []
+
+
+def test_a_horizon_ending_part_way_through_a_week_is_a_defect(make_instance, person, one_shift):
+    """Ten days is a week plus a three-day stub, and no roster can put 35 hours of rest
+    inside three days. The model would report that as an infeasibility naming
+    `R-WEEKLY-REST`, which is true and useless: the week it is about is mostly not in the
+    payload. No roster fixes it, so it is the request that is wrong."""
+    (defect,) = validate_instance(make_instance([person], [one_shift], days=10))
     assert defect.field == "days"
-    assert (defect.observed, defect.required) == (8, "<= 7")
+    assert (defect.observed, defect.required) == (10, "7 or fewer, or a multiple of 7")
+    assert "3-day stub" in defect.message
 
 
 def test_a_shorter_horizon_is_still_answered(make_instance, person, one_shift):
@@ -219,22 +230,22 @@ def test_a_shorter_horizon_is_still_answered(make_instance, person, one_shift):
     assert validate_instance(make_instance([person], [one_shift], days=3)) == []
 
 
-def test_the_guard_outlives_the_defect_that_prompted_it(make_instance, person):
-    """`D-110` refused a long horizon because both readings would have called this roster
-    legal. `D-111` scoped the two week rules to a week, so the checker now reports it --
-    the paired assertion is `test_a_second_week_is_measured_on_its_own` in
-    `test_differential.py`, where both readings are compared.
+def test_the_request_is_accepted_and_the_roster_is_judged_on_its_merits(make_instance, person):
+    """The whole arc, in one assertion pair.
 
-    The guard stays for the reasons `D-111` gives, which are elsewhere in the stack. This
-    asserts what it is now refusing: the request, not the roster.
+    `D-110` refused this payload because both readings would have called the roster legal.
+    `D-111` scoped the rules to the week, so the checker reports the second week's 33 hours
+    of rest. `D-113` therefore has no reason left to refuse the payload — and the two halves
+    are now doing the jobs they are for: validation passes the request, and the checker
+    judges the roster.
     """
     ana = dataclasses.replace(person, max_hours_this_week=45.0)
     shifts = [OpenShift(day=day, shift=MORNING, required=1) for day in range(7, 13)]
     instance = make_instance([ana], shifts, days=14)
     roster = frozenset({(0, day, MORNING) for day in range(7, 13)})
 
+    assert validate_instance(instance) == []
     assert [(v.rule, v.day) for v in check(roster, instance)] == [("R-WEEKLY-REST", 7)]
-    assert fields(validate_instance(instance)) == ["days"]
 
 
 # --- The domination bound ----------------------------------------------------------

@@ -261,10 +261,10 @@ MUTANTS: tuple[Mutant, ...] = (
         "tests/test_validation.py",
     ),
     Mutant(
-        "validation-longer-horizon-accepted",
+        "validation-part-week-horizon-accepted",
         "validation",
         VALIDATION,
-        "    if instance.days <= MAX_HORIZON_DAYS:",
+        "    if instance.days <= DAYS_PER_WEEK or instance.days % DAYS_PER_WEEK == 0:",
         "    if True:",
         "tests/test_validation.py",
     ),
@@ -945,6 +945,14 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if not key or not value or key in environ:",
         "        if not key or not value:",
         "tests/test_nl.py",
+    ),
+    Mutant(
+        "studies-horizon-forgets-the-boundary",
+        "studies",
+        "benchmarks/studies.py",
+        "        last = max(ends) - end_of_week * 24.0 if ends else None",
+        "        last = None",
+        "tests/test_studies.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

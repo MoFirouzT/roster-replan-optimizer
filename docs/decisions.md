@@ -2560,6 +2560,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   opposite finding, and four mutants restore the defect one reading at a time. The guard itself
   stays, for the narrower reasons `D-111` gives — this record's reasoning about *why* it went in is
   left as written.
+- **Retired by `D-113`.** The flat refusal is gone; what is left of it refuses a horizon that ends
+  part-way through a week. This record stands as written, and it was worth writing: it was in force
+  for the two changes that made it unnecessary, which is the whole job of a guard.
 - **Date.** 2026-08-14.
 
 ## D-111 — The week rules are measured over a week, and the guard stays for narrower reasons
@@ -2611,6 +2614,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   What `D-110` still guards is now a list rather than a principle, and it is the work that lifts it:
   the profile probe, the generator, and a whole-weeks rule for horizons past one week.
+- **Amended by `D-113`.** That list was worked through and only one item on it was a defect. The
+  profile probe was already right and only misnamed; the whole-weeks rule is what the guard became;
+  the generator is unfixed and turned out not to gate the request path at all, only the evidence.
 - **Date.** 2026-08-14.
 
 ## D-112 — The mutation harness says `unverifiable` where it used to say `clean`
@@ -2656,4 +2662,167 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   `CLAUDE.md` and the module docstring carry the new verdict, because the instruction to read
   `.verdict` first is now worth following.
+- **Date.** 2026-08-14.
+
+## D-113 — The guard comes off for whole weeks, and stays on for part of one
+
+- **Decision.** A horizon longer than a week is accepted when it is a **whole number of weeks**. One
+  that ends part-way through a week is refused as a request. `D-110`'s flat refusal is retired;
+  `_horizon_span` keeps the name and changes the rule.
+- **Alternatives.** *Keep the guard* until the committed set contains multi-week instances. *Accept a
+  part-week horizon* and let the model report what it finds. *Require whole weeks always*, which
+  would refuse the three-day horizons the service answers today.
+- **Reason.** `D-111` gave three reasons for keeping the guard, and they did not survive contact in
+  the same way.
+
+  The **profile probe** was not a defect. `contradictions()` compared `min_weekly_rest_hours` against
+  a hard-coded `7 * 24.0` called `horizon_hours`, and the value was right for a reason the name
+  denied: after `D-111` the rest window must fit inside a *week*, so the constant is the rule's own
+  span and no longer stands in for the payload's. It is `week_hours` now. A profile is configuration
+  with no horizon attached, and this check was always about the week — it was correct by the same
+  coincidence `D-110` was written about, and is correct on purpose now.
+
+  The **stub week** is real and is what the guard becomes. `R-WEEKLY-REST` needs its window inside
+  the week it counts for, so a ten-day horizon ends in a three-day week that cannot hold 35 hours
+  under any roster. The model reports that honestly — the gate goes false, the solve is infeasible,
+  and the core names `R-WEEKLY-REST` — and it is a useless truth: the week it is about is mostly not
+  in the payload, and the planner can do nothing with it. No roster fixes it, which is `D-040`'s
+  dividing question answered, so it is an `InputDefect` naming the stub.
+
+  The **generator** is the one that is unfixed, and it does not gate this. It is evidence tooling,
+  not the request path: a caller sending fourteen days never touches it. What its seven-day
+  hard-coding actually costs is that **no committed benchmark case runs at more than a week**, so
+  this ships a supported configuration with no measurement behind it. That is stated here rather than
+  discovered later, and it is the study's job rather than the guard's.
+
+  What replaces the guard as evidence is an end-to-end test at two weeks, and it is built to separate
+  the two readings rather than to pass: one week's demand twice is 277.5 hours of work against 304
+  hours of budget *per week* and fits, while the same instance measured across the fortnight against
+  one week's budget is 555 hours into 304 and has no roster at all. It distinguishes the encodings by
+  feasibility, not by a violation count.
+- **Consequences.** Generation mode (`D-109`) inherits the lift: a cold solve over four weeks is now
+  answerable, where `D-110` refused it. The horizon-scaling numbers in `D-111`'s probe were taken on
+  a tiled instance with a loosened budget, and now that the configuration is supported they can be
+  measured on real ones — which is the study `rules.md` still owes.
+
+  Two things the generator needs before it can supply them, both found while scoping this and neither
+  fixed here: `DAYS = 7` has to become a scenario parameter, and `_load` treats `day >= 4` as the
+  weekend, which past day six makes every remaining day of a fortnight a Saturday.
+- **Date.** 2026-08-14.
+
+## D-114 — The timing guards are calibrated, so CI deselects them rather than widening them
+
+- **Decision.** `test_the_build_to_search_balance_still_holds` and
+  `test_the_absolute_timings_are_the_right_order_of_magnitude` are marked `machine` and deselected in
+  CI with `-m "not machine"`. They still run by default everywhere else.
+  `test_build_still_dominates_search` is not marked and runs in CI.
+- **Alternatives.** *Widen the bands* until a shared runner passes. *Regenerate `timings.json` on the
+  runner*, making CI the calibration machine. *Delete the guards*, since CI cannot check them.
+- **Reason.** `timings.json` holds 4.87 ms of build against 3.21 ms of search, measured on the machine
+  in `benchmarks.md`'s hardware line. The absolute band admits a factor of three, and a shared
+  two-core runner is routinely two to four times slower at single-threaded Python — so the guard fails
+  on build somewhere above 14.6 ms, which is an ordinary figure there. It is not detecting a
+  regression; it is detecting the runner.
+
+  **Widening is the option `D-096` already refused**, one level up. That record rejected a 40% band on
+  the milliseconds because it would not have caught `D-092`'s 26% shift: a band loose enough to
+  survive a slower laptop is too loose to detect what it exists for. A band loose enough to survive a
+  CI runner is looser still, so taking that option now would spend the guard to keep a green tick.
+
+  **Regenerating on the runner** moves the calibration to hardware nobody reads the documents on. The
+  figures exist to keep `benchmarks.md`, `replan.md` and the studies honest, and those quote the
+  laptop. A `timings.json` measured on a runner would guard a number no document claims.
+
+  The ratio is the subtler half. `D-096` chose `build / search` because a faster machine shrinks both
+  sides, and that holds between comparable machines. It does not hold between a laptop and a shared
+  runner, where the Python half and the C++ half slow by different factors — the ratio is portable
+  against *speed*, not against a change in the mix.
+
+  `test_build_still_dominates_search` stays in CI because it asserts an ordering rather than a
+  calibration, and slower hardware makes it more true rather than less: Python is what a slow machine
+  punishes hardest, so build pulls further ahead of search.
+- **Consequences.** CI checks 761 of 764 tests, and the three it does not check are the three it
+  cannot. That is a real hole and it is the honest shape of one: the guard `D-096` exists for is a
+  guard against *this* repo's documents drifting from *this* machine, and it can only be run here.
+  `README.md` says which command CI runs and why it differs.
+
+  This is also the first thing CI found, and it found it by failing on a green repo — the tests pass
+  on every machine that has ever run them and fail on the one machine that had never run them.
+- **Date.** 2026-08-14.
+
+## D-115 — The generator takes a horizon, and its weekly pattern was a weekly pattern only by accident
+
+- **Decision.** `ScenarioParams` gains `days`, defaulting to seven, and the generator refuses a
+  horizon `validation.py` would refuse (`D-113`). `_load`'s demand weighting keys on
+  `day % DAYS_PER_WEEK` rather than on `day`.
+- **Alternatives.** Generate multi-week instances by tiling a week, which is what the scoping probe
+  for `D-111` did. Leave the generator at one week and study horizons with hand-built instances.
+- **Reason.** The tiled probe was fine for measuring model *size* and knowingly wrong about
+  everything else: it repeated one week's demand exactly, scaled the budget by the number of weeks to
+  keep the model feasible, and therefore could not be used for any claim about coverage. A study of
+  what a longer horizon buys needs instances whose demand was drawn for that horizon.
+
+  **`_load` is the defect this turned up.** It weights demand toward the back of the week with
+  `1.6 if day >= 4`, which is a weekly pattern for exactly as long as the horizon is a week. At
+  fourteen days it makes every day from the first Thursday onward a Saturday, so a fortnight would
+  have been generated with ten weekend days out of fourteen and the tightness reported against it
+  would have been describing a week that does not exist. Nothing would have failed; the study would
+  simply have measured a different world.
+
+  It is the same shape as `D-110` one layer out — a constant that is right only because two things
+  coincide, and stops being right the moment they separate. The generator had three of them
+  (`DAYS` for eligibility, for unavailability, and for the grid) and they were mechanical; this one
+  was arithmetic, and it is the one that would have been believed.
+- **Consequences.** Capacity is now the weekly budget times the number of weeks, in both `_demand`
+  and `measure`, because `max_hours_this_week` binds per week (`D-111`) while demand is stated over
+  the horizon. Without that, a fortnight at `demand_ratio` 0.70 would open one week's shifts across
+  two weeks and report twice the tightness it had.
+
+  **Nothing moved at seven days.** The committed manifest's fingerprints are unchanged, which is the
+  guard `D-074` exists to be: every one of these edits is inert at the default, and the fingerprints
+  are what says so rather than a reading of the diff.
+- **Date.** 2026-08-14.
+
+## D-116 — A longer horizon is rejected because it buys nothing, not because it costs too much
+
+- **Decision.** The one-week horizon stands. `rules.md`'s rejection of a reference-period horizon is
+  kept and **its stated reasons are replaced with the measured ones**
+  ([`studies/horizon.md`](studies/horizon.md)).
+- **Alternatives.** Ship a multi-week horizon now that validation accepts one. Keep the rejection and
+  leave its reasoning as written.
+- **Reason.** The sentence being tested claimed a longer horizon *"multiplies instance size by an
+  order of magnitude and destroys the interactive latency the whole service is built around."*
+  Measured over 7, 14 and 28 days: four times the days gives **3.9× the variables and 4.0× the
+  constraints**, and four weeks answers in about **112 ms end to end**. Size is linear because
+  nothing in this model aggregates across the horizon — a rest gap is eleven hours, so no shift
+  conflicts with one a week away. Both halves of the claim are wrong.
+
+  What justifies the rejection is the half the sentence never mentions. Four weeks solved at once and
+  four weeks solved one at a time with the boundary state carried between them reach **identical
+  coverage on every case tried**, at `demand_ratio` 0.70 and 0.90, three seeds each — including the
+  tight setting where five positions go unstaffed either way. And under that pressure the single
+  solve costs 239 to 555 ms of search where the four small ones cost 94 to 166 ms in total. **The
+  longer horizon is slower and finds nothing.**
+
+  That follows from the structure once `D-111` is in place, which is why it is worth stating as a
+  property rather than as a number: `R-MAX-WEEKLY` binds inside a week and `R-WEEKLY-REST` is
+  measured inside a week, so neither couples one week to the next. What couples them is
+  `R-REST-GAP` and `R-CONSEC-DAYS`, and both reach exactly as far as `last_shift_end_before_horizon`
+  and `consecutive_days_worked_before_horizon` already carry. A model whose blocks are joined only at
+  the seam does not need to see them together.
+- **Consequences.** `D-081`'s premise is now **scoped rather than general**. Build costs more than
+  search at seven days; at fourteen search already costs more, and at twenty-eight nearly three times
+  as much. Every performance conclusion in this repo — the two clocks, the compiled-model cache
+  (`D-093`), memoising `Instance.window` (`D-092`) — is a statement about a one-week horizon, and the
+  crossover sits between one week and two.
+
+  **The measurement cannot reach the question `rules.md` is actually about**, and this is the reason
+  to reopen `D-111`'s deferral rather than close it. Both arms carry the same per-week ceiling, so
+  what was compared is horizon *length*. The approximation the spec makes is a caller collapsing a
+  rolling quarter into one weekly number, and what that loses is the freedom to spend it unevenly —
+  45 hours this week against 31 next, inside one quarterly total. That is the single place a longer
+  horizon has a mechanism to win, and no arm of this study can express it, because the field does not
+  exist. Whether the approximation is lossy remains unmeasured, and it is now the only part of the
+  original sentence still standing on assertion.
+- **Study.** [`docs/studies/horizon.md`](studies/horizon.md)
 - **Date.** 2026-08-14.

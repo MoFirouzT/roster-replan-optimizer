@@ -35,6 +35,7 @@ import random
 from dataclasses import dataclass
 
 from roster_replan.domain import (
+    DAYS_PER_WEEK,
     FLEXI,
     Employee,
     Instance,
@@ -69,7 +70,10 @@ RULE_PARAMS = RuleParams(
 SCARCE_SKILL = "kitchen"
 BASE_SKILL = "bar"
 
-DAYS = 7
+# The default horizon. `ScenarioParams.days` is what the generator actually reads, and
+# `DAYS_PER_WEEK` is the week the rules are measured over -- one number meaning two things
+# is what let `_load` call every day past the first week a Saturday (`D-115`).
+DEFAULT_DAYS = DAYS_PER_WEEK
 WORK_HOURS = SHIFT_TYPES[0].work_hours
 
 # --- Disruption events --------------------------------------------------------------
@@ -99,6 +103,7 @@ class ScenarioParams:
     does nothing makes the instance distribution look richer than it is.
     """
 
+    days: int = DEFAULT_DAYS
     employees: int = 12
     demand_ratio: float = 0.70
     scarce_skill_share: float = 0.5
@@ -183,8 +188,8 @@ def _employees(rng: random.Random, params: ScenarioParams) -> tuple[Employee, ..
                 consecutive_days_worked_before_horizon=0,
                 # Eligibility is resolved upstream and enters as data (`D-032`). The
                 # generator plays the caller: eligible on every day of the horizon.
-                flexi_eligible=frozenset(range(DAYS)) if flexi else None,
-                dimona_ok=frozenset(range(DAYS)) if flexi else None,
+                flexi_eligible=frozenset(range(params.days)) if flexi else None,
+                dimona_ok=frozenset(range(params.days)) if flexi else None,
             )
         )
     # Shuffle so flexi contracts and the scarce skill are not correlated with the index,
@@ -201,7 +206,7 @@ def _unavailability(rng: random.Random, params: ScenarioParams) -> tuple[Interva
     the first or the replan has nothing to distinguish.
     """
     blocks = []
-    for day in range(DAYS):
+    for day in range(params.days):
         if rng.random() < params.availability_density:
             continue
         start = day * 24.0 + rng.choice((0.0, 7.0, 15.0))
@@ -219,9 +224,14 @@ def _demand(rng: random.Random, params: ScenarioParams, people) -> tuple[OpenShi
     week: the budget *is* the constraint (`R-MAX-WEEKLY`), and a flexi worker on 16h is
     not half a salaried one for any other purpose.
     """
-    capacity = sum(p.max_hours_this_week for p in people)
+    # `max_hours_this_week` is a week's hours and binds in every week (`D-111`), so the
+    # horizon's capacity is the weekly sum times the number of weeks in it. Without the
+    # multiplier a fortnight at `demand_ratio` 0.70 would open a week's worth of shifts
+    # across two weeks and be half as tight as it says it is.
+    weeks = max(1, -(-params.days // DAYS_PER_WEEK))
+    capacity = sum(p.max_hours_this_week for p in people) * weeks
     slots = max(1, round(capacity * params.demand_ratio / WORK_HOURS))
-    grid = _grid()
+    grid = _grid(params.days)
     weights = [_load(day, shift) for day, shift in grid]
 
     if slots < len(grid):
@@ -268,12 +278,15 @@ def _sample(rng: random.Random, grid, weights, count: int) -> list[tuple[int, in
     return picked
 
 
-def _grid() -> list[tuple[int, int]]:
-    return [(day, shift) for day in range(DAYS) for shift in (MORNING, EVENING, NIGHT)]
+def _grid(days: int) -> list[tuple[int, int]]:
+    return [(day, shift) for day in range(days) for shift in (MORNING, EVENING, NIGHT)]
 
 
 def _load(day: int, shift: int) -> float:
-    weekend = 1.6 if day >= 4 else 1.0
+    """Demand weight. The back of the week is busier, and `day % DAYS_PER_WEEK` is what
+    makes that a *weekly* pattern rather than a statement that every day after the first
+    Thursday is a Saturday (`D-115`)."""
+    weekend = 1.6 if day % DAYS_PER_WEEK >= 4 else 1.0
     return weekend * {MORNING: 1.0, EVENING: 1.5, NIGHT: 0.6}[shift]
 
 
@@ -289,7 +302,10 @@ def measure(instance: Instance) -> Tightness:
     the solver is working from.
     """
     excluded = exclusions(instance)
-    capacity = sum(p.max_hours_this_week or 0.0 for p in instance.employees)
+    # Times the weeks, for the reason `_demand` gives: the budget is a week's and the
+    # demand is the horizon's, so comparing them directly would report a fortnight at
+    # twice its real tightness.
+    capacity = sum(p.max_hours_this_week or 0.0 for p in instance.employees) * instance.weeks
     demand_hours = sum(o.required * WORK_HOURS for o in instance.open_shifts)
 
     slacks = []
@@ -396,11 +412,19 @@ def generate(seed: int, params: ScenarioParams | None = None) -> Scenario:
     params = params or ScenarioParams()
     if params.event not in EVENTS:
         raise ValueError(f"unknown event {params.event!r}; expected one of {EVENTS}")
+    # The horizon rule `validation.py` enforces (`D-113`), applied here so a scenario the
+    # service would refuse cannot be generated, solved and benchmarked as though it were a
+    # supported one.
+    if params.days > DAYS_PER_WEEK and params.days % DAYS_PER_WEEK:
+        raise ValueError(
+            f"horizon of {params.days} days ends part-way through a week; use "
+            f"{DAYS_PER_WEEK} or fewer, or a multiple of {DAYS_PER_WEEK}"
+        )
     rng = random.Random(seed)
 
     people = _employees(rng, params)
     base = Instance(
-        days=DAYS,
+        days=params.days,
         shift_types=SHIFT_TYPES,
         employees=people,
         open_shifts=_demand(rng, params, people),
@@ -427,7 +451,7 @@ def generate(seed: int, params: ScenarioParams | None = None) -> Scenario:
         base,
         now=params.event_day * 24.0 + params.event_hour,
         incumbent=solution.roster,
-        published_through=DAYS * 24.0,
+        published_through=params.days * 24.0,
     )
     instance = _apply_event(rng, published, solution.roster, params)
 
