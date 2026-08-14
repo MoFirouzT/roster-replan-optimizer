@@ -83,6 +83,14 @@ CLASSES: dict[str, ScenarioParams] = {
     # Instance size would then be constant everywhere except the employee axis.
     "loose": _vary(demand_ratio=0.35),
     "tight": _vary(demand_ratio=0.90),
+    # Two more points on the same axis, added after the fact and for a measured reason
+    # (`D-105`). The set had 60 of 72 cases at ~0.70 and a hole between 0.73 and 0.89, and
+    # that hole is where the optimiser's advantage over greedy actually lives: at 0.70
+    # greedy ties every seed, and by 0.95 it loses one in two by leaving a hole a chain
+    # of moves would have filled. Sampling only the ends made "greedy ties 64 of 72" a
+    # statement about where this set looks rather than about greedy.
+    "busy": _vary(demand_ratio=0.80),
+    "overloaded": _vary(demand_ratio=0.95),
     # Tenant size, at both ends of the range `benchmarks.md` claims.
     "small": _vary(employees=8),
     "large": _vary(employees=25),

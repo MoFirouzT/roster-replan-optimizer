@@ -221,3 +221,6 @@ __marimo__/
 # Not committed, and `D-084` says why. The manifest next to it is, because a fingerprint
 # is exact and a change to one means something.
 benchmarks/results.json
+
+# Written by every mutation run; the verdict, not an input.
+tests/mutation-report.json

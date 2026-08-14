@@ -19,6 +19,9 @@ Date: 2026-08-13. Nineteen commits.
 | T2 | the headline claim is proven against baselines, on a stated instance distribution | four methods over 72 committed cases, both axes, seven studies |
 | T3 | production surface | async job service, fallback ladder, telemetry, fairness, model cache |
 
+*(The set is 84 cases since `D-105`. The greedy comparison is re-measured over all of them; the other
+T2 analyses are not, and the two added classes sit outside their basis.)*
+
 **None of these could be passed by writing.** T1 needed a checker that disagrees with the model when
 one of them is wrong. T2 needed numbers that could have come out the other way, and several did. T3
 needed a service that runs.
@@ -33,7 +36,7 @@ levers this project expected to matter did not.
 | --- | --- |
 | Disruption objective beats a cold re-solve | **Held** — 323 → 66 |
 | Warm starting is a major speedup | **9% of search time**, invisible end to end |
-| Greedy repair is a weak baseline | **Ties the optimum on 64 of 72 cases** |
+| Greedy repair is a weak baseline | **Ties the optimum on 64 of 72 cases** — 71 of 84 once the coverage axis was sampled in the middle (`D-105`) |
 | Presolve is "often the largest single win" | 28% off build — real, not the largest |
 | Symmetry breaking helps | **Null** — 3 interchangeable employees in 24 cases |
 | The `regular` automaton wins | **Rejected** — 20% slower; one window to replace |
@@ -183,12 +186,16 @@ nothing about whether the same text parses the same way twice.
 **What is still not done.** Everything in *What is not done* above stands: capture and replay, the
 cost axis, the service `[TODO]`s, and the five unencoded optional rules.
 
-**Half of T5 is retired rather than pending** (`D-104`). LNS improves a solution the solver cannot
-prove optimal in the time available, and neither half of that is true here — 2,160 solves returned
-`OPTIMAL`, longest search 12.4 ms, and solver-free greedy already ties the optimum on 64 of 72
-cases. Learned warm starts would optimise the 9% of search time `D-082` measured, on a search that
-takes milliseconds. Both are struck from the plan; a distribution where the solver stops proving
-optimality is what would reopen them.
+**Half of T5 is retired rather than pending** (`D-104`, `D-105`). LNS improves a solution the solver
+cannot prove optimal in the time available, and neither half of that is true here — 2,160 solves
+returned `OPTIMAL`, longest search 12.4 ms, and solver-free greedy already ties the optimum on 71 of
+84 cases. Learned warm starts would optimise the 9% of search time `D-082` measured, on a search that
+takes milliseconds. Both are struck from the plan.
+
+`D-105` then swept the generator's whole range rather than inferring from one sample of it: demand at
+105% of capacity, minimum slot slack of −7, 40 employees, every pressure at once — all `OPTIMAL` in 3
+to 11 ms, with the structurally short cases running *faster* than the baseline. What would reopen
+these is a longer horizon or a tenant an order of magnitude larger, and neither exists here.
 
 Generation mode and fairness objectives stay open, because nothing measured here touches them. The
 fairness T3 shipped is round-robin across *tenants in the queue* (`D-091`) and says nothing about
@@ -200,10 +207,10 @@ restores `D-101`.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 709 |
+| Tests | 567 | 729 |
 | Mutants | 59 | 83 |
 | Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 104, none open |
+| Decision records | 94, 2 open | 105, none open |
 | Studies, including nulls | 8 | 11 |
 | Python | ~12,000 lines | ~17,100 lines |
 

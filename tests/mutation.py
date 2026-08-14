@@ -4,6 +4,12 @@
     uv run python -m tests.mutation --list
     uv run python -m tests.mutation -k rest-gap
 
+Every run writes its verdict to `tests/mutation-report.json` as well as to stdout, and the
+report is the copy to trust. A full run takes tens of minutes, and reading its result through
+a pipe has twice destroyed it: `tail` truncates the per-mutant lines and reports *its own*
+exit status, so a run that leaked a mutated file into the working tree read as a clean pass.
+`jq .verdict tests/mutation-report.json` answers the only question that matters first.
+
 `CLAUDE.md`: *a layer that has never been shown to fail is not known to work.* This module
 is that claim, executable. It edits a source file in place, runs the tests that ought to
 object, restores the file, and reports.
@@ -29,6 +35,8 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import datetime
+import json
 import pathlib
 import subprocess
 import sys
@@ -873,6 +881,54 @@ def _restore(path: pathlib.Path, original: str, *, attempts: int = 5) -> None:
     )
 
 
+REPORT = _HERE / "mutation-report.json"
+
+
+def summarise(results: list[dict], *, leaked: list[str], skipped: list[str], full: bool) -> dict:
+    """The run's verdict, as data. Pure, so the part that can be wrong is testable.
+
+    **The verdict does not live in stdout.** A run takes tens of minutes and its result was
+    twice read through a pipe that swallowed it: `tail` truncated the per-mutant lines *and*
+    reported its own exit status, so a run that leaked a mutated file into the working tree
+    read as a clean pass. The report is written before any of the return paths, so a
+    truncated terminal, a killed pager or a lost scrollback costs nothing.
+
+    **A leak outranks survivors**, matching what the exit codes have always said. A run that
+    left a mutation behind cannot be trusted about anything that ran after it: the following
+    mutants' catcher tests may have failed on the leftover defect rather than on their own,
+    and would be scored as caught for the wrong reason. That is a void run, not a passing
+    one with a caveat.
+    """
+    survivors = [r["name"] for r in results if not r["caught"]]
+    if leaked:
+        verdict, exit_code = "leaked", 2
+    elif survivors:
+        verdict, exit_code = "survivors", 1
+    else:
+        verdict, exit_code = "clean", 0
+
+    return {
+        "verdict": verdict,
+        "exit_code": exit_code,
+        "trustworthy": verdict != "leaked",
+        "finished_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "selected": len(results),
+        "caught": sum(1 for r in results if r["caught"]),
+        "survivors": survivors,
+        "leaked": sorted(leaked),
+        # Files this run could not vouch for, because they were already modified when it
+        # started. A mutation left in one of these is invisible to the clean-tree check.
+        "unchecked_because_already_modified": sorted(skipped),
+        "catcher_only": not full,
+        "mutants": results,
+    }
+
+
+def write_report(report: dict, path: pathlib.Path = REPORT) -> pathlib.Path:
+    path.write_text(json.dumps(report, indent=2) + "\n")
+    return path
+
+
 def _dirty(paths: list[str]) -> set[str]:
     """Which of these paths git already considers modified."""
     result = subprocess.run(
@@ -917,6 +973,12 @@ def main() -> int:
         help="run the whole suite per mutant instead of the layer that should catch it. "
         "Slower, and it answers a weaker question.",
     )
+    parser.add_argument(
+        "--report",
+        type=pathlib.Path,
+        default=REPORT,
+        help=f"where to write the machine-readable verdict (default {REPORT.name})",
+    )
     args = parser.parse_args()
 
     chosen = [
@@ -943,7 +1005,7 @@ def main() -> int:
               f"{', '.join(sorted(already))}\n")
 
     print(f"{len(chosen)} mutants; each expects its own layer to object.\n")
-    survivors = []
+    results = []
     for mutant in chosen:
         caught, failed, note = run(mutant, full=args.full)
         status = "CAUGHT" if caught else "SURVIVED"
@@ -954,22 +1016,42 @@ def main() -> int:
             print(f"            {name}")
         if len(failed) > 3:
             print(f"            ... and {len(failed) - 3} more")
-        if not caught:
-            survivors.append(mutant.name)
+        results.append(
+            {
+                "name": mutant.name,
+                "layer": mutant.layer,
+                "path": mutant.path,
+                "catcher": mutant.catcher,
+                "caught": caught,
+                "failed": failed,
+                "note": note,
+            }
+        )
 
     print()
-    leaked = _dirty(touched) - already
-    if leaked:
-        print(f"!! source left modified: {', '.join(sorted(leaked))}")
-        print("!! run `git checkout --` on those paths before doing anything else.")
-        return 2
+    report = summarise(
+        results,
+        leaked=sorted(_dirty(touched) - already),
+        skipped=sorted(already),
+        full=args.full,
+    )
+    # Written before every return below, so the verdict survives a truncated terminal, a
+    # closed pager, or a pipe that reports its own exit status instead of this one.
+    write_report(report, args.report)
+    print(f"verdict `{report['verdict']}` written to {args.report}\n")
 
-    if survivors:
-        print(f"{len(survivors)} survived: {', '.join(survivors)}")
+    if report["leaked"]:
+        print(f"!! source left modified: {', '.join(report['leaked'])}")
+        print("!! run `git checkout --` on those paths before doing anything else.")
+        print("!! this run is void: later mutants may have been caught by the leftover defect.")
+        return report["exit_code"]
+
+    if report["survivors"]:
+        print(f"{len(report['survivors'])} survived: {', '.join(report['survivors'])}")
         print("A surviving mutant is a hole in the layer that claims that ground.")
-        return 1
+        return report["exit_code"]
     print(f"all {len(chosen)} caught by the layer expected to catch them")
-    return 0
+    return report["exit_code"]
 
 
 if __name__ == "__main__":

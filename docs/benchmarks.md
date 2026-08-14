@@ -61,12 +61,14 @@ is why it is scheduled rather than optional.
 
 ## The committed set
 
-Twelve scenario classes, six seeds each — 72 cases, listed in `benchmarks/manifest.json`.
+Fourteen scenario classes, six seeds each — 84 cases, listed in `benchmarks/manifest.json`.
+Twelve of those classes are the original set; `busy` and `overloaded` were added after it, for a
+measured reason recorded in `D-105` and described under *Sampling the coverage axis* below.
 
     uv run python -m benchmarks.suite --write
 
 **The set is its seeds.** Generation is deterministic, so a class name and a seed name an instance
-exactly, and what is committed is a manifest of fingerprints rather than 72 payloads (`D-073`). Each
+exactly, and what is committed is a manifest of fingerprints rather than 84 payloads (`D-073`). Each
 case carries two: `week` over the generated payload, and `incumbent` over the solved base roster. A
 `week` hash that holds while incumbents move is a solver change and the instances stay comparable
 across it; both moving is a generator change and they do not (`D-074`).
@@ -80,7 +82,7 @@ is what makes the event axis a controlled comparison rather than a comparison of
 | Class | Varies |
 | --- | --- |
 | `headline` | — the Saturday 09:00 sick call |
-| `loose`, `tight` | coverage tightness, at 0.35 and 0.90 |
+| `loose`, `busy`, `tight`, `overloaded` | coverage tightness, at 0.35, 0.80, 0.90 and 0.95 (`D-105`) |
 | `small`, `large` | 8 and 25 employees |
 | `scarce-skill` | scarce skill held by a quarter of staff |
 | `flexi-heavy` | 60% flexi contracts |
@@ -88,7 +90,7 @@ is what makes the event axis a controlled comparison rather than a comparison of
 | `multi-absence`, `demand-spike`, `withdrawal` | the other three event types |
 | `early-notice` | the same disruption with days of notice instead of hours |
 
-**Nothing is filtered** (`D-075`). Ten of the 72 cases start from a week that cannot be fully
+**Nothing is filtered** (`D-075`). Twelve of the 84 cases start from a week that cannot be fully
 staffed, and `scarce-skill` is chronically short by design. They stay in with `base_shortfall`,
 `short_slots` and `damage` recorded per case, because filtering at generation prunes the
 distribution to the cases that flatter the thesis and does it where nobody can see. Which cases to
@@ -143,63 +145,94 @@ the entire point.
 
     uv run python -m benchmarks.run --write
 
-72 cases × 4 methods × 3 solver seeds × 3 time budgets. Segmented on `base_shortfall` and never
-pooled across it, per the rule stated above. Times are milliseconds; disruption is the D2 score;
-`changes` is the raw count of assignments differing from the incumbent; `short` is unstaffed
-positions.
+84 cases × 4 methods × 3 solver seeds × 3 time budgets — 2,520 runs. Segmented on `base_shortfall`
+and never pooled across it, per the rule stated above. Times are milliseconds; disruption is the D2
+score; `changes` is the raw count of assignments differing from the incumbent; `short` is unstaffed
+positions. **The tables report the 5 s budget**; the quality columns are identical at 1 s and 30 s,
+which is the time-budget null restated on the wider set.
 
-**Weeks that were fully staffable before the event** — 62 cases, the repair question:
-
-| Method | p50 end-to-end | p95 end-to-end | p50 search | p95 search | Disruption | Changes | Short | Paid hours |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Cold re-solve, cost objective | 10.5 | 22.5 | 3.35 | 10.43 | 322.8 | 13.09 | 0.16 | 277.5 |
-| Greedy nearest-eligible repair | 1.4 | 3.2 | — | — | 56.5 | 2.02 | 0.27 | 276.7 |
-| Cold solve, disruption objective | 10.4 | 22.5 | 3.30 | 10.79 | 66.1 | 2.35 | 0.16 | 277.5 |
-| **Warm-started replan** | 10.6 | 22.1 | **3.02** | **8.63** | 66.1 | 2.35 | 0.16 | 277.5 |
-
-**Weeks already short before the event** — 10 cases, the capacity question:
+**Weeks that were fully staffable before the event** — 72 cases, the repair question:
 
 | Method | p50 end-to-end | p95 end-to-end | p50 search | p95 search | Disruption | Changes | Short | Paid hours |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Cold re-solve, cost objective | 9.5 | 11.1 | 3.16 | 3.53 | 257.3 | 9.03 | 1.40 | 240.8 |
-| Greedy nearest-eligible repair | 3.1 | 5.5 | — | — | 54.0 | 1.80 | 1.50 | 240.0 |
-| Cold solve, disruption objective | 9.4 | 10.4 | 3.14 | 3.56 | 60.0 | 2.10 | 1.40 | 240.8 |
-| **Warm-started replan** | 9.5 | 10.3 | **2.79** | **3.29** | 60.0 | 2.10 | 1.40 | 240.8 |
+| Cold re-solve, cost objective | 10.5 | 22.8 | 3.61 | 10.52 | 307.3 | 12.36 | 0.15 | 284.5 |
+| Greedy nearest-eligible repair | 1.2 | 2.8 | — | — | 53.6 | 1.94 | 0.31 | 283.3 |
+| Cold solve, disruption objective | 10.4 | 22.6 | 3.58 | 10.74 | 65.3 | 2.40 | 0.15 | 284.5 |
+| **Warm-started replan** | 10.6 | 21.9 | **3.31** | **8.61** | 65.3 | 2.40 | 0.15 | 284.5 |
+
+**Weeks already short before the event** — 12 cases, the capacity question:
+
+| Method | p50 end-to-end | p95 end-to-end | p50 search | p95 search | Disruption | Changes | Short | Paid hours |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Cold re-solve, cost objective | 9.8 | 11.0 | 3.49 | 4.17 | 266.1 | 9.36 | 1.42 | 259.4 |
+| Greedy nearest-eligible repair | 2.7 | 4.7 | — | — | 55.0 | 1.75 | 1.58 | 258.1 |
+| Cold solve, disruption objective | 9.9 | 10.9 | 3.41 | 4.29 | 65.0 | 2.25 | 1.42 | 259.4 |
+| **Warm-started replan** | 9.6 | 11.2 | **3.19** | **3.66** | 65.0 | 2.25 | 1.42 | 259.4 |
 
 ### What the numbers say
 
 **The objective is what does the work.** Against the cost baseline the disruption profile cuts mean
-disruption from 323 to 66 and mean changed assignments from 13.1 to 2.4, on identical instances with
+disruption from 307 to 65 and mean changed assignments from 12.4 to 2.4, on identical instances with
 identical coverage. A cold cost re-solve reshuffles a third of a published week to absorb one sick
 call, because nothing in its objective prefers the roster people have already been told about.
 
 **The warm start helps, modestly, and only on the search clock** (`D-082`). Paired on case and solver
-seed, the hint reduces search time on 201 of 216 runs, median paired ratio 0.907 — about 9% of a 3 ms
-search. It never changes the answer, which is the property the tests assert. `replan.md` asked for
+seed and budget, the hint reduces search time on 662 of 756 runs, median paired ratio 0.906 — about
+9% of a 3 ms search, reproducing `D-082`'s figure of 0.907 on a set 17% larger. It never changes the answer, which is the property the tests assert. `replan.md` asked for
 this to be filed either way: it is not a null, but it is a rounding error beside the objective
 effect, and calling the system "warm-started" oversells the part of it that is warm.
 
 **The cost baseline is indifferent, and its disruption number carries the proof.** Across three
-solver seeds on the same case its disruption moves by a median of 80 points and by up to 260, on 45
-of the 72 cases. The disruption methods move by **zero** on every case at every seed. That is what
+solver seeds on the same case its disruption moves by a median of 100 points and by up to 260, on 52
+of the 84 cases. The disruption methods move by **zero** on every case at every seed. That is what
 `D-080` predicted from the structure — flat cost, hard coverage ceiling, so every fully staffed
 roster costs the same and CP-SAT returns whichever it reaches first — and it is why a single seed's
 number would have been an accident reported as a result. It is also a T3 result in advance: the
 shipped objective is reproducible across seeds without being asked to be.
 
-**Greedy ties the optimum on 64 of 72 cases** (`D-083`). Where it matched the optimal coverage, it
+**Greedy ties the optimum on 71 of 84 cases** (`D-083`, `D-105`). Where it matched the optimal coverage, it
 matched the optimal disruption exactly — every time. Its lower *average* disruption is not a win: it
 gets there by leaving more shifts unstaffed (0.27 against 0.16 on clean weeks), which is precisely
-the trade the shortfall weight is set to refuse. On the 8 cases where it left an extra hole —
+the trade the shortfall weight is set to refuse. On the 13 cases where it left an extra hole —
 `tight/2`, `tight/4`, `small/5`, `large/2`, `flexi-heavy/5`, `thin-availability/2`,
-`thin-availability/3`, `multi-absence/2` — the repair needed a chain: move an uninvolved person so
-somebody else becomes free. No planner reading a printed roster finds that, and greedy by
-construction does not look for it.
+`thin-availability/3`, `multi-absence/2`, `busy/2`, `busy/5`, `overloaded/1`, `overloaded/4`,
+`overloaded/5` — the repair needed a chain: move an uninvolved person so somebody else becomes free.
+No planner reading a printed roster finds that, and greedy by construction does not look for it.
+
+The first eight are the original set's, reproduced case for case; the last five are the two classes
+added in `D-105`. That split is the point: **the tie rate is a property of where the set samples.**
 
 So the honest claim at this scale is not that the optimiser beats the planner on the common case. It
 is that it never leaves a shift uncovered that could have been covered, and it is right on the case
 the planner cannot see. **Median damage across the set is 1 assignment and the maximum is 3**, which
 is the axis this distribution does not vary; `D-083` records why it was not widened after the fact.
+
+### Sampling the coverage axis
+
+The original twelve classes put 60 of 72 cases at a demand ratio of ~0.70 and left nothing between
+0.73 and 0.89. That is what varying one axis at a time from a slack baseline produces, and it is
+right for attribution — a difference has one candidate explanation — but it samples the ends of the
+coverage axis and not the middle, which is where the methods separate:
+
+| Class | Demand ratio | Greedy ties | Greedy short | Optimal short |
+| --- | --- | --- | --- | --- |
+| `loose` | 0.35 | 6/6 | 0.00 | 0.00 |
+| `headline` | 0.70 | 6/6 | 0.17 | 0.17 |
+| `busy` | 0.80 | 4/6 | 0.33 | **0.00** |
+| `tight` | 0.90 | 4/6 | 1.00 | 0.67 |
+| `overloaded` | 0.95 | 3/6 | 1.17 | 0.67 |
+
+`busy` is the cleanest row: full coverage was available and the optimiser found it on every seed,
+while greedy missed it on two. Read down the tie column and the headline claim reads differently —
+greedy is indistinguishable from the optimum on a slack week and loses one case in two on a
+stretched one.
+
+**Conjunction was tried first and rejected** (`D-105`). Piling demand, skill scarcity and thin
+availability together produces weeks that are *structurally* short, and there greedy ties 6 of 6 at
+every setting tried: both methods leave the same unfillable holes. Hardening that way makes the
+benchmark blind rather than sharper. It does not make the search harder either — across the
+generator's whole range, up to 105% demand and 40 employees, every solve returns `OPTIMAL` in 3 to
+11 ms, and the structurally short cases are *faster* than the baseline.
 
 ## The frontier
 
@@ -216,7 +249,9 @@ greedy/optimal:
 | --- | --- | --- | --- | --- | --- |
 | `headline` | 292 | 63 | 63 | 63 | 0.17 / 0.17 |
 | `loose` | 243 | 70 | 70 | 70 | 0.00 / 0.00 |
+| `busy` | 232 | 32 | 57 | 57 | 0.33 / 0.00 |
 | `tight` | 229 | 28 | 58 | 58 | 1.00 / 0.67 |
+| `overloaded` | 223 | 48 | 73 | 73 | 1.17 / 0.67 |
 | `small` | 219 | 53 | 73 | 73 | 0.17 / 0.00 |
 | `large` | 618 | 63 | 73 | 73 | 0.17 / 0.00 |
 | `scarce-skill` | 279 | 65 | 65 | 65 | 1.67 / 1.67 |

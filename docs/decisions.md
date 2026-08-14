@@ -2285,4 +2285,54 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   This also removes the last reason to treat the benchmark set as fixed. It was built to compare
   methods; a distribution that never produces a hard instance is now a finding about the generator
   rather than a property of the problem.
+
+  **Amended by `D-105`.** That thread was pulled the same day. The generator's whole range was
+  swept, and no setting it can express makes the search hard — so the "64 of 72" cited above is
+  superseded by "71 of 84", and the retirement rests on a swept range rather than on one sample of
+  it. The conclusion is firmer; only the citation moved.
+- **Date.** 2026-08-14.
+
+## D-105 — The coverage axis is sampled where the answer changes, not only at its ends
+
+- **Decision.** Two classes added — `busy` at 0.80 and `overloaded` at 0.95 — taking the committed
+  set from 72 cases to 84. Existing instances are untouched and `GENERATOR_VERSION` stays at 1: the
+  generator did not move, the sampling did. The greedy comparison is re-measured over all 84. The
+  other T2 analyses are not, and this record says so rather than letting a widened set be read as a
+  wider basis for them.
+- **Alternatives.** Leave the set alone, since it was built for attribution and does that well. Add
+  **conjunction** classes — high demand together with scarce skills and thin availability — which
+  was the obvious way to make instances harder and was the plan when this work started.
+- **Reason.** The set held 60 of its 72 cases at a demand ratio of ~0.70, with nothing between 0.73
+  and 0.89: one tightness level and two deliberate outliers. That follows from the one-axis-at-a-time
+  design, which is right for attribution and blind to the region where methods separate. Measured
+  along the axis, greedy ties the optimum on **6 of 6 seeds at 0.70 and 3 of 6 at 0.95**, so
+  **"greedy ties 64 of 72" was substantially a statement about where the set looks.** Over 84 it is
+  71, and the 13 losses are the original 8 reproduced exactly plus 5 in the new band.
+
+  **The conjunction idea was measured and rejected, which is the more useful half of this record.**
+  Piling demand, skill scarcity and thin availability together produces weeks that are
+  *structurally* short — slots no roster can fill — and there greedy ties **6 of 6 at every setting
+  tried**, because both methods leave the same unavoidable holes. Hardening in that direction makes
+  the benchmark blind rather than sharper, and it would have been easy to read the resulting ties as
+  a finding about greedy.
+
+  It does not make the **search** harder either, which was the original motivation and is now swept
+  rather than assumed: demand at 105% of capacity, minimum slot slack of −7, 40 employees, all three
+  pressures at once — every configuration returns `OPTIMAL` in 3 to 11 ms, and the crunch cases run
+  *faster* than the baseline because the shortfall variables absorb what search would otherwise
+  explore. Solve time tracks instance size, weakly, and tightness not at all.
+- **Consequences.** `D-104` retired LNS on the grounds that nothing here stops the solver proving
+  optimality, citing the old 64 of 72. That citation is superseded by the 71 of 84 above, and the
+  conclusion is **firmer** rather than weaker: it now rests on a swept parameter range instead of an
+  inference from one sample of it. What would reopen it is unchanged and still unfound — a longer
+  horizon, or a tenant an order of magnitude past the 8–25 this product targets.
+
+  The other T2 analyses — D0–D4 divergence, the warm start, presolve, the time-budget curve — were
+  measured over the 72 and are not re-run here. They are not wrong, and their basis is stated
+  wherever they appear; the two new classes simply sit outside it. Re-running them is cheap and is
+  the obvious next thing.
+
+  The frontier table in `benchmarks.md` is regenerated over 84. The twelve original classes
+  reproduce their committed numbers exactly, which is worth more than the two new rows: it says the
+  set is stable and that the new rows are a widening rather than a different measurement.
 - **Date.** 2026-08-14.

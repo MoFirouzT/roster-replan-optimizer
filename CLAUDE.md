@@ -99,5 +99,13 @@ as a miss. It is not part of the normal suite — it rewrites source files and t
 when a test layer is added, or when one is about to be trusted. Adding a layer means adding a mutant
 for it.
 
+**Read the verdict from `tests/mutation-report.json`, not from the terminal.** A run takes tens of
+minutes, and reading its result through a pipe has twice destroyed it: `tail` truncates the
+per-mutant lines *and* reports its own exit status, so a run that leaked a mutated file into the
+working tree read as a clean pass. `jq .verdict tests/mutation-report.json` is the first question;
+`leaked` means the run is void, not passing-with-a-caveat, because every mutant after the leak may
+have been caught by the leftover defect. If it does leak, `git checkout --` the named paths —
+format-on-save is the usual culprit and is worth turning off for the duration.
+
 This has found four blind spots so far, each behind a fully green suite: `D-066`, `D-058`, a rest
 threshold the differential harness could not see, and a validation rule with no test at all.

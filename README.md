@@ -53,31 +53,35 @@ Per-tenant policy lives in a profile document from day one, because across thous
 
 ## Headline results
 
-Measured on the committed set in `benchmarks/manifest.json` (seeded generator, 72 cases across
-12 scenario classes, 8–25 employees, one-week horizon), 3 solver seeds each, single-threaded.
+Measured on the committed set in `benchmarks/manifest.json` (seeded generator, 84 cases across
+14 scenario classes, 8–25 employees, one-week horizon), 3 solver seeds each, single-threaded.
 Full method, segmentation and caveats in [`docs/benchmarks.md`](docs/benchmarks.md).
 
-Weeks that were fully staffable before the disruption — 62 of the 72 cases. Every method is scored on
+Weeks that were fully staffable before the disruption — 72 of the 84 cases, at the 5 s budget. Every method is scored on
 the same D2 yardstick whatever it optimised; `changes` is assignments differing from the published
 roster, `short` is positions left unstaffed.
 
 | Method | p50 search | p95 search | Disruption (D2) | Changes | Short |
 | --- | --- | --- | --- | --- | --- |
-| Cold re-solve, cost objective | 3.35 ms | 10.4 ms | 322.8 | 13.09 | 0.16 |
-| Greedy nearest-eligible repair | — | — | 56.5 | 2.02 | 0.27 |
-| Cold solve, disruption objective | 3.30 ms | 10.8 ms | 66.1 | 2.35 | 0.16 |
-| **Warm-started replan (this)** | 3.02 ms | 8.6 ms | 66.1 | 2.35 | 0.16 |
+| Cold re-solve, cost objective | 3.61 ms | 10.5 ms | 307.3 | 12.36 | 0.15 |
+| Greedy nearest-eligible repair | — | — | 53.6 | 1.94 | 0.31 |
+| Cold solve, disruption objective | 3.58 ms | 10.7 ms | 65.3 | 2.40 | 0.15 |
+| **Warm-started replan (this)** | 3.31 ms | 8.6 ms | 65.3 | 2.40 | 0.15 |
 
 **The objective is what does the work**, not the warm start. Against a cold cost re-solve on identical
-instances with identical coverage, the disruption objective cuts the score from 323 to 66 and the
-number of people moved from 13.1 to 2.4. The warm start is worth about 9% of a 3 ms search — real,
-paired on 201 of 216 runs, and small enough that the honest framing is the one above.
+instances with identical coverage, the disruption objective cuts the score from 307 to 65 and the
+number of people moved from 12.4 to 2.4. The warm start is worth about 9% of a 3 ms search — real,
+paired on 662 of 756 runs, and small enough that the honest framing is the one above.
 
-**Greedy is not the weak baseline it looks like.** It ties the optimal replan exactly on 64 of the 72
+**Greedy is not the weak baseline it looks like.** It ties the optimal replan exactly on 71 of the 84
 cases. Its lower average disruption is bought by leaving more shifts unstaffed, which is the trade
-the shortfall weight exists to refuse. The optimiser earns its place on the 8 cases where the repair
+the shortfall weight exists to refuse. The optimiser earns its place on the 13 cases where the repair
 needs a chain — move an uninvolved person so somebody else comes free — and on never being the one to
 leave a shift uncovered.
+
+That tie rate is a property of where the set samples, not of greedy: on a slack week greedy ties every
+seed, and on a stretched one it loses half of them. The set now samples the middle of the coverage
+axis as well as its ends (`D-105`).
 
 The frontier is coverage, not cost: with a flat rate and a hard coverage ceiling, every fully staffed
 roster costs the same paid hours, so the cost axis collapses. See
