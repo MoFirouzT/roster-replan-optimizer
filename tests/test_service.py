@@ -27,6 +27,7 @@ import pytest
 
 from benchmarks import suite
 from roster_replan.service import contracts, jobs
+from benchmarks.studies import identical_workforce
 from roster_replan.service.app import create_app
 
 
@@ -377,3 +378,27 @@ async def test_validate_profile_reports_without_saving(client, scenario):
 
     assert body["lawful"] is True
     assert body["defects"] == []
+
+
+@pytest.mark.anyio
+async def test_generation_goes_through_the_replan_endpoint(client):
+    """Generation is a replan with an empty incumbent (`replan.md`, `D-109`), so it needs no
+    second route — a caller generates by omitting `incumbent` and `now`.
+
+    Asserted here rather than only at the model layer because "no second formulation" is a
+    claim about the *product surface* as much as about the solver: if the service could not
+    carry a cold payload, the claim would be true of `solve` and false of the thing callers
+    actually use.
+    """
+    cold = identical_workforce(6, required=1)
+    body = contracts.ReplanRequest(
+        tenant="acme", instance=contracts.from_domain(cold), seed=7
+    ).model_dump()
+
+    posted = await client.post("/v1/replans", json=body)
+    assert posted.status_code == 202
+
+    job = await _drain(client, posted.json()["id"])
+    assert job["state"] == jobs.SUCCEEDED
+    assert job["answer"]["rung"] == "exact"
+    assert len(job["answer"]["roster"]) == sum(o.required for o in cold.open_shifts)

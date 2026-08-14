@@ -2471,3 +2471,46 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   `D-087` used for symmetry breaking — a lever needs an instance that contains the structure it
   exploits before a null over the committed set means anything.
 - **Date.** 2026-08-14.
+
+## D-109 — Generation ships as the cold-start case, and the spec's derivation of it was wrong
+
+- **Decision.** Generation mode is T5's last item and needs no formulation, no mode flag and no second
+  route: a caller omits `incumbent` and `now`, and validation already accepts that as a cold solve.
+  What ships is the claim made **testable** — `tests/test_generation.py` holds it at the solver, the
+  ladder and the service — plus a correction to the derivation `replan.md` had been carrying.
+- **Alternatives.** Add a `/v1/rosters` endpoint, or a `mode: "generate"` field, so the capability is
+  visible in the API rather than implied by two omitted fields.
+- **Reason.** A second route over the same solve would contradict the thing this design is *for*.
+  `replan.md`'s argument is that generation is not a special case, and the honest way to ship that is
+  to prove the existing surface carries it, not to add a surface that implies otherwise. The service
+  test is the load-bearing one: "no second formulation" would be true of `solve` and false of the
+  product if a cold payload could not get through the queue, and nothing had ever checked.
+
+  **Testing it found the spec wrong about why it works.** The derivation said cold disruption is a
+  positive constant — every assignment an add at `draft_weight`, the count pinned by coverage — and
+  that a shortfall would reduce it, with `D-057`'s domination bound stopping that from mattering.
+  Measured, `scoring.disruption_of` short-circuits to **0** when there is no incumbent, so the
+  disruption axis is flat at every coverage level. Both readings rank equal-coverage rosters the same
+  way, which is why nobody noticed, but they are different claims and only one of them is the code's.
+
+  The consequence is that the caveat was describing a risk the implementation cannot have: **a cold
+  shortfall buys nothing on the disruption axis**, because there is nothing there to buy. The
+  shortfall term still prices the missing coverage. The true statement is narrower than the one the
+  spec made, and narrower is the point.
+- **Consequences.** With disruption flat and `cost_weight` at `0` (`D-050`), the objective a cold
+  solve minimises is **entirely the peak-workload tie-breaker** — measurably so: on a cold week the
+  tie-breaker's value *is* the objective value. `replan.md` said generation "reduces to cost", which
+  is true only once wage data exists; today it reduces to the term beneath cost. That is a second
+  place where a spec sentence was accurate in principle and vacuous in practice, and `D-050` is
+  already the record for why.
+
+  Generation reaches the `exact` rung, and keeps the ladder's "never return nothing" promise for a
+  reason worth restating: a cold solve cannot be infeasible, because the empty roster satisfies every
+  hard rule once the coverage floor is soft (`D-018`). The lower rungs remain replan-only — greedy
+  repairs an incumbent and last-known-good returns one — so generation does not gain a fallback, it
+  simply never needs one.
+
+  **T5 is now closed.** LNS and learned warm starts retired on measurement (`D-104`, `D-105`),
+  fairness objectives shipped (`D-108`), generation shipped here. Nothing in `PLAN.md` remains
+  unbuilt except the items `finish.md` lists as externally blocked.
+- **Date.** 2026-08-14.

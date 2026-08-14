@@ -94,9 +94,9 @@ T4 (infeasibility explainer, tool surface, NL → profile) and T5 (LNS, generati
 starts, fairness objectives). `PLAN.md`: *T3 is a legitimate finish. T4 and T5 are upside, each
 independently shippable.*
 
-*(T4 was built after this declaration and is described in the postscript below. Half of T5 was
-retired on measurements this project had already taken — `D-104` — and fairness objectives shipped,
-`D-108`. Generation mode is the last item left in it.)*
+*(T4 was built after this declaration and is described in the postscript below. T5 is closed too:
+LNS and learned warm starts retired on measurement — `D-104`, `D-105` — with fairness objectives and
+generation mode built, `D-108` and `D-109`.)*
 
 ## "All specs true", and how far that is checkable
 
@@ -206,7 +206,12 @@ replan makes, but who works the shifts nobody wants, across weeks. Unpopularity 
 profile rather than derived from the clock, and the domination bound grew a term because an unstaffed
 unpopular shift is one nobody's count went up for.
 
-Generation mode stays open, and is the last item left in T5.
+**Generation mode shipped** (`D-109`), and with it T5 is closed: LNS and learned warm starts retired
+on measurement, fairness objectives and generation built. Generation needed no formulation — it is a
+replan from an empty incumbent, and what shipped is the claim made testable at the solver, the ladder
+and the service. Testing it corrected the spec: cold disruption is flat at zero rather than the
+positive constant `replan.md` derived, so the shortfall caveat it carried describes a risk the
+implementation cannot have, and what actually ranks a cold roster is the peak-workload tie-breaker.
 
 **The mutation harness was run in full**, for the first time since T4's layers landed: 80 mutants,
 all caught by the layer named to catch them. Four of those are the parse layer's, and the first
@@ -214,10 +219,10 @@ restores `D-101`.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 741 |
+| Tests | 567 | 752 |
 | Mutants | 59 | 87 |
 | Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 108, none open |
+| Decision records | 94, 2 open | 109, none open |
 | Studies, including nulls | 8 | 11 |
 | Python | ~12,000 lines | ~17,100 lines |
 

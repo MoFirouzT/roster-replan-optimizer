@@ -1,10 +1,10 @@
-"""The committed benchmark set: twelve scenario classes, six seeds each.
+"""The committed benchmark set: fourteen scenario classes, six seeds each.
 
     uv run python -m benchmarks.suite --write
 
 **The set is defined by its seeds, not by serialised instances.** Generation is
 deterministic, so a class name plus a seed names an instance exactly, and the only
-thing committed is a manifest of fingerprints rather than 72 payloads. The diff stays readable,
+thing committed is a manifest of fingerprints rather than 84 payloads. The diff stays readable,
 which is the property that decides whether anyone looks at it.
 
 That trade has one exposure, and the manifest is shaped around it: if the generator

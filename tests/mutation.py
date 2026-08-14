@@ -825,6 +825,26 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if unset_want and not unset_have:\n            pass",
         "tests/test_nl.py",
     ),
+    # --- Generation (the cold-start case) ------------------------------------------------
+    # The first mutant is the interesting one: it makes the code do what `replan.md` used to
+    # *derive* -- cold disruption as a positive constant rather than flat zero. `D-109` found
+    # that gap by measuring, and this is it turned into a defect the layer has to see.
+    Mutant(
+        "generation-cold-disruption-is-not-flat",
+        "generation",
+        SCORING,
+        "    if instance.incumbent is None:\n        return 0",
+        "    if False:\n        return 0",
+        "tests/test_generation.py",
+    ),
+    Mutant(
+        "generation-loses-its-only-tie-breaker",
+        "generation",
+        DISRUPTION,
+        "        terms.append(params.peak_weight * _peak(model, instance, x))",
+        "        terms.append(0 * _peak(model, instance, x))",
+        "tests/test_generation.py",
+    ),
     # --- Fairness ----------------------------------------------------------------------
     # The dangerous defect is not a wrong score, it is a term that prices correctly and
     # steers nothing, or one that outbids coverage. Both look like a working feature.
@@ -964,6 +984,28 @@ def write_report(report: dict, path: pathlib.Path = REPORT) -> pathlib.Path:
     return path
 
 
+def _late_restore(originals: dict) -> list[str]:
+    """Put back anything that drifted after its own restore verified. Returns what drifted.
+
+    A format-on-save watcher reads the file when the mutation lands and writes its result
+    some time later, which can be after `_restore` has already checked and returned. That
+    has now happened twice, to `disruption.py` and to `benchmarks/suite.py`, and each time
+    it voided a run that was otherwise complete.
+
+    Restoring here is safe in a way `git checkout --` is not: the text being written back
+    is what this process read before it touched the file, so uncommitted work is preserved
+    rather than discarded. The drift is still **reported** -- self-healing quietly would
+    hide a real harness bug behind a plausible excuse.
+    """
+    drifted = []
+    for relative, text in sorted(originals.items()):
+        path = ROOT / relative
+        if path.read_text() != text:
+            path.write_text(text)
+            drifted.append(relative)
+    return drifted
+
+
 def _dirty(paths: list[str]) -> set[str]:
     """Which of these paths git already considers modified."""
     result = subprocess.run(
@@ -973,10 +1015,17 @@ def _dirty(paths: list[str]) -> set[str]:
     return {line[3:].strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def run(mutant: Mutant, *, full: bool) -> tuple[bool, list[str], str]:
-    """Apply, test, restore. Returns (caught, failing tests, note)."""
+def run(mutant: Mutant, *, full: bool, originals: dict | None = None) -> tuple[bool, list[str], str]:
+    """Apply, test, restore. Returns (caught, failing tests, note).
+
+    `originals` collects each touched file's pre-run text so `main` can sweep at the end.
+    `_restore` verifies, and has still been beaten twice by an editor writing back the
+    mutated text *after* that check returned -- see `_late_restore`.
+    """
     path = mutant.target()
     original = path.read_text()
+    if originals is not None:
+        originals.setdefault(mutant.path, original)
     if original.count(mutant.old) != 1:
         return False, [], f"anchor matched {original.count(mutant.old)} times, so nothing was tested"
 
@@ -1039,10 +1088,39 @@ def main() -> int:
         print(f"note: already modified, so the final clean-tree check skips them: "
               f"{', '.join(sorted(already))}\n")
 
+    # Pre-flight. A mutant whose anchor is missing means one of two things and both are
+    # worth stopping a forty-minute run for: a payload leaked from an earlier run and is
+    # sitting in the tree, or the source moved and the mutant is stale. The first has now
+    # happened three times -- an editor's format-on-save watcher writing the mutated text
+    # back *minutes* after the run that produced it had finished, into an idle tree, where
+    # no end-of-run sweep can reach it.
+    stale = []
+    for mutant in chosen:
+        text = mutant.target().read_text()
+        if text.count(mutant.old) != 1:
+            stale.append(f"{mutant.name} ({mutant.path})")
+    if stale:
+        print("!! refusing to start: these mutants cannot find their anchor —")
+        for line in stale:
+            print(f"!!   {line}")
+        print("!! either a payload leaked into the tree, or the source moved and the mutant")
+        print("!! is stale. `git diff` the named files; format-on-save is the usual culprit.")
+        return 2
+
     print(f"{len(chosen)} mutants; each expects its own layer to object.\n")
     results = []
+    originals: dict[str, str] = {}
+    late: list[str] = []
     for mutant in chosen:
-        caught, failed, note = run(mutant, full=args.full)
+        # Before each mutant, not only at the end. A late write lands *after* its own
+        # restore verified, so the file stays wrong until something notices -- and every
+        # mutant that runs meanwhile is tested against source nobody chose. Sweeping here
+        # bounds that window to a single mutant instead of to the rest of the run.
+        drifted = _late_restore(originals)
+        if drifted:
+            late.extend(d for d in drifted if d not in late)
+            print(f"          ! late write to {', '.join(drifted)}, restored before this mutant")
+        caught, failed, note = run(mutant, full=args.full, originals=originals)
         status = "CAUGHT" if caught else "SURVIVED"
         print(f"{status:9s} {mutant.name}")
         if note:
@@ -1064,12 +1142,21 @@ def main() -> int:
         )
 
     print()
+    for path in _late_restore(originals):
+        if path not in late:
+            late.append(path)
+    if late:
+        print(f"note: restored after a late write to {', '.join(sorted(late))} — an editor "
+              f"wrote back after the per-mutant check passed. The window is bounded to one "
+              f"mutant, but turning format-on-save off is the actual fix.\n")
+
     report = summarise(
         results,
         leaked=sorted(_dirty(touched) - already),
         skipped=sorted(already),
         full=args.full,
     )
+    report["restored_after_a_late_write"] = late
     # Written before every return below, so the verdict survives a truncated terminal, a
     # closed pager, or a pipe that reports its own exit status instead of this one.
     write_report(report, args.report)

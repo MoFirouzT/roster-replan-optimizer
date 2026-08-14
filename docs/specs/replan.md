@@ -299,19 +299,36 @@ the model costs about 5 ms. The objective is what carries the result: it cuts me
 changes the answer, which is asserted rather than assumed — a hint implemented as a constraint would
 return the best roster that keeps the damage and report it as the optimum.
 
-## Generation as cold start
+## Generation as cold start `[shipped]`
 
-Generation is a replan from an empty incumbent. No separate formulation, and now the reason can be
-stated rather than asserted:
+Generation is a replan from an empty incumbent. No separate formulation, no mode flag, and no second
+route: a caller generates by omitting `incumbent` and `now`, which input validation already accepts as
+a cold solve. `tests/test_generation.py` holds the claim at the solver, the ladder and the service,
+because "one formulation" is a statement about the product surface as much as about `solve`.
 
-With `x̄ = ∅` every assignment is an add on an unpublished slot, so every change carries the same weight
-`draft_weight`, and the number of changes equals the number of assignments — which coverage pins.
-Disruption is therefore **constant across all rosters achieving the same coverage**, and the objective
-reduces to cost. The metric does not need a special case because it degenerates into one.
+The argument for the degeneracy was originally derived and is now measured, and the two disagree in a
+way worth keeping visible (`D-109`).
 
-One caveat, since the constancy is not quite unconditional: rosters with *different* coverage outcomes
-have different assignment counts, so a shortfall would reduce disruption. The domination bound above is
-what stops that mattering, which is the same bound for the same reason.
+**Derived:** with `x̄ = ∅` every assignment is an add on an unpublished slot, so every change carries
+`draft_weight`, the number of changes equals the number of assignments, and coverage pins that.
+Disruption would then be a positive constant across all rosters achieving the same coverage.
+
+**Implemented:** `scoring.disruption_of` returns **0** when there is no incumbent — deviation from
+nothing is nothing — so cold disruption is not a constant proportional to the roster, it is flat at
+zero everywhere. Both readings rank equal-coverage rosters identically, which is why the difference
+went unnoticed, and the second is what the code does.
+
+The difference matters for the caveat the derivation carried. It used to say that rosters with
+*different* coverage have different assignment counts, so a shortfall would reduce disruption, and
+that the domination bound is what stops that mattering. **As implemented that cannot arise**: the
+disruption axis is flat at every coverage level, so a shortfall buys nothing on it. The shortfall term
+still prices the missing coverage — the narrower true statement is that the domination bound does no
+work *on the disruption axis* of a cold solve.
+
+**What ranks a cold roster is therefore the tie-breaker.** Disruption is flat and `cost_weight` ships
+at `0` (`D-050`), so the peak-workload term is the entire objective — measurably, not in principle:
+on a cold week its value *is* the objective value. The spec used to say generation "reduces to cost";
+it reduces to cost only once there is wage data, and today it reduces to the term beneath it.
 
 A cold solve also needs a tie-breaker, because cost is indifferent to *who* works. A small
 peak-workload term serves: it is a tie-breaker for plausibility, explicitly **not** a fairness model.
