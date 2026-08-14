@@ -194,6 +194,19 @@ sends. The shortfall is the honest outcome: E03 called in sick and **nobody coul
 them** — the explanation says why, person by person, and every line is derived rather than phrased
 by a model.
 
+Everything above — and the whole test suite — runs with no API key. One script does not:
+
+```bash
+cp .env.example .env          # paste a key into it; .env is gitignored
+uv sync --extra nl
+uv run python -m benchmarks.nl_eval --free-form -k rest-plain   # one call, a few cents
+uv run python -m benchmarks.nl_eval                             # 18 calls, well under a dollar
+```
+
+That is the natural-language parse measured against text its author did not render
+([`D-102`](docs/decisions.md)). It is a script rather than a test because it costs money and
+because a result that depends on a model does not belong in a suite that must be reproducible.
+
 ## Repository map
 
 ```text
@@ -224,6 +237,7 @@ benchmarks/
   generator.py             seeded instance generator
   manifest.json            the committed set, as seeds and fingerprints
   milp.py                  the MILP formulation, for D-001
+  nl_eval.py               the parse against free-form text — needs a key, so not in the suite
 docs/
   specs/                   rules.md · model.md · replan.md · validation.md · config.md · service.md · capture.md
   decisions.md             what was chosen, what was rejected, why

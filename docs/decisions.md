@@ -2165,3 +2165,124 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   it would be worth: over canonical English it is close to a tautology, and the version that means
   something needs free-form descriptions.
 - **Date.** 2026-08-14.
+
+## D-102 — The parse eval scores what was invented, not only what was found
+
+- **Decision.** `benchmarks/nl_eval.py` scores every case against a **complete** expected payload:
+  a field the text did not mention must come back unset, and a parse that fills one is reported as
+  `invented` rather than as a near miss. The round trip `config.md` asked for is built as well, kept
+  despite being close to a tautology, and reported separately rather than folded into one number.
+- **Alternatives.** Score recall on the fields each case mentions, which is what an extraction eval
+  usually does. Ship only the round trip, which was the promise. Ship only the free-form half, since
+  the round trip proves little.
+- **Reason.** Recall measures the wrong failure. A parse that misses a stated rule produces a
+  profile the tenant can see is incomplete; a parse that supplies eleven hours nobody mentioned
+  produces one that looks exactly like a policy they wrote, and the rule is enforced against real
+  people until somebody reads the document closely. The prompt already forbids supplying defaults
+  and `to_profile` treats unset as inheritance — this is the measurement that would catch either of
+  them being wrong, so it has to be able to fail in that direction.
+
+  Keeping the round trip is a smaller point with the same shape. It cannot prove comprehension —
+  same author both sides — but it does prove **coverage**: a field `describe` forgets, or one the
+  schema cannot hold, does not come home. Its profiles disagree with the shipped figures for the
+  reason `D-101` gives, and the same claim is asserted with no API in `tests/test_nl.py`, so the
+  live run adds exactly one thing: whether a model can read the rendering back.
+
+  Four cases state no policy at all. They ask for a weight `D-057` bounds, for a rule `D-099` leaves
+  unencoded, and once as an instruction rather than a description. Those are the cases that test the
+  claim worth testing — that confinement is structural — and the only correct answer to each is to
+  report it as something the schema cannot say.
+- **Consequences.** The eval needs a key and is not part of the suite, so its scoring is what breaks
+  silently. `tests/test_nl.py` therefore tests the scorer: invented and missed are distinguished,
+  `unclear` is scored present-or-absent because its wording is the model's, and the round trip is
+  shown failing. **An eval that cannot fail measures nothing**, and this one is only ever read when
+  it disagrees with a model.
+
+  Two things it does not prove, stated here rather than discovered later. It does not measure Dutch
+  beyond two cases, which is a smoke test and not a claim about the language. And every expected
+  payload is one reading of an ambiguous sentence — a disagreement is a finding to argue with, not
+  automatically a defect in the parse.
+
+  Not run at the time of writing: this machine has no key. The result belongs in
+  `docs/studies/nl-parse.md` and in the studies index when it is.
+- **Date.** 2026-08-14.
+
+## D-103 — `unclear` is for what could not be said, not for what was assumed
+
+- **Decision.** `StatedPolicy.unclear` carries only what the schema cannot express or what the text
+  leaves unresolved. An assumption the parse **resolved** belongs in the field it resolved to, and a
+  silence is not unclear — an unset field already reports that the text did not mention it. The
+  field description and `SYSTEM` say so, and `PROMPT_VERSION` moved to `nl-2026.2`.
+- **Alternatives.** Leave the description as it was and relax the eval, since both failing cases had
+  extracted every figure correctly. Score `unclear` only on the cases that ask for something
+  unsayable, and ignore it elsewhere.
+- **Reason.** Measured (`studies/nl-parse.md`). The first run scored 16 of 18, and **both failures
+  were this field** — the figures were right in every case. *"Less than a day's warning ... four
+  times as bad"* parsed to 24 hours and a multiplier of 4, and then filed a note saying a day had
+  been interpreted as 24 hours. A shift catalogue parsed correctly and then filed the text's
+  silences: no weekly rest stated, no minimum shift length stated, and so on.
+
+  The old wording invited it — *"anything the text asks for that this schema cannot express, or that
+  is genuinely ambiguous"* reads perfectly well as *log every assumption you made*. So this is a
+  defect in the schema rather than in the model, which is the reason it is fixed there.
+
+  It matters because of what the field is **for**. A planner reads `unclear` to find the one thing
+  the system could not take on. A profile that parsed cleanly and comes back with five caveats about
+  what the text did not say trains them to skim the field, and the note that mattered — in the same
+  run, that a Late shift ending at 23:00 before an Early at 07:00 leaves eight hours of rest — is the
+  one they skim past.
+- **Consequences.** The eval scores `unclear` as present-or-absent on every case, including the ones
+  that should report nothing. That strictness is deliberate: it is what turned a pair of passes into
+  a finding. Both cases passed on re-run with the extraction unchanged, so the correction cost
+  nothing in what the parse reads.
+
+  One failure in that run was **the eval's fault and is recorded as such**: shift labels came back
+  `early` and `late` where the eval expected `Early` and `Late`, from a text reading *"an early one
+  ... and a late one"*. The schema calls that field the tenant's own name for the shift, so the
+  model's casing is at least as faithful as the author's. Labels are now compared without case.
+  `D-102` said in advance that a disagreement is a finding to argue with rather than a defect; this
+  is that clause being used, and it went both ways in the same run.
+
+  `PROMPT_VERSION` exists for exactly this and has now been exercised once: a proposal made before
+  today carries `nl-2026.1` and is not comparable with one made after it.
+- **Date.** 2026-08-14.
+
+## D-104 — Two of T5's four items are retired on measurements already taken
+
+- **Decision.** **LNS and learned warm starts are retired**, not deferred: this project will not
+  build them, and the reason is measurement rather than scope. **Generation mode and fairness
+  objectives stay open** — nothing here has measured them, and they are product capabilities rather
+  than solver improvements. `PLAN.md` is archived and is not edited; this record is where T5 now
+  stands, alongside the postscript in `finish.md`.
+- **Alternatives.** Retire T5 whole, which is the tidier story. Leave all four open, on the grounds
+  that upside costs nothing to keep listed.
+- **Reason.** **Large-neighbourhood search improves a solution the solver cannot prove optimal in
+  the time available. Neither half of that sentence is true here.** The time-budget study ran 2,160
+  solves at 1s, 5s and 30s and **every one returned `OPTIMAL`**, longest search 12.4 ms. There is no
+  quality gap for a neighbourhood search to close and no time pressure creating one. Greedy repair —
+  solver-free, by contract — already **ties the optimum on 64 of 72 committed cases** (`D-083`),
+  which says the same thing from the other end: this instance distribution is not hard.
+
+  **Learned warm starts are the weaker of the two.** `D-082` measured warm starting at **9% of
+  search time**, invisible end to end, on a search that runs in milliseconds. Learning a better one
+  optimises nine per cent of twelve milliseconds. The machinery to train it would exceed the thing
+  it optimises by orders of magnitude, and the project has already rejected three levers on smaller
+  margins than that (`D-087`, `D-088`, `D-089`).
+
+  Keeping the other two is not hedging. **Generation mode** — building a roster with no incumbent —
+  is a mode this system can already solve for, since the cold cost baseline in `benchmarks.md` does
+  exactly that; what is missing is the product surface, not the capability. **Fairness objectives**
+  are untouched by anything measured here: `D-091`'s round-robin fairness is across *tenants in the
+  queue*, and says nothing about how unsocial shifts fall across *people*, which is the fairness a
+  planner and a works council actually argue about.
+- **Consequences.** What would reopen LNS is stated, so the retirement is falsifiable rather than
+  final: **a distribution where the solver stops proving optimality.** Longer horizons than one
+  week, tenants past the 8–25 employee range, or a cost axis with real wage data — any of those
+  could produce instances where a neighbourhood search has something to do. The measurements above
+  are about *this* distribution, and `D-086` and `D-089` already record the same limitation for
+  other levers.
+
+  This also removes the last reason to treat the benchmark set as fixed. It was built to compare
+  methods; a distribution that never produces a hard instance is now a finding about the generator
+  rather than a property of the problem.
+- **Date.** 2026-08-14.

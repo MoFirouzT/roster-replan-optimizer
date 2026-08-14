@@ -54,7 +54,7 @@ MODEL = "claude-opus-5"
 # Bumped whenever SYSTEM or the schema changes. `config.md` requires the model and prompt
 # version to travel with a config change, for the same reason a solve carries its seed and
 # profile version: an output nobody can reproduce cannot be argued with later.
-PROMPT_VERSION = "nl-2026.1"
+PROMPT_VERSION = "nl-2026.2"
 
 SYSTEM = """\
 You convert a scheduling policy written in plain language into a structured profile.
@@ -62,7 +62,8 @@ You convert a scheduling policy written in plain language into a structured prof
 Extract only what the text states or clearly implies. Do not supply industry defaults for
 anything the text is silent about — leave those fields unset. A tenant who does not mention
 weekly rest has not agreed to a weekly rest rule, and inventing one imposes a constraint
-nobody asked for.
+nobody asked for. Leaving a field unset is how you report a silence; do not also describe
+the silence in `unclear`.
 
 Belgian labour law sets statutory minima (11 hours between shifts, 35 hours of weekly rest).
 A policy may state a shorter period only under a recorded derogation; if the text mentions
@@ -146,8 +147,10 @@ class StatedPolicy(BaseModel):
     unclear: list[str] = Field(
         default_factory=list,
         description=(
-            "Anything the text asks for that this schema cannot express, or that is genuinely "
-            "ambiguous. Report it here rather than guessing"
+            "Only what this schema cannot express, or what the text leaves genuinely "
+            "unresolved. Not an assumptions log: if you resolved a phrase to a figure and "
+            "filled the field, it does not belong here. Nor is a silence unclear — an "
+            "unset field already reports that the text did not mention it"
         ),
     )
 
@@ -240,6 +243,65 @@ def to_profile(stated: StatedPolicy, *, version: str, base: Profile | None = Non
 
 def _or(value, fallback):
     return fallback if value is None else value
+
+
+def describe(profile: Profile) -> str:
+    """A profile in canonical English — the other half of `config.md`'s round trip.
+
+    Deliberately flat and repetitive. This is not the prose a tenant should read; it is the
+    text `parse` is asked to read back, and a sentence written to sound natural is a
+    sentence that makes a failed round trip ambiguous between the renderer and the parse.
+
+    **What the round trip proves is coverage, not comprehension** — author and reader are
+    the same person here, which is why `config.md` calls it close to a tautology. What it
+    does catch is a field this renderer forgets: the value silently falls back on the way
+    home, and the profiles it is run against disagree with the shipped defaults precisely so
+    that fallback is visible.
+    """
+    params = profile.params
+    lines = []
+
+    if profile.shift_types:
+        shifts = "; ".join(
+            f"{s.label} starts at {_clock(s.start_hour)} and lasts {s.span_hours:g} hours"
+            + (f", including {s.break_hours * 60:g} minutes of unpaid break" if s.break_hours else "")
+            for s in profile.shift_types
+        )
+        lines.append(f"The shifts we run are: {shifts}.")
+
+    lines.append(
+        f"There must be at least {params.min_rest_hours:g} hours between the end of one "
+        f"shift and the start of the next."
+    )
+    lines.append(
+        f"Everyone must get at least {params.min_weekly_rest_hours:g} hours of unbroken "
+        f"rest each week."
+    )
+    lines.append(f"We never roster a shift shorter than {params.min_period_hours:g} hours.")
+    if params.max_consecutive_days is not None:
+        lines.append(f"Nobody works more than {params.max_consecutive_days} days in a row.")
+
+    for name, basis in sorted(params.derogation_basis.items()):
+        lines.append(f"Our figure for {name} is permitted under {basis}.")
+
+    bands = profile.disruption.notice_bands
+    if bands:
+        lines.append(
+            f"Changing a shift less than {bands[0].within_hours:g} hours beforehand is "
+            f"{bands[0].multiplier} times as bad as changing it with more notice."
+        )
+
+    return "\n".join(lines)
+
+
+def _clock(hours: float) -> str:
+    """Local rather than borrowed from `prose.py`, where it is private.
+
+    Three lines of formatting duplicated is not the sharing the independence rule is about
+    — that rule is about thresholds, where a shared constant hides a disagreement.
+    """
+    minutes = int(round(hours * 60)) % (24 * 60)
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
 
 class Proposal:

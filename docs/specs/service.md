@@ -1,7 +1,7 @@
 # Service
 
-> **Status: built.** `roster_replan/service/` — contracts, job queue, endpoints, telemetry.
-> The tool surface remains T4. Reconciled with the code; `[TODO]`s below are what is not built.
+> **Status: built.** `roster_replan/service/` — contracts, job queue, endpoints, telemetry, and the
+> tool surface. Reconciled with the code; `[TODO]`s below are what is not built.
 
     uv run uvicorn roster_replan.service.app:app
 
@@ -196,3 +196,10 @@ available from a tool a planner might trust.
 Everything around the solver stays deliberately boring — endpoints, validation, queue handling,
 error mapping — so a non-specialist can read and change it. The intricate part is small and heavily
 tested.
+
+**No language model is reachable from here.** `config.md` puts the parse outside the service, and
+that is an import-linter contract rather than a convention (`D-101`): `roster_replan.service` may
+not import `roster_replan.nl` or `anthropic`. The SDK is an optional extra, so the service would
+otherwise acquire a dependency that has to be installed before it can start — and the tool surface
+would have a route whose availability depends on a key. Everything this service answers is derived,
+and `D-013` is what makes that worth stating twice.

@@ -62,11 +62,26 @@ Four stages. Each rejects into the previous. The LLM is confined to stage 1.
 
 Config errors are caught at configuration time, not at 9am on a Saturday.
 
-**Round-trip eval `[not built]`:** profile → rendered to English → re-parsed must equal the original
-profile. Stage 1 exists now, so this is possible rather than blocked — and still not run. Worth
-stating precisely what it will and will not prove: a round trip over *canonical* English tests a
-renderer against its own parser, which is close to a tautology. The eval that means something takes
-**free-form** descriptions and checks the parse, and that needs a model to produce them.
+**Eval `[built, run]`:** `benchmarks/nl_eval.py` — **18/18 on three consecutive runs**, after 16/18
+and one correction to this spec's own schema ([`studies/nl-parse.md`](../studies/nl-parse.md),
+`D-103`). It costs API calls, so
+it is a script rather than part of the suite, and it comes in two halves that are reported
+separately because they are worth different things.
+
+The **round trip** — `describe` renders a profile to canonical English, `parse` reads it back — is
+close to a tautology: the renderer and the parser have the same author, so agreement says little
+about English. It is kept because it proves something else, **coverage**: a field the renderer
+forgets, or one the schema cannot carry, does not survive the trip. Its profiles deliberately
+disagree with the shipped figures, since a value dropped from a profile that matches the defaults
+comes home anyway. That claim is also asserted without an API in `tests/test_nl.py`, so the live run
+only adds *can the model read it back*.
+
+The **free-form** half is the one that means something. Its cases are written as a tenant would say
+it, in English and Dutch, and each case declares the **whole** expected payload — so the eval scores
+what the parse invented as well as what it found (`D-102`). Four cases state no policy at all: they
+ask for an objective weight, for an unencoded optional rule, and once in the imperative voice of an
+instruction rather than a description. `D-101` argues the schema makes those impossible rather than
+discouraged; those cases put the argument to the model.
 
 **Guardrails.** The LLM sits outside the solver service; the stateless payload-in/payload-out
 property is preserved. Model, prompt version and raw response are persisted with every config

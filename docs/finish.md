@@ -90,7 +90,8 @@ T4 (infeasibility explainer, tool surface, NL → profile) and T5 (LNS, generati
 starts, fairness objectives). `PLAN.md`: *T3 is a legitimate finish. T4 and T5 are upside, each
 independently shippable.*
 
-*(T4 was built after this declaration and is described in the postscript below. T5 stands.)*
+*(T4 was built after this declaration and is described in the postscript below. Half of T5 was
+retired on measurements this project had already taken — `D-104`.)*
 
 ## "All specs true", and how far that is checkable
 
@@ -153,6 +154,7 @@ rather than rewriting a record of what was true on 2026-08-13.
 | Tool surface and hypotheticals | [`service/tools.py`](../roster_replan/service/tools.py), [`whatif.py`](../roster_replan/whatif.py) | `D-098` — unlawful hypotheticals are refused, not answered |
 | Profile review | [`profile.py`](../roster_replan/profile.py) | `D-099` — deterministic, and enabling an unencoded rule is a defect |
 | NL → profile | [`nl.py`](../roster_replan/nl.py) | `D-101` — the schema is the confinement, and an open mapping is not a schema |
+| Parse eval | [`nl_eval.py`](../benchmarks/nl_eval.py) | `D-102` — score what was invented, not only what was found |
 
 **The two open decisions are written.** `D-012` and `D-013` were the only entries left in the Open
 table, and both were writable once the boundary they describe existed. The table is now empty.
@@ -165,21 +167,45 @@ defect rather than a null: the derogation field the prompt asked the model to fi
 object that **could hold nothing**, and every behavioural test passed over it, because a stub returns
 what the test hands it. The layer now reads the compiled schema.
 
+**The parse has been measured.** `benchmarks/nl_eval.py` scores **18/18 on three consecutive runs**,
+after 16/18 on the first ([`studies/nl-parse.md`](studies/nl-parse.md)). It found one real defect and one of its own:
+`unclear` had been specified in a way that invited an assumptions log, so a profile that parsed
+perfectly came back with caveats about what the text did not say (`D-103`); and the eval had scored
+its author's capitalisation of a shift label as the correct one. The extraction itself was right in
+every case on the first run, Dutch and adversarial cases included.
+
+What that does **not** establish is stated in the study and belongs here too: fifteen cases written
+by the same person who wrote the parser and the prompt. It is the incumbent problem from
+[`benchmarks.md`](benchmarks.md) one layer up — **the text is text this system imagined**, not what
+a Belgian horeca operator would send. Two Dutch cases are a smoke test, and a single run says
+nothing about whether the same text parses the same way twice.
+
 **What is still not done.** Everything in *What is not done* above stands: capture and replay, the
-cost axis, the service `[TODO]`s, and the five unencoded optional rules. Two things are added to it:
-the round-trip eval in `config.md` is now possible and still not run, and **`nl.py` has never been
-run against the real API** — it is exercised end to end with a stub, so what is proven is the
-confinement and the plumbing, not the parse quality. That is the same gap as the incumbent one in
-[`benchmarks.md`](benchmarks.md), one layer up: the machinery is tested against inputs this system
-produced.
+cost axis, the service `[TODO]`s, and the five unencoded optional rules.
+
+**Half of T5 is retired rather than pending** (`D-104`). LNS improves a solution the solver cannot
+prove optimal in the time available, and neither half of that is true here — 2,160 solves returned
+`OPTIMAL`, longest search 12.4 ms, and solver-free greedy already ties the optimum on 64 of 72
+cases. Learned warm starts would optimise the 9% of search time `D-082` measured, on a search that
+takes milliseconds. Both are struck from the plan; a distribution where the solver stops proving
+optimality is what would reopen them.
+
+Generation mode and fairness objectives stay open, because nothing measured here touches them. The
+fairness T3 shipped is round-robin across *tenants in the queue* (`D-091`) and says nothing about
+how unsocial shifts fall across *people*, which is the fairness a works council argues about.
+
+**The mutation harness was run in full**, for the first time since T4's layers landed: 80 mutants,
+all caught by the layer named to catch them. Four of those are the parse layer's, and the first
+restores `D-101`.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 694 |
-| Mutants | 59 | 80 |
+| Tests | 567 | 709 |
+| Mutants | 59 | 83 |
 | Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 99, none open |
-| Python | ~12,000 lines | ~16,500 lines |
+| Decision records | 94, 2 open | 104, none open |
+| Studies, including nulls | 8 | 11 |
+| Python | ~12,000 lines | ~17,100 lines |
 
 ## Archived
 

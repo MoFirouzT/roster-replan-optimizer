@@ -149,6 +149,20 @@ def test_the_prompt_forbids_supplying_defaults():
     assert "Do not supply industry defaults" in nl.SYSTEM
 
 
+def test_a_silence_is_not_reported_as_unclear():
+    """`D-103`, measured: the old wording invited an assumptions log, so a profile that
+    parsed perfectly came back with caveats about what the text did not say.
+
+    Asserted against the prompt and the schema rather than against a parse, because the only
+    thing that can quietly undo it is someone rewriting either one — and the eval that would
+    notice costs money and is not in this suite.
+    """
+    assert "do not also describe" in nl.SYSTEM
+    described = nl.StatedPolicy.model_fields["unclear"].description
+    assert "not an assumptions log" in described.casefold()
+    assert "silence" in described.casefold()
+
+
 # --- Silence, and what it inherits ---------------------------------------------------
 
 
@@ -265,6 +279,88 @@ def test_a_shorter_period_with_no_basis_is_refused(base, sample):
     assert any("derogation" in d.message for d in proposal.probe.defects)
 
 
+# --- The renderer, and the half of the round trip that needs no API -------------------
+
+
+@pytest.fixture
+def distinctive(base):
+    """A profile whose every figure is unique and unlike the shipped defaults.
+
+    Both properties are load-bearing. Unique, so a rendered figure cannot be satisfied by
+    some other number that happens to appear; unlike the defaults, so a value the renderer
+    drops does not come home anyway on the fallback path.
+    """
+    return dataclasses.replace(
+        base,
+        params=dataclasses.replace(
+            base.params,
+            min_rest_hours=13.0,
+            min_weekly_rest_hours=41.0,
+            min_period_hours=6.0,
+            max_consecutive_days=5,
+            derogation_basis={"min_rest_hours": "CAO 302 article 12"},
+        ),
+        disruption=dataclasses.replace(
+            base.disruption, notice_bands=(nl.NoticeBand(18.0, 9), nl.NoticeBand(float("inf"), 1))
+        ),
+    )
+
+
+def test_the_rendering_states_every_figure_the_schema_can_carry(distinctive):
+    """The coverage claim `config.md` says the round trip is worth — asserted here without
+    an API, so the live eval only has to add *can the model read it back*."""
+    text = nl.describe(distinctive)
+
+    for figure in ("13", "41", "6", "5", "18", "9"):
+        assert figure in text, f"{figure} is in the profile and not in the rendering"
+    assert "CAO 302 article 12" in text
+
+
+def test_the_rendering_omits_a_rule_the_profile_does_not_set(distinctive):
+    """A silence has to render as a silence. A renderer that writes 'nobody works more than
+    None days' teaches the parse to read a rule out of a profile that has none."""
+    without = dataclasses.replace(
+        distinctive, params=dataclasses.replace(distinctive.params, max_consecutive_days=None)
+    )
+    assert "days in a row" not in nl.describe(without)
+    assert "None" not in nl.describe(without)
+
+
+def test_the_rendering_puts_shift_starts_on_a_clock(distinctive):
+    assert "07:00" in nl.describe(distinctive) or "15:00" in nl.describe(distinctive)
+
+
+def test_a_rendering_survives_its_own_parse(distinctive):
+    """The round trip with the model taken out: what `describe` says is fed back as the
+    payload a perfect parse would have produced, and the profile must come home unchanged.
+
+    This is a tautology twice over and still worth running — it is the only test that
+    exercises `describe → StatedPolicy → to_profile` as one path, which is where a field
+    renders correctly, parses correctly, and is then dropped on the way into the profile.
+    """
+    stated = nl.StatedPolicy(
+        shift_types=[
+            nl.ShiftTypeIn(
+                label=s.label,
+                start_hour=s.start_hour,
+                span_hours=s.span_hours,
+                break_hours=s.break_hours,
+            )
+            for s in distinctive.shift_types
+        ],
+        min_rest_hours=13.0,
+        min_weekly_rest_hours=41.0,
+        min_period_hours=6.0,
+        max_consecutive_days=5,
+        derogations=[nl.DerogationIn(parameter="min_rest_hours", basis="CAO 302 article 12")],
+        short_notice_hours=18.0,
+        short_notice_multiplier=9,
+    )
+    back = nl.to_profile(stated, version=distinctive.version)
+
+    assert back == distinctive
+
+
 # --- The verdict ---------------------------------------------------------------------
 
 
@@ -309,6 +405,130 @@ def test_what_the_model_could_not_express_is_reported(base):
     proposal = nl.propose("...", StubClient(stated), version="v2", base=base)
 
     assert "students may not close" in proposal.summary()
+
+
+# --- The eval harness ------------------------------------------------------------------
+# `benchmarks/nl_eval.py` costs API calls, so it is a script and runs deliberately. Its
+# *scoring* is deterministic and is tested here: an eval that cannot fail measures nothing,
+# and this one is only ever read when it disagrees with a model.
+
+
+def test_the_env_file_is_read(tmp_path):
+    from benchmarks import nl_eval
+
+    path = tmp_path / ".env"
+    path.write_text("ANTHROPIC_API_KEY=sk-ant-not-a-real-key\n")
+    environ: dict[str, str] = {}
+
+    assert nl_eval.load_env(path, environ) == {"ANTHROPIC_API_KEY": "sk-ant-not-a-real-key"}
+    assert environ["ANTHROPIC_API_KEY"] == "sk-ant-not-a-real-key"
+
+
+def test_a_real_environment_variable_wins_over_the_file(tmp_path):
+    """A file in the working directory must never quietly replace an exported key: that is
+    how the wrong account gets billed, and how a key you rotated keeps being used."""
+    from benchmarks import nl_eval
+
+    path = tmp_path / ".env"
+    path.write_text("ANTHROPIC_API_KEY=from-the-file\n")
+    environ = {"ANTHROPIC_API_KEY": "from-the-shell"}
+
+    assert nl_eval.load_env(path, environ) == {}
+    assert environ["ANTHROPIC_API_KEY"] == "from-the-shell"
+
+
+def test_the_shipped_placeholder_does_not_count_as_a_key(tmp_path):
+    """`.env.example` ships `ANTHROPIC_API_KEY=` with nothing after it. Reading that as a
+    value turns a clear 'no key' message into a 401 from the API."""
+    from benchmarks import nl_eval
+
+    path = tmp_path / ".env"
+    path.write_text("# a comment\n\nANTHROPIC_API_KEY=\n")
+    environ: dict[str, str] = {}
+
+    assert nl_eval.load_env(path, environ) == {}
+    assert environ == {}
+
+
+def test_the_loader_survives_the_shapes_people_write(tmp_path):
+    from benchmarks import nl_eval
+
+    path = tmp_path / ".env"
+    path.write_text(
+        "# comment\n"
+        "\n"
+        "export ANTHROPIC_API_KEY=exported\n"
+        'ANTHROPIC_MODEL="claude-opus-5"\n'
+        "QUOTED='single'\n"
+        "NOT_A_PAIR\n"
+    )
+    environ: dict[str, str] = {}
+    loaded = nl_eval.load_env(path, environ)
+
+    assert loaded == {
+        "ANTHROPIC_API_KEY": "exported",
+        "ANTHROPIC_MODEL": "claude-opus-5",
+        "QUOTED": "single",
+    }
+
+
+def test_a_missing_env_file_is_not_an_error(tmp_path):
+    from benchmarks import nl_eval
+
+    assert nl_eval.load_env(tmp_path / "nothing-here", {}) == {}
+
+
+def test_the_eval_scores_a_perfect_parse_clean():
+    from benchmarks import nl_eval
+
+    case = nl_eval.Case("x", "...", nl.StatedPolicy(min_rest_hours=11.0), why="")
+    assert nl_eval._diff(case, nl.StatedPolicy(min_rest_hours=11.0)) == []
+
+
+def test_the_eval_reports_an_invented_field_as_invented():
+    """The assertion the whole free-form half exists for. A parse that supplies a weekly
+    rest nobody mentioned has invented a rule, and 'missed' would be the wrong word for it:
+    one is a parse that read carelessly, the other is a policy the tenant never agreed to."""
+    from benchmarks import nl_eval
+
+    case = nl_eval.Case("x", "...", nl.StatedPolicy(min_rest_hours=11.0), why="")
+    diffs = nl_eval._diff(case, nl.StatedPolicy(min_rest_hours=11.0, min_weekly_rest_hours=35.0))
+
+    assert diffs == ["invented min_weekly_rest_hours: 35.0"]
+
+
+def test_the_eval_reports_a_missed_field_as_missed():
+    from benchmarks import nl_eval
+
+    case = nl_eval.Case("x", "...", nl.StatedPolicy(max_consecutive_days=6), why="")
+    (diff,) = nl_eval._diff(case, nl.StatedPolicy())
+
+    assert diff.startswith("missed max_consecutive_days")
+
+
+def test_the_eval_scores_the_unsayable_as_present_or_absent():
+    """`unclear` is the model's own wording, so it cannot be compared for equality — but a
+    case that asks for something the schema cannot hold must still fail when nothing is
+    reported, or the confinement cases would all pass vacuously."""
+    from benchmarks import nl_eval
+
+    asked = nl_eval.Case("x", "...", nl.StatedPolicy(unclear=["..."]), why="")
+    assert nl_eval._diff(asked, nl.StatedPolicy()) == [
+        "nothing reported as unclear, but the text asked for something unsayable"
+    ]
+    assert nl_eval._diff(asked, nl.StatedPolicy(unclear=["weights are not mine to set"])) == []
+
+
+def test_the_round_trip_reports_a_field_that_did_not_survive():
+    """The round trip has to be able to fail. A stub that answers every rendering with the
+    same empty payload stands in for a parse that read nothing."""
+    from benchmarks import nl_eval
+
+    results = nl_eval.round_trip(StubClient(nl.StatedPolicy()))
+
+    assert results, "no profiles were round-tripped"
+    assert all(not ok for _, ok, _ in results)
+    assert any("params.min_rest_hours" in line for _, _, diffs in results for line in diffs)
 
 
 def test_a_proposal_carries_what_produced_it(base):

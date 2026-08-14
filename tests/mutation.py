@@ -85,6 +85,7 @@ CORE = "roster_replan/core.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 NL = "roster_replan/nl.py"
+NL_EVAL = "benchmarks/nl_eval.py"
 
 MUTANTS: tuple[Mutant, ...] = (
     # --- Rule thresholds ------------------------------------------------------------
@@ -793,6 +794,37 @@ MUTANTS: tuple[Mutant, ...] = (
         NL,
         "        if self.defects:\n            return False",
         "        if False:\n            return False",
+        "tests/test_nl.py",
+    ),
+    # The renderer is half of `config.md`'s round trip, and a field it drops is invisible in
+    # output that reads perfectly well -- the trip still passes whenever the dropped value
+    # happens to equal the fallback. This is that failure, made to happen on purpose.
+    Mutant(
+        "nl-rendering-drops-a-rule",
+        "nl",
+        NL,
+        '    lines.append(\n        f"Everyone must get at least {params.min_weekly_rest_hours:g} hours of unbroken "\n        f"rest each week."\n    )',
+        "    pass  # the weekly rest never reaches the page",
+        "tests/test_nl.py",
+    ),
+    # `D-102`: an eval that cannot fail measures nothing. This one is not in the suite -- it
+    # needs a key -- so its scoring is exactly the code that can rot unnoticed.
+    Mutant(
+        "nl-eval-passes-an-invented-rule",
+        "nl",
+        NL_EVAL,
+        '        if unset_want and not unset_have:\n            lines.append(f"invented {name}: {have!r}")',
+        "        if unset_want and not unset_have:\n            pass",
+        "tests/test_nl.py",
+    ),
+    # A `.env` that overrides an exported key bills the wrong account, and looks like
+    # nothing at all -- the run succeeds, against credentials the caller did not choose.
+    Mutant(
+        "nl-eval-env-file-overrides-the-shell",
+        "nl",
+        NL_EVAL,
+        "        if not key or not value or key in environ:",
+        "        if not key or not value:",
         "tests/test_nl.py",
     ),
     Mutant(
