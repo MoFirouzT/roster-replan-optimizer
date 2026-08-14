@@ -194,6 +194,24 @@ def entry(scenario: Scenario) -> dict:
     }
 
 
+# The fields of an entry that do not depend on a solve, and therefore travel between
+# machines (`D-117`). `week` digests the *base* instance, built entirely from
+# `random.Random(seed)` and exact floats, so it is the same on any platform running the
+# same generator.
+#
+# Everything else in an entry is downstream of the solved incumbent, and the optimum is
+# **degenerate**: four solver seeds on one instance give the same objective and four
+# different rosters. Which one comes back is a property of the search path, so it is fixed
+# by the ortools build as much as by the seed. Even the tightness figures inherit it,
+# because an absence event picks the person to injure out of the roster it was handed.
+PORTABLE_FIELDS = ("event", "employees", "week")
+
+
+def portable(entry: dict) -> dict:
+    """The half of an entry a machine other than this one can check."""
+    return {name: entry[name] for name in PORTABLE_FIELDS}
+
+
 def manifest() -> dict:
     """The manifest as it should be, computed from the current code."""
     return {

@@ -30,11 +30,15 @@ testpaths = ["tests"]
 # `uv run python -m pytest` succeeds, and the difference is invisible to anyone who has not
 # hit it.
 pythonpath = [".", "tests"]
-# `machine` marks a test calibrated against the hardware that wrote `tests/timings.json`.
-# CI deselects them with `-m "not machine"`; everywhere else they run by default, because
-# on the machine the numbers came from they are exactly the guard `D-096` asks for.
+# `machine` marks a test that asserts a committed artifact against the machine that
+# recorded it. There are two, and they are calibrated to different things: `timings.json`
+# to the hardware (`D-114`), and the solved half of `manifest.json` to the ortools build,
+# because the optimum is degenerate and which roster comes back is a property of the search
+# path (`D-117`). CI deselects both with `-m "not machine"`; everywhere else they run by
+# default, because on the machine the artifacts came from they are exactly the guards
+# `D-096` and `D-074` ask for.
 markers = [
-    "machine: calibrated to the machine that recorded tests/timings.json (D-114)",
+    "machine: asserts an artifact recorded on this machine's hardware or solver build",
 ]
 
 # The independence rule from docs/specs/rules.md, mechanised. The module boundary is

@@ -44,9 +44,11 @@ jobs:
       # `--frozen` so a lockfile that has drifted from `pyproject.toml` fails here rather
       # than resolving to something nobody committed.
       - run: uv sync --frozen ${{ matrix.extras }}
-      # `-m "not machine"` drops the two timing guards calibrated to the machine that wrote
-      # `tests/timings.json`. A shared runner is slower at Python and at CP-SAT by different
-      # factors, so both the milliseconds and the ratio between them move (`D-114`).
+      # `-m "not machine"` drops the tests that assert an artifact against the machine that
+      # recorded it: the timing guards, because a runner is slower at Python and at CP-SAT
+      # by different factors (`D-114`), and the solved half of the benchmark manifest,
+      # because the optimum is degenerate and which roster comes back is a property of the
+      # ortools build (`D-117`). The generated half of the manifest is still checked here.
       - run: uv run pytest -q -m "not machine"
 
   contracts:

@@ -30,6 +30,7 @@ from benchmarks.suite import (
     entry,
     load,
     manifest,
+    portable,
 )
 from roster_replan.model import exclusions
 from roster_replan.validation import validate_instance
@@ -53,12 +54,38 @@ def rebuilt() -> dict:
 # --- The manifest is a golden record ------------------------------------------------
 
 
-def test_manifest_matches_regeneration(committed):
-    """The whole point of committing it.
+def test_the_generated_half_of_the_manifest_matches_regeneration(committed):
+    """The instances themselves, which are the same on any machine (`D-117`).
+
+    `week` digests the base instance before anything is solved, and it is built from
+    `random.Random(seed)` and exact floats, so a generator change moves it and nothing else
+    does. This is the half of `D-074`'s split that travels, and it is the half that
+    actually answers "did the instances move" — the question the manifest exists for.
 
     On failure, regenerate deliberately and justify the diff:
 
         uv run python -m benchmarks.suite --write
+    """
+    current = manifest()
+    assert committed["generator_version"] == current["generator_version"]
+    assert {case: portable(e) for case, e in committed["cases"].items()} == {
+        case: portable(e) for case, e in current["cases"].items()
+    }, (
+        f"{MANIFEST_PATH.name} is stale: the generated instances moved. Regenerate it, "
+        f"bump GENERATOR_VERSION, and write a decisions.md entry."
+    )
+
+
+@pytest.mark.machine
+def test_the_solved_half_of_the_manifest_matches_regeneration(committed):
+    """The whole manifest, including everything downstream of a solve.
+
+    Marked `machine` because the optimum is **degenerate** and the roster that comes back
+    is a property of the search path: four solver seeds on one instance give the same
+    objective and four different rosters. The committed digests are therefore an artifact
+    of the ortools build that wrote them, in the same way `timings.json` is an artifact of
+    the hardware that wrote it (`D-117`). Asserting them on a foreign build tests the
+    build, not the generator.
     """
     assert committed == manifest(), (
         f"{MANIFEST_PATH.name} is stale. If the change was intended, regenerate it, bump "

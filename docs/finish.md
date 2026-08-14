@@ -256,21 +256,89 @@ and saying so is more useful than filing it beside the ones that need an externa
 | The cost axis (`cost_weight` ships at 0, `D-050`) | Wage data |
 | `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each — every one is still `[CITE]`, and `rules.md` refuses a legality claim without provenance |
 | Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing — these are deployment choices, and `service.md` states each as the tier's honest limit |
+| **Whether the reference-period budget is a lossy approximation** — reopened by `D-116` | Nothing. It needs a pooled `max_hours_this_period` field, which `D-111` deferred and the horizon study is the argument for reinstating |
 
 The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the system
 under test**. Every benchmark number here shows a replan beats a re-solve *given a roster this model
 would produce*, not that the model resembles what real planners publish.
 
+### The horizon, and a rule that was right for the wrong reason
+
+The project's rules were written for a one-week horizon, and one week is what every number above was
+measured on. Auditing that assumption cost four decisions and found one real defect, one latent one,
+and a hole in the harness that is supposed to find defects.
+
+**Two rules were named for a week and measured over a horizon.** `R-MAX-WEEKLY` summed an employee's
+whole instance against one budget, and `R-WEEKLY-REST` asked for one 35-hour window anywhere in the
+payload — in *both* readings. At seven days those are the same span, which is why the encodings were
+right and why nothing could see they were right by coincidence. Past seven they separate in the weak
+direction: 35 hours of rest inside four weeks satisfies a rule that means 35 inside each of them.
+
+**The differential harness could not have caught it**, because both readings were wrong in the same
+direction, and brute force enumerates against the same predicates. It is the shared-*assumption* form
+of what the independence rule forbids for shared thresholds, in the one place the discipline does not
+reach: seven days appears as a number in neither reading. Validation refused the payload first
+(`D-110`), the rules were scoped to the week (`D-111`), and four mutants now restore the defect one
+reading at a time — caught by the layer that an hour earlier could not have seen it.
+
+**Then the guard came off** (`D-113`), and working through its three stated reasons found only one
+defect among them. The profile probe's hard-coded week was already right and merely misnamed. The
+generator's seven days gates the evidence, not the request path. What was left is the stub week: a
+ten-day horizon ends three days into a week no roster can rest inside, so it is refused as a request
+rather than answered with an infeasibility about a week that is mostly not in the payload.
+
+**And the last unmeasured rejection in the repo is measured** (`D-116`,
+[`studies/horizon.md`](studies/horizon.md)). `rules.md` had rejected a reference-period horizon
+because it *"multiplies instance size by an order of magnitude and destroys the interactive latency"*.
+Both halves are wrong — size grows **linearly**, and four weeks answers in about 112 ms. The
+rejection stands for the reason it never gave: a longer horizon **buys nothing**, reaching identical
+coverage to four chained weekly solves on every case at both ends of the tightness axis, while being
+two to six times slower under pressure.
+
+That study also **scoped a premise this repo reasons from everywhere**. `D-081` separates the two
+clocks because build costs more than search; the crossover sits between one week and two, so every
+performance conclusion here is a statement about a one-week horizon rather than about this model.
+
+A latent defect fell out of the generator on the way (`D-115`): `_load` weighted demand toward the
+back of the week with `day >= 4`, a weekly pattern for exactly as long as the horizon is a week.
+Nothing would have failed. The study would have measured a different world.
+
+### The harness that finds defects had one
+
+`CLAUDE.md` tells a reader to ask `jq .verdict` first and treat `leaked` as void. A run reported
+`verdict: clean`, `trustworthy: true`, `leaked: []` — with a mutated `checker.py` in the working tree,
+and the reason named three fields lower in the same object. The clean-tree check subtracts files that
+were already modified, so it was blind to precisely the two files the run was mutating, and
+`trustworthy` was derived from that check alone.
+
+`D-112` adds a fourth verdict. Every mutant caught plus a tree the run cannot vouch for is
+`unverifiable` rather than `clean`, whether the cause was a file already modified or an editor writing
+back after the restore verified. A survivor still outranks it. **A field a reader is told to trust
+must not be the one field that cannot see the failure.**
+
+### CI, and the first thing it found
+
+There was none, and four documents said the independence rule was *"enforced in CI"* (`D-114`). There
+is now: the suite on every push with and without the optional parse extra, plus the ten import
+contracts. The suite also could not be run the obvious way — without the repo root on pytest's path
+`uv run pytest` failed at conftest import while `uv run python -m pytest` passed.
+
+What CI found first was its own limit. Two timing guards are calibrated against the machine that
+recorded `timings.json`, and a shared runner is slower at Python and at CP-SAT by different factors,
+so both the milliseconds and the ratio between them move. Widening the band is what `D-096` already
+refused one level up, so they are deselected. **CI checks 762 of 765 tests, and the three it does not
+check are the three it cannot.**
+
 ### The state of the repo
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 752 |
-| Mutants, each naming the layer that must catch it | 59 | 89 |
+| Tests | 567 | 765 |
+| Mutants, each naming the layer that must catch it | 59 | 95 |
 | Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 109, none open |
-| Studies, including nulls | 8 | 11 |
-| Python | ~12,000 lines | ~17,100 lines |
+| Decision records | 94, 2 open | 116, none open |
+| Studies, including nulls | 8 | 12 |
+| Python | ~12,000 lines | ~18,800 lines |
 
 The mutation harness has been run in full since every layer above landed: **89 mutants, all caught by
 the layer named to catch them**. It also had to be hardened twice while doing it — an editor's

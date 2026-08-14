@@ -2826,3 +2826,50 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   original sentence still standing on assertion.
 - **Study.** [`docs/studies/horizon.md`](studies/horizon.md)
 - **Date.** 2026-08-14.
+
+## D-117 — The solved half of the manifest is an artifact of one solver build, and CI checks the other half
+
+- **Decision.** `test_manifest_matches_regeneration` is split. The **generated** half — the
+  `week` digest, the event and the headcount — is asserted everywhere, including CI. The **solved**
+  half, which is everything downstream of the incumbent, is marked `machine` and runs only where the
+  artifact was recorded. `suite.portable()` names the split in code rather than in a test.
+- **Alternatives.** *A lexicographic tie-break* in the objective, making the optimum unique so the
+  roster is determined by the model rather than by the search. *Regenerate the manifest on the
+  runner.* *Deselect the manifest test in CI entirely.*
+- **Reason.** **The optimum is degenerate, and by a lot.** Four solver seeds on `headline/0` return
+  the same objective — 4, every time — and **four different rosters**. Nothing in the model prefers
+  one; the objective is flat across a large set of assignments, so which roster comes back is a
+  property of the search path. A search path is fixed by the seed, the ortools version *and the
+  binary*: CP-SAT is deterministic for a given build, and does not promise the same answer from a
+  different one. The committed `incumbent` digests were written by a macOS arm64 build, and asserting
+  them on a linux x86-64 runner tests the wheel rather than the generator.
+
+  It is the same category as `D-114` one week later, and finding a second one is the point worth
+  recording: **this repo commits artifacts, and an artifact carries the machine that made it.**
+  `timings.json` carries the hardware; `manifest.json`'s solved half carries the solver build. Both
+  were invisible while everything ran on one machine.
+
+  The **tie-break** was rejected on the same ground this project refuses every other test-driven model
+  change: it would alter what the solver optimises in order to make a fingerprint reproducible, and a
+  model that is shaped by its test is no longer independent evidence about the spec. It would also be
+  a real constraint added to every solve in production to serve a benchmark.
+
+  **Regenerating on the runner** calibrates to a build nobody reads results from, which is `D-114`'s
+  argument verbatim.
+
+  **Deselecting the whole test** throws away the half that does travel, and it is the more important
+  half: `week` digests the base instance before anything is solved, from `random.Random(seed)` and
+  exact floats, so it answers *did the instances move* — which is the question the manifest exists
+  for. `D-074` split the two fingerprints so a failure would say which moved; this makes that split
+  load-bearing rather than diagnostic, and CI now checks the one that can be checked anywhere.
+- **Consequences.** `D-074`'s guarantee is narrower than it read. "The set is its seeds" holds for
+  the seeds; the solved incumbents are reproducible on the machine that recorded them and are
+  *assumed* reproducible elsewhere. Anyone re-running the benchmarks on another platform should
+  expect the solved half to move and the generated half to hold, and that is now what the tests say
+  rather than something they would discover.
+
+  **This was inferred, not read.** No CI log was available — `gh` is not installed here — so the
+  diagnosis rests on the degeneracy measured locally plus the elimination of every failure a fresh
+  clone could reproduce. If the runner is failing on something else, this change is still right and
+  will not fix it.
+- **Date.** 2026-08-14.
