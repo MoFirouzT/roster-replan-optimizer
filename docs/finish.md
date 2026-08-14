@@ -78,6 +78,7 @@ in the evidence, and it is stated here rather than in a footnote.
 - **Two open decisions** remain in `decisions.md`, both T4 (`D-012`, `D-013`) and both about the LLM
   boundary. Every decision for T1, T2, T3 and capture is written — capture's three were writable
   without the corpus, because the reasoning never depended on it, only the execution does.
+  *(Both were written when T4 was built; the Open table is now empty. See the postscript.)*
 - **Service `[TODO]`s**: external queue store, metrics backend, interrupting a running solve.
 - **`R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE`** are registry entries
   marked optional and not encoded — asserted as such by `tests/test_specs.py` so they cannot quietly
@@ -88,6 +89,8 @@ in the evidence, and it is stated here rather than in a footnote.
 T4 (infeasibility explainer, tool surface, NL → profile) and T5 (LNS, generation mode, learned warm
 starts, fairness objectives). `PLAN.md`: *T3 is a legitimate finish. T4 and T5 are upside, each
 independently shippable.*
+
+*(T4 was built after this declaration and is described in the postscript below. T5 stands.)*
 
 ## "All specs true", and how far that is checkable
 
@@ -135,6 +138,48 @@ dead defensive call, and a fairness property no single response could show.
    is the cheaper order to do these in.
 
 **This declaration is therefore complete.**
+
+## Postscript: T4, built after the declaration
+
+Date: 2026-08-14. The declaration above is left as it was written; this section says what changed
+rather than rewriting a record of what was true on 2026-08-13.
+
+**T4 is built.** `PLAN.md` listed it as upside, and it shipped as five pieces:
+
+| Piece | Where | The decision it turned on |
+| --- | --- | --- |
+| Shortfall and infeasibility explainer | [`explain.py`](../roster_replan/explain.py), [`prose.py`](../roster_replan/prose.py) | `D-097` — explain shortfalls first, and answer from the checker |
+| Minimal cores | [`core.py`](../roster_replan/core.py) | `D-100` — the objective inflates the core; deletion is a null on top |
+| Tool surface and hypotheticals | [`service/tools.py`](../roster_replan/service/tools.py), [`whatif.py`](../roster_replan/whatif.py) | `D-098` — unlawful hypotheticals are refused, not answered |
+| Profile review | [`profile.py`](../roster_replan/profile.py) | `D-099` — deterministic, and enabling an unencoded rule is a defect |
+| NL → profile | [`nl.py`](../roster_replan/nl.py) | `D-101` — the schema is the confinement, and an open mapping is not a schema |
+
+**The two open decisions are written.** `D-012` and `D-013` were the only entries left in the Open
+table, and both were writable once the boundary they describe existed. The table is now empty.
+
+**What T4 measured, and got wrong.** The pattern held. `D-100` deferred core minimisation on the
+grounds that a sufficient core names unnecessary rules; measured, the cause was not the one deferred
+work was aimed at — dropping the objective cuts a 160-gate core to two, and the deletion loop that
+was supposed to do the work removes nothing on top. `D-101` is the sharper one, because it is a
+defect rather than a null: the derogation field the prompt asked the model to fill compiled to an
+object that **could hold nothing**, and every behavioural test passed over it, because a stub returns
+what the test hands it. The layer now reads the compiled schema.
+
+**What is still not done.** Everything in *What is not done* above stands: capture and replay, the
+cost axis, the service `[TODO]`s, and the five unencoded optional rules. Two things are added to it:
+the round-trip eval in `config.md` is now possible and still not run, and **`nl.py` has never been
+run against the real API** — it is exercised end to end with a stub, so what is proven is the
+confinement and the plumbing, not the parse quality. That is the same gap as the incumbent one in
+[`benchmarks.md`](benchmarks.md), one layer up: the machinery is tested against inputs this system
+produced.
+
+| | At the declaration | Now |
+| --- | --- | --- |
+| Tests | 567 | 694 |
+| Mutants | 59 | 80 |
+| Import-linter contracts | 8 | 10 |
+| Decision records | 94, 2 open | 99, none open |
+| Python | ~12,000 lines | ~16,500 lines |
 
 ## Archived
 

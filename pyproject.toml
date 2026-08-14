@@ -9,6 +9,11 @@ dependencies = [
     "uvicorn>=0.52.3",
 ]
 
+[project.optional-dependencies]
+nl = [
+    "anthropic>=0.122.0",
+]
+
 [dependency-groups]
 dev = [
     "anyio>=4.14.2",
@@ -121,6 +126,31 @@ source_modules = [
     "roster_replan.prose",
 ]
 forbidden_modules = ["roster_replan.service", "fastapi", "pydantic", "starlette"]
+
+# `config.md`: deterministic profile editing works fully with no LLM; the NL layer is an
+# accelerator, never a dependency. That sentence is a claim about the import graph, so it is
+# checked as one -- and it covers the SDK as well as the module, because a deterministic
+# layer that imports `anthropic` needs the optional extra installed to run at all.
+[[tool.importlinter.contracts]]
+name = "The natural-language layer is an accelerator: nothing deterministic reaches it"
+type = "forbidden"
+source_modules = [
+    "roster_replan.domain",
+    "roster_replan.validation",
+    "roster_replan.checker",
+    "roster_replan.model",
+    "roster_replan.disruption",
+    "roster_replan.scoring",
+    "roster_replan.repair",
+    "roster_replan.ladder",
+    "roster_replan.explain",
+    "roster_replan.prose",
+    "roster_replan.core",
+    "roster_replan.whatif",
+    "roster_replan.profile",
+    "roster_replan.service",
+]
+forbidden_modules = ["roster_replan.nl", "anthropic"]
 
 [[tool.importlinter.contracts]]
 name = "The shared schema depends on nothing"

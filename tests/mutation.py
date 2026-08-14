@@ -84,6 +84,7 @@ PROFILE = "roster_replan/profile.py"
 CORE = "roster_replan/core.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
+NL = "roster_replan/nl.py"
 
 MUTANTS: tuple[Mutant, ...] = (
     # --- Rule thresholds ------------------------------------------------------------
@@ -757,6 +758,43 @@ MUTANTS: tuple[Mutant, ...] = (
     # because `_satisfiable` has no `instance` to build an objective from. The property is
     # asserted directly instead, by `test_the_objective_is_what_inflates_the_core`, which
     # compares against `solve()` itself.
+    # --- The natural-language parse -----------------------------------------------------
+    # The schema is the confinement, so the first two mutants are defects *in the schema*
+    # rather than in any statement of logic. Both leave every behavioural test passing --
+    # a stub returns whatever the test asks it to, whatever the API would have allowed --
+    # which is why the layer reads the compiled schema instead. The first is `D-101` itself.
+    Mutant(
+        "nl-derogations-as-an-open-mapping",
+        "nl",
+        NL,
+        "    derogations: list[DerogationIn] = Field(",
+        "    derogations: dict[str, str] = Field(",
+        "tests/test_nl.py",
+    ),
+    Mutant(
+        "nl-derogation-parameter-is-free-text",
+        "nl",
+        NL,
+        'DEROGABLE = Literal["min_rest_hours", "min_weekly_rest_hours", "min_period_hours"]',
+        "DEROGABLE = str",
+        "tests/test_nl.py",
+    ),
+    Mutant(
+        "nl-silence-overwrites-the-base-profile",
+        "nl",
+        NL,
+        "    fallback_params = base.params if base else RuleParams(",
+        "    fallback_params = None or RuleParams(",
+        "tests/test_nl.py",
+    ),
+    Mutant(
+        "nl-accepts-a-candidate-with-defects",
+        "nl",
+        NL,
+        "        if self.defects:\n            return False",
+        "        if False:\n            return False",
+        "tests/test_nl.py",
+    ),
     Mutant(
         "studies-patterns-skip-the-legality-check",
         "studies",

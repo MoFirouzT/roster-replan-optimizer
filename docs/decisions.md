@@ -2117,3 +2117,51 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   asserted directly instead, against `solve` itself. A mutant that cannot fail is a false pass waiting
   to happen.
 - **Date.** 2026-08-13.
+
+## D-101 — The parse is confined by the schema, and an open mapping is not a schema
+
+- **Decision.** Stage 1 of `config.md` ships as `roster_replan/nl.py`: a narrow `StatedPolicy`
+  schema, structured outputs, an injected client, and a `Proposal` that ends in a verdict rather
+  than a save. Every field is designed against the schema the API **compiles**, not against the
+  Python type that looks right. Derogations are therefore a list of `(parameter, basis)` pairs with
+  the parameter an enum, not the `dict[str, str]` the domain uses.
+- **Alternatives.** Mirror `RuleParams.derogation_basis` as a mapping, which is what the first
+  version did. Take the parameter name as free text. Confine the model by instruction — *do not
+  propose weights* — rather than by leaving it nowhere to write one.
+- **Reason.** Measured, not reasoned: a `dict[str, str]` field compiles to
+  `{"type": "object", "properties": {}, "additionalProperties": false}` — **an object that can hold
+  nothing**. The field is described in the prompt and unreachable in the response. A tenant citing a
+  CBA article for a nine-hour rest gap would have the citation dropped, and their lawful policy
+  reported back as unlawful, with nothing anywhere saying why.
+
+  What makes this worth a record is that no test of the surrounding logic could see it. The tests
+  drive a stub client, and a stub returns whatever the test hands it — including a value the API
+  would have refused to produce. So the layer reads the **compiled** schema instead, and the first
+  schema mutant restores this bug.
+
+  The enum on the parameter name is the same argument one level down. `validation.py` looks a basis
+  up by parameter name, so `"rest between shifts"` validates as no basis at all: the mapping is
+  populated, the check still fails, and the failure names a field that looks correct.
+
+  The confinement this buys is structural rather than instructed. There is no field for
+  `shortfall_weight`, whose scale is bound by `D-057`'s domination proof, and none for
+  `enabled_optional_rules`, which `D-099` makes a defect. **A rule the model cannot state is a rule
+  it cannot break**, and that holds against a bad parse, a bad prompt and a prompt injection alike.
+- **Consequences.** `to_profile` translates the pairs into the mapping the domain carries; the
+  domain type does not change to suit the parse.
+
+  Unset is not a default. Every rule field is optional and a silence carries the base profile's
+  value forward, which is what a tenant editing one rule means by not mentioning the others.
+  `to_profile` is tested against a base that deliberately disagrees with the shipped defaults —
+  against one that agrees, inheriting and falling back are indistinguishable, and the mutant that
+  replaces the base with defaults survives. It did.
+
+  `config.md`'s *the NL layer is an accelerator, never a dependency* is now an import-linter
+  contract: no deterministic module may reach `roster_replan.nl` **or** `anthropic`. The SDK is an
+  optional extra, so a deterministic layer importing it would need `uv sync --extra nl` to run at
+  all — which is the dependency the sentence denies.
+
+  The round-trip eval `config.md` describes is now possible and still not run. `D-099` states what
+  it would be worth: over canonical English it is close to a tautology, and the version that means
+  something needs free-form descriptions.
+- **Date.** 2026-08-14.

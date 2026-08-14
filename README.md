@@ -25,11 +25,22 @@ The penalty is what carries the result; the warm start is a small speedup, and t
 - **Verify independently:**
   every returned solution is re-checked against every rule by a plain function with no solver involved.
   Solutions that fail the checker are never returned.
+- **Explain a short shift:**
+  name the rule that blocked every person who could have filled it, in planner language —
+  *9 of the 12 staff do not hold a skill the shift requires; 5 would not get the minimum rest*.
+  This is the common case: with a soft coverage floor a shift comes back **priced** rather than refused.
 - **Explain infeasibility:**
-  when no legal roster exists, return the *minimal* set of blocking rules with the day, shift and employee involved, in planner language.
+  in the rare case where no legal roster exists, return the *minimal* set of blocking rules with the day, shift and employee involved.
+- **Answer a hypothetical:**
+  *what if I hire one more flexi-jobber?* — re-solve under the change and report the difference.
+  Unlawful hypotheticals are refused rather than answered.
+- **Validate a profile before it is saved:**
+  structural checks, contradictions between a tenant's own rules, rules that cannot bind, and a feasibility probe.
+  Fully deterministic.
 - **Configure in natural language:**
-  describe a tenant's scheduling policy in plain Dutch or English;
-  the system emits a typed profile, validates it structurally and semantically, and probes it for feasibility **before** it is saved.
+  describe a tenant's policy in plain English; the parse emits a typed profile, and the deterministic layers above decide whether it may be saved.
+  The model is confined by a **narrow schema rather than by instruction** — it has nowhere to write an objective weight or to switch on a rule the solver does not enforce.
+  It is the one stage that needs a language model, behind an optional dependency and an injected client: everything downstream works with no model available, and that is an import contract, not a promise.
 
 Belgian labour law is encoded as **data, not code**:
 rest gaps, weekly hour ceilings, flexi-job eligibility, same-day Dimona filing, student quotas, horeca minimum shift length.
@@ -155,8 +166,33 @@ The forecast → optimise interface is documented in [`docs/specs/model.md`](doc
 
 ```bash
 uv sync
-uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json
+uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
 ```
+
+```text
+tenant horeca-demo, profile horeca-2026.1
+12 staff, 21 open shifts, 37 assignments published
+replanning at hour 129 of the horizon
+
+answer: exact — proven optimal
+disruption 100040, gap 0.0%
+solved in 12 ms
+
+1 changed assignment(s):
+  dropped    E03  Sat 15:00-23:00 (E)
+
+Sat 15:00-23:00 (E) is 1 short of its 3 required staff.
+  6 of the 12 staff do not hold a skill the shift requires (R-SKILL).
+  5 of the 12 staff would not get the minimum rest between shifts (R-REST-GAP).
+  E03, E05 and E07 are absent or unavailable then (R-AVAIL).
+  E06, E10 and E11 would exceed their hours for the day (R-MAX-DAILY).
+  E00 and E01 would exceed their hours for the week (R-MAX-WEEKLY).
+```
+
+The scenario file is the real wire format, so it doubles as the worked example of what a caller
+sends. The shortfall is the honest outcome: E03 called in sick and **nobody could legally replace
+them** — the explanation says why, person by person, and every line is derived rather than phrased
+by a model.
 
 ## Repository map
 
@@ -165,19 +201,29 @@ README.md                  this file — final-state
 docs/finish.md             the finish declaration — what shipped, what did not
 docs/archive/PLAN.md       tiers and sequencing (archived, not maintained)
 roster_replan/
-  model/                   CP-SAT formulation
-  checker/                 independent legality verification — imports no solver
-  explain/                 minimal-core extraction and rendering
-  config/                  profile schema, validation, feasibility probe
-  service/                 async job API
+  model.py                 CP-SAT formulation
+  checker.py               independent legality verification — imports no solver
+  repair.py                greedy repair — solver-free, by contract
+  ladder.py                exact → time-boxed → greedy → last known good
+  explain.py               why a shift is short — answers from the checker, not the model
+  prose.py                 findings in planner language, and the bound on what may be claimed
+  core.py                  minimal infeasibility cores
+  whatif.py                re-solve under a hypothetical change
+  profile.py               profile document, contradictions, feasibility probe
+  nl.py                    English → candidate profile — the only stage that needs a model
+  compiled.py              per-tenant model cache
+  service/                 async job API, contracts, and the tool surface
 tests/
-  brute_force/             exhaustive ground truth on micro-instances
-  differential/            model ⟺ checker
-  properties/              invariants
-  golden/                  committed scenarios and objective values
+  test_ground_truth.py     exhaustive ground truth on micro-instances
+  test_differential.py     model ⟺ checker
+  test_properties.py       invariants
+  test_golden.py           committed scenarios and objective values
+  test_specs.py            the checkable half of "all specs true"
+  mutation.py              deliberate defects, each naming the layer that must catch it
 benchmarks/
-  generator/               seeded instance generator
-  instances/               committed benchmark set
+  generator.py             seeded instance generator
+  manifest.json            the committed set, as seeds and fingerprints
+  milp.py                  the MILP formulation, for D-001
 docs/
   specs/                   rules.md · model.md · replan.md · validation.md · config.md · service.md · capture.md
   decisions.md             what was chosen, what was rejected, why
