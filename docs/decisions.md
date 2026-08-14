@@ -2336,3 +2336,84 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   reproduce their committed numbers exactly, which is worth more than the two new rows: it says the
   set is stable and that the new rows are a widening rather than a different measurement.
 - **Date.** 2026-08-14.
+
+## D-106 — `D-060` confirmed on a curve, and divergence is not monotone in slack
+
+- **Decision.** The D0–D4 study is re-run over the 84 cases `D-105` produced, and
+  `studies/disruption-metrics.md` is updated from that run. `D-060`'s mechanism — metrics can only
+  diverge where there is slack — is recorded as **confirmed** rather than merely supported. The
+  study's headline is unchanged in substance: divergence is real, severe, and entirely between
+  D0/D1/D2 and D3/D4.
+- **Alternatives.** Leave the study on its 72-case basis and note that the new classes sit outside
+  it, which is what `D-105` said would be acceptable in the interim.
+- **Reason.** The old set held exactly **one** class at the tight end of the coverage axis, and a
+  single zero cannot separate *tightness* from something peculiar to `tight`. With `busy` at 0.80 and
+  `overloaded` at 0.95 the axis has five points, and they make a shape: 3/6 at 0.35, **4/6** at 0.70,
+  3/6 at 0.80, then **0/6** at both 0.90 and 0.95. `overloaded` reaching zero independently of
+  `tight` is the observation that upgrades `D-060` from a mechanism the data was consistent with to
+  one the data demonstrates.
+
+  **The unpredicted half is the loose end.** `loose` at 0.35 — the slackest weeks in the set —
+  conflicts *less* than `headline` at 0.70. Slack alone was never the claim, but more room reading as
+  less disagreement wants an explanation, and `D-071` supplies it: low demand is expressed by opening
+  **fewer shift instances** rather than by thinning a full grid, so a loose week offers fewer shifts
+  on the damaged day for D3 to move anybody into. Divergence needs slack *and* somewhere to put
+  people; the loose end gains the first and runs out of the second.
+
+  That is the same missing condition this study already named — whether a **move** exists on the
+  damaged day — reached from the opposite direction. Both ends of the coverage axis suppress
+  divergence, for opposite reasons, and the middle is where the metrics have something to argue
+  about.
+- **Consequences.** The rate barely moved: 26 of 84 against 23 of 72, 31% either way. The
+  structure reproduced exactly — zero conflict inside D0/D1/D2, zero inside D3/D4, ~100% relative
+  regret in both directions across the divide. **`D-086` stands unchanged: D4 is still unexercised**,
+  0 of 84 against D3, because concentration needs two events on one person and median damage here is
+  one assignment. A wider set did not fix that and was never going to; only a damage axis would.
+
+  What this does **not** do is turn the correlation into a law, and the study still says so. The
+  condition that predicts divergence is a property of the damaged *day*, the generator does not vary
+  it, and `D-085` already names the same-day shift-availability axis as the honest way to close it.
+  This record adds evidence for where that axis matters and does not substitute for it.
+- **Date.** 2026-08-14.
+
+## D-107 — The rest of T2 re-run over 84: everything reproduces, and the sampling bug did not
+
+- **Decision.** The analyses `D-105` left on a 72-case basis are re-run over the widened set:
+  presolve, symmetry, the automaton, patterns, the rest-gap encoding, the coverage floor and the
+  time-budget curve. **All reproduce.** One code change came out of it: `studies.py` now names its
+  cold sample instead of slicing `CASES[:6]`, and `specs/service.md` carries 15.4 ms where it carried
+  12.4. The re-measurement debt `D-105` recorded is closed.
+- **Alternatives.** Trust the reproduction. Every one of these studies is a lever comparison on the
+  same model, the widening added two classes at one end of one axis, and today's sweep had already
+  shown the solver insensitive to everything the generator can express.
+- **Reason.** That expectation was right about the levers and would have missed the thing worth
+  finding. `studies.py` selected its cold instances **positionally** — `CASES[:6]` over a dict — so
+  inserting `busy` and `overloaded` after `tight` pushed `large/0` and `scarce-skill/0` out of the
+  sample without touching a line of study code. Two results moved as a consequence, and **both read
+  as findings**: the symmetry study's cold count fell from 7 interchangeable employees to 0, and the
+  pattern study went from failing on 5 of 6 cold cases to 6 of 6. The first would have been reported
+  as the generator suppressing symmetry even harder than `D-087` found; the second as a stronger
+  rejection of pattern encoding. Neither is true. With the sample named, the cold count is 7 again
+  and patterns fails on 5 of 6 again, both exactly as committed.
+
+  **A sample that changes membership when an unrelated class is added cannot be compared with its own
+  previous run**, and nothing in the harness said so — the studies kept reporting confidently against
+  a set that had quietly moved underneath them. That is the same shape as `D-074`'s fingerprint
+  argument, arriving in the one place fingerprints do not reach.
+- **Consequences.** The reproductions, for the record: presolve 28% off build and 14% off search on
+  28 of 28 (was 28% and 16% on 24 of 24); symmetry unchanged at 3 interchangeable employees and 20%
+  on a workforce built to be symmetric; the automaton 19% slower on 28 of 28; the rest-gap total
+  still flipping sign by instance family. Nothing here changes a shipping decision.
+
+  Two figures moved enough to matter, both **upward and explicably**. The longest search went 12.4 ms
+  → **15.4 ms**, because `busy` and `overloaded` open more shift instances than the 0.70 baseline
+  (`D-071`) — a latency claim measured on a distribution missing its own busy end was mildly
+  optimistic. And a hard coverage floor could not answer **18 of 84** cases where it could not answer
+  16 of 72, holding at about a fifth. Both supersede the figures cited in `D-018`, `D-024` and
+  `D-094`, which stay as written; `specs/service.md` is a spec rather than a record and is updated in
+  place.
+
+  The time-budget result came back stronger rather than merely intact: all **2,268** solver runs
+  `OPTIMAL`, and **no answer changed with the budget on any of 756 (case, method, seed) triples**.
+  The three budgets are indistinguishable case by case, not just uniformly optimal.
+- **Date.** 2026-08-14.

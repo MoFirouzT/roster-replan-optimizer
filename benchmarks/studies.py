@@ -59,6 +59,14 @@ from roster_replan.model import _orbits, build
 # the seeds. Six seeds of the same class measure the same thing six times.
 CASES = [f"{name}/0" for name in suite.CLASSES] + [f"{name}/1" for name in suite.CLASSES]
 
+# The cold sample is **named, not sliced**. It used to be `CASES[:6]`, which is positional
+# over a dict that people add classes to: inserting `busy` and `overloaded` (`D-105`) pushed
+# `large/0` and `scarce-skill/0` out of it, and the symmetry study's cold count moved from 7
+# interchangeable employees to 0 for that reason and no other. A sample that silently changes
+# membership cannot be compared against its own previous run, and the drift reads exactly
+# like a finding (`D-107`). These are the six the committed results were measured on.
+COLD_SAMPLE = ("headline/0", "loose/0", "tight/0", "small/0", "large/0", "scarce-skill/0")
+
 
 def _objective(built, instance: Instance) -> None:
     built.model.minimize(
@@ -178,7 +186,7 @@ def symmetry_study() -> None:
         name: dataclasses.replace(
             suite.build(name).base, disruption=suite.build(name).instance.disruption
         )
-        for name in CASES[:6]
+        for name in COLD_SAMPLE
     }
     cold_orbits = {name: sum(len(o) for o in _orbits(i)) for name, i in cold.items()}
     print(f"the same weeks solved cold, with no incumbent: {sum(cold_orbits.values())}")
@@ -245,7 +253,7 @@ def pattern_study() -> None:
             f"{'case':20}{'patterns':>10}{'enum ms':>9}{'build ms':>10}{'search ms':>11}"
             f"{'total ms':>10}{'assignment ms':>15}{'':>4}"
         )
-        for case in CASES[:6]:
+        for case in COLD_SAMPLE:
             scenario = suite.build(case)
             instance = pick(scenario)
 

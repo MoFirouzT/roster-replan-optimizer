@@ -4,8 +4,9 @@
 and free". Is it?
 
 **Answer.** A win, consistently, and not the largest one. It removes about a quarter of the model and
-buys **28% off build time and 16% off search time**, on 24 of 24 paired cases in every quantity
-measured. "Free" is right — the exclusion table is computed either way, because the reasons have to
+buys **28% off build time and 14% off search time**, on 28 of 28 paired cases in every quantity
+measured. (Re-measured over the widened set — `D-107`; the original figures were 28% and 16% on
+24 of 24.) "Free" is right — the exclusion table is computed either way, because the reasons have to
 be retained for reporting (`D-045`).
 
     uv run python -m benchmarks.studies --only presolve
@@ -24,18 +25,18 @@ one.
 
 | quantity | ratio, on against off | helped | hurt |
 | --- | --- | --- | --- |
-| variables | 0.716 | 24/24 | 0 |
-| constraints | 0.692 | 24/24 | 0 |
-| build time | 0.726 | 24/24 | 0 |
-| search time | 0.863 | 24/24 | 0 |
+| variables | 0.716 | 28/28 | 0 |
+| constraints | 0.692 | 28/28 | 0 |
+| build time | 0.724 | 28/28 | 0 |
+| search time | 0.863 | 28/28 | 0 |
 
-Presolve keeps 57% to 76% of the unpresolved model's variables across the 24 cases, so the model is
+Presolve keeps 57% to 76% of the unpresolved model's variables across the 28 cases, so the model is
 about a quarter smaller and the range across scenario classes is wide — `thin-availability`, where
 declared unavailability removes the most pairs, is at the bottom of it.
 
 ## Reading it honestly
 
-**The 24/24 is what makes this a result at these sizes.** A 27% median improvement on a 5.2 ms build
+**The 28/28 is what makes this a result at these sizes.** A 27% median improvement on a 5.2 ms build
 would not survive scrutiny on its own; the same direction on every paired case does. This is the
 cleanest positive in the level-1 set, and it is the only one of the four that wins on every quantity
 at once.

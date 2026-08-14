@@ -56,7 +56,8 @@ non-linear expressiveness are load-bearing for three other commitments — at a 
 
 **The D0–D4 study delivered what `replan.md` promised**: the five metrics genuinely disagree, on
 23 of 72 cases, at roughly 100% relative regret in both directions — and the divergence found in the
-wild reproduces the Ana/Bram example the spec invented to argue it was possible.
+wild reproduces the Ana/Bram example the spec invented to argue it was possible. *(Re-run over the
+widened set: 26 of 84, same structure, and `D-060` confirmed on a curve — `D-106`.)*
 
 ## What is not done
 
@@ -187,8 +188,8 @@ nothing about whether the same text parses the same way twice.
 cost axis, the service `[TODO]`s, and the five unencoded optional rules.
 
 **Half of T5 is retired rather than pending** (`D-104`, `D-105`). LNS improves a solution the solver
-cannot prove optimal in the time available, and neither half of that is true here — 2,160 solves
-returned `OPTIMAL`, longest search 12.4 ms, and solver-free greedy already ties the optimum on 71 of
+cannot prove optimal in the time available, and neither half of that is true here — 2,268 solves
+returned `OPTIMAL`, longest search 15.4 ms, and solver-free greedy already ties the optimum on 71 of
 84 cases. Learned warm starts would optimise the 9% of search time `D-082` measured, on a search that
 takes milliseconds. Both are struck from the plan.
 
@@ -210,7 +211,7 @@ restores `D-101`.
 | Tests | 567 | 729 |
 | Mutants | 59 | 83 |
 | Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 105, none open |
+| Decision records | 94, 2 open | 107, none open |
 | Studies, including nulls | 8 | 11 |
 | Python | ~12,000 lines | ~17,100 lines |
 

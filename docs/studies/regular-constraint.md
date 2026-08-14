@@ -4,7 +4,7 @@
 a T1 assumption on purpose: the automaton is the textbook encoding for a sequence rule, and the spec
 wanted it to confirm the win rather than take it on faith.
 
-**Answer.** It loses. `R-CONSEC-DAYS` as an automaton is **20% slower to search on 24 of 24 cases**,
+**Answer.** It loses. `R-CONSEC-DAYS` as an automaton is **19% slower to search on 28 of 28 cases**,
 with an identical variable and constraint count, and it costs the day coordinate in violation
 reporting. The spec's own suspicion — "at a seven-day horizon the window count is trivially small" —
 turns out to understate it: at this horizon the window count is **one**.

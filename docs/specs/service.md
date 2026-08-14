@@ -97,7 +97,7 @@ Three things about it are consequences rather than choices, and each is asserted
   marked as the floor rather than a repair.
 
 **Every rung is reachable by construction**, because none of them is reachable by accident:
-no instance in the committed set takes more than 12.4 ms, so `time-boxed`, `greedy` and
+no instance in the committed set takes more than 15.4 ms, so `time-boxed`, `greedy` and
 `incumbent` would otherwise ship untested. `tests/test_ladder.py` forces each one, and the
 mutation harness carries a mutant per rung.
 

@@ -4,7 +4,7 @@
 deliberately, because "the disruption objective already breaks symmetry partially — quantify this
 rather than assuming it". So: quantify it.
 
-**Answer.** There is essentially **no symmetry left to break**. Across 24 committed cases there are 3
+**Answer.** There is essentially **no symmetry left to break**. Across 28 committed cases there are 3
 interchangeable employees in total, in a single case. Lexicographic ordering therefore buys nothing
 and costs about 4% of build time. But the null is not evidence that the lever is useless — on a
 workforce built to be interchangeable it is worth **20% of total time** — so what this study
@@ -27,7 +27,7 @@ their incumbent rows match.
 
 | | interchangeable employees |
 | --- | --- |
-| committed replan cases (24) | **3**, in 1 case |
+| committed replan cases (28) | **3**, in 1 case |
 | the same weeks solved cold, no incumbent (6) | **7** |
 
 Two separate things are suppressing symmetry, and only one of them is the objective:

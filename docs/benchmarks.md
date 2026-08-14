@@ -274,8 +274,9 @@ because a cold solve reshuffles the whole week regardless of when it was told.
 ## Quality vs. time budget
 
 **The curve is flat, and the reason is that the question does not arise at this size.** Every solver
-run over the whole set — 2,160 of them across the 1 s, 5 s and 30 s budgets — returned `OPTIMAL`, and
-the longest search anywhere was **12.4 ms**. Nothing was ever cut off by a budget, so there is no
+run over the whole set — 2,268 of them across the 1 s, 5 s and 30 s budgets — returned `OPTIMAL`, and
+the longest search anywhere was **15.4 ms**. No answer changed with the budget on any of the 756
+(case, method, seed) triples, so the three budgets are indistinguishable case by case (`D-107`). Nothing was ever cut off by a budget, so there is no
 anytime behaviour to plot and no quality to trade for time.
 
 That is a result about the instance distribution rather than about the solver, and it is stated

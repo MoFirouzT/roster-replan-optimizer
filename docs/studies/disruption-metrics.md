@@ -5,7 +5,7 @@ fact they produce different rosters is the deliverable rather than a problem to 
 tests that, and tests the constraint `D-060` puts on it: that they can only diverge where there is
 slack.
 
-**Answer.** Yes, on 23 of the 72 committed cases — and where they diverge, they diverge severely:
+**Answer.** Yes, on 26 of the 84 committed cases — and where they diverge, they diverge severely:
 each metric scores the other's answer at roughly double its own optimum. But the divergence is
 **entirely between D0/D1/D2 on one side and D3/D4 on the other**. Within each side, nothing separates
 them on this instance set. `D-060` survives as a mechanism and fails as a test, because the quantity
@@ -15,7 +15,7 @@ it was going to be tested against turns out to be the wrong one.
 
 ## Comparing rosters is the wrong measurement
 
-The obvious method — solve under each metric, ask whether the rosters differ — reports 47 of 72 and
+The obvious method — solve under each metric, ask whether the rosters differ — reports 52 of 84 and
 is worthless. A metric usually has **many** optimal rosters, and which one comes back is the solver's
 search order, so two rosters differing says nothing about whether the two metrics wanted different
 things. D0 in particular has an enormous tie set: it would "disagree" with everything, including with
@@ -41,16 +41,16 @@ returned roster — never by reading an objective value back out of the solver.
 
 ## The regret matrix
 
-72 cases, seed 7. Each cell: cases where committing to the row metric costs something in the column
+84 cases, seed 7. Each cell: cases where committing to the row metric costs something in the column
 metric, and the mean regret over those cases.
 
 | commit to ↓ · pay in → | D0 | D1 | D2 | D3 | D4 |
 | --- | --- | --- | --- | --- | --- |
-| **D0** | — | 0/72 | 0/72 | 23/72 · 420.0 | 23/72 · 419.7 |
-| **D1** | 0/72 | — | 0/72 | 23/72 · 420.0 | 23/72 · 419.7 |
-| **D2** | 0/72 | 0/72 | — | 23/72 · 420.0 | 23/72 · 419.7 |
-| **D3** | 23/72 · 2.2 | 23/72 · 21.7 | 23/72 · 50.4 | — | 0/72 |
-| **D4** | 23/72 · 2.2 | 23/72 · 21.7 | 23/72 · 50.4 | 0/72 | — |
+| **D0** | — | 0/84 | 0/84 | 26/84 · 417.7 | 26/84 · 417.3 |
+| **D1** | 0/84 | — | 0/84 | 26/84 · 417.7 | 26/84 · 417.3 |
+| **D2** | 0/84 | 0/84 | — | 26/84 · 417.7 | 26/84 · 417.3 |
+| **D3** | 26/84 · 2.2 | 26/84 · 22.3 | 26/84 · 52.3 | — | 0/84 |
+| **D4** | 26/84 · 2.2 | 26/84 · 22.3 | 26/84 · 52.3 | 0/84 | — |
 
 **The raw asymmetry is a units artifact, not a finding.** D3 multiplies by change-type weights of
 6–14, so its scores live on a larger scale. Normalised against the paying metric's own optimum, the
@@ -72,7 +72,7 @@ that this distribution does not pose the question they answer.
 
 ### D3 and D4 never conflict either
 
-Also zero, in both directions, on all 72. The convex concentration penalty never bites, because it
+Also zero, in both directions, on all 84. The convex concentration penalty never bites, because it
 takes two events landing on **one person** to make `f` non-linear (`f(1)=1, f(2)=3`), and median damage
 here is one assignment. Even `multi-absence`, which takes out three people, gives each of them one
 event.
@@ -113,20 +113,53 @@ returns it. The class breakdown supports the mechanism cleanly at one end:
 | class | D2/D3 conflict |
 | --- | --- |
 | `headline`, `withdrawal` | 4/6 |
-| `loose`, `scarce-skill`, `multi-absence`, `early-notice` | 3/6 |
+| `loose`, `busy`, `scarce-skill`, `multi-absence`, `early-notice` | 3/6 |
 | `thin-availability` | 2/6 |
 | `flexi-heavy` | 1/6 |
-| `tight`, `small`, `large`, `demand-spike` | **0/6** |
+| `tight`, `overloaded`, `small`, `large`, `demand-spike` | **0/6** |
 
 `tight` never diverges, which is exactly what `D-060` predicts. `demand-spike` never diverges for a
 different and equally structural reason: an added headcount is a pure call-in with nothing to pair it
 against, so D3 has no move available and agrees with D2 by default.
 
+### The coverage axis, now that it has five points (`D-106`)
+
+Until `D-105` widened the set this class breakdown held **one** class at the tight end, and a single
+zero cannot distinguish *tightness* from something peculiar to that class. There are now five points
+on the axis, and they make a shape:
+
+| demand ratio | class | conflict |
+| --- | --- | --- |
+| 0.35 | `loose` | 3/6 |
+| 0.70 | `headline` | **4/6** |
+| 0.80 | `busy` | 3/6 |
+| 0.90 | `tight` | **0/6** |
+| 0.95 | `overloaded` | **0/6** |
+
+Two things follow, and only the first was predicted.
+
+**`D-060`'s mechanism is confirmed rather than suggested.** Divergence falls to zero by 0.90 and
+stays there, and `overloaded` reaching 0/6 independently of `tight` is what rules out the reading
+that the zero was a property of one class. A tightly covered week really does have one legal repair,
+and every metric really does return it.
+
+**But divergence is not monotone in slack, and the loose end is the surprise.** `loose` at 0.35 —
+the slackest weeks in the set — conflicts *less* than `headline` at 0.70. Slack alone was never the
+claim, but a reader could be forgiven for expecting more room to mean more disagreement. The
+mechanism is in `D-071`: low demand is expressed by opening **fewer shift instances**, not by
+thinning a full grid, so a loose week has fewer shifts on the damaged day for D3 to move somebody
+into. Divergence needs slack *and* somewhere to put people, and the loose end runs out of the second
+while gaining the first.
+
+That is the same missing condition the rest of this study names — whether a **move** is available on
+the damaged day — arriving from the other direction. It is a property of the day, the set does not
+vary it, and both ends of the coverage axis suppress it for different reasons.
+
 But the **week-level minimum slot slack recorded in the instance set does not predict divergence**:
 
 | week minimum slot slack | −2 | −1 | 0 | 1 | 2 | 3 | 4 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| conflict | 2/2 | 1/5 | 3/12 | 0/9 | 13/29 | 2/10 | 2/5 |
+| conflict | 2/2 | 1/6 | 4/14 | 2/15 | 13/31 | 2/11 | 2/5 |
 
 Non-monotone, and the most-constrained bucket has the highest rate. The instrument is at fault rather
 than the claim: `min_slot_slack` is a minimum over 21 slots, and a week can hold one impossible slot
@@ -135,7 +168,7 @@ slot** (`metrics.repair_slack`), the picture improves but does not become a law:
 
 | slack at the repair | −1 | 0 | 1 | 2 | 3 | 4 | 5 | 6+ |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| conflict | 0/2 | 2/3 | 0/9 | 1/6 | 0/3 | 3/4 | 1/5 | 16/40 |
+| conflict | 0/2 | 2/3 | 0/9 | 1/8 | 0/6 | 3/4 | 1/5 | 19/47 |
 
 Divergence concentrates where there is room, but plenty of roomy cases still agree.
 

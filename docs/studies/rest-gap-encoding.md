@@ -18,15 +18,15 @@ automaton costs. And the claim it was set up to test cannot be tested here at al
 
 ## The measurement
 
-**On the committed set** (24 cases):
+**On the committed set** (28 cases):
 
 | quantity | ratio, intervals against pairwise | helped | hurt |
 | --- | --- | --- | --- |
-| variables | 0.766 | 24 | 0 |
-| constraints | 0.958 | 24 | 0 |
-| build time | 0.878 | 24 | 0 |
-| search time | **1.156** | 0 | **24** |
-| total time | 0.975 | 20 | 4 |
+| variables | 0.766 | 28 | 0 |
+| constraints | 0.958 | 28 | 0 |
+| build time | 0.859 | 28 | 0 |
+| search time | **1.149** | 0 | **28** |
+| total time | 0.961 | 23 | 5 |
 
 **On the larger cold instances** (8–16 employees, whole horizon open):
 
@@ -40,7 +40,7 @@ automaton costs. And the claim it was set up to test cannot be tested here at al
 The pattern is consistent and the sign flips on the total: **the interval form trades search time for
 build time.** It is 23% smaller because one `no_overlap` replaces many pairwise rows, so there is less
 model to construct — but a global propagator over intervals costs more to run than the inequalities it
-replaced, on 24 of 24 cases.
+replaced, on 28 of 28 cases.
 
 **The two percentages are on different bases, and that is what decides the total.** 12% of a ~5.2 ms
 build is about 0.6 ms saved; 16% of a ~3.3 ms search is about 0.5 ms lost. The saving is the larger

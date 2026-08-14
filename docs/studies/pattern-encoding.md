@@ -5,7 +5,8 @@ formulations, evaluated as a T2 study at these instance sizes", and `D-009` has 
 
 **Answer.** Competitive on a replan, catastrophic on a cold week. Enumerating patterns and solving
 takes about the same total time as the assignment model when most of the horizon is pinned — and on a
-cold week it **fails to prove optimality within 30 seconds on 5 of 6 cases**, against roughly 20
+cold week it **fails to prove optimality within 30 seconds on 5 of 6 cases** (re-verified over the
+widened set — `D-107`), against roughly 20
 milliseconds for the assignment model. `D-009` closes in favour of assignment booleans, and not
 narrowly.
 
