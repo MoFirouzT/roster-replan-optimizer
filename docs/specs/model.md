@@ -22,6 +22,7 @@ and the payload schema are settled and in use.
 |---|---|---|
 | `E`, `e` | index set | Employees in the tenant |
 | `D`, `d` | index set | Days in the horizon, `0`-indexed from its start |
+| `W`, `w` | index set | **Weeks in the horizon** — seven days from its start, the last clipped to it. `week(d) = d // 7` (`D-111`) |
 | `T`, `s` | index set | Shift types (a start time and a length, per tenant) |
 | `O ⊆ D × T` | index set | **Open shift instances** — the `(d, s)` pairs with `req[d, s] > 0` |
 | `K`, `k` | index set | Skills |
@@ -129,7 +130,10 @@ solve consumes them as opaque data.
 
 `max_hours_this_week[e]` is the reference-period budget described in
 [`rules.md`](rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget): the caller resolves
-the rolling quarter or year into a single number so the solve horizon can stay at one week.
+the rolling quarter or year into a single number so the solve horizon can stay at one week. It is a
+week's hours and binds in **every** week of the horizon (`D-111`), which is the same constraint while
+the horizon is one week and a different one after that. A per-week ceiling that varies by week is not
+expressible in one number and is the payload change `D-111` defers.
 
 The other two exist for the same structural reason. A week boundary is an artifact of the payload,
 not of the employee's working life — someone who worked the six days before Monday, or who finished
@@ -152,7 +156,7 @@ the rules need:
 | `o[d, s]` | `0..` | `R-COVER` overage, gated to zero |
 | `v[d, s, k]` | `0..m` | `R-SKILL-MIX` shortfall, soft entries only |
 | `w[e, d]` | bool | worked-day indicator, reified for `R-CONSEC-DAYS` |
-| `r[e, j]` | bool | `R-WEEKLY-REST` candidate-window selector |
+| `r[e, w, j]` | bool | `R-WEEKLY-REST` candidate-window selector, per week (`D-111`) |
 
 **A variable exists** for every eligible pair, and additionally for any pair the incumbent assigned,
 eligible or not (`D-058`). Without that second case an already-illegal past cannot be represented and
@@ -207,8 +211,8 @@ seven-day horizon the window count is trivially small, and the study should conf
 rather than take it on faith.
 
 **It does not win** (`D-088`). At this horizon the window count is not merely small, it is **one**, so
-the automaton competes against a single linear inequality over seven booleans and is 20% slower to
-search on 24 of 24 cases. It also gates only per employee, where the window encoding names the day the
+the automaton competes against a single linear inequality over seven booleans and is 19% slower to
+search on 28 of 28 cases. It also gates only per employee, where the window encoding names the day the
 streak breached — the coordinate the checker reports and `violations()` matches on. Kept behind
 `build(sequence="automaton")` for the study, and revisited at a horizon beyond about two weeks.
 `R-WEEKLY-REST` is not a candidate either way: a continuous 35-hour free run measured in hours is not
@@ -224,7 +228,7 @@ Defined in [`replan.md`](replan.md). This file owns feasibility; that file owns 
 Most (employee, shift) pairs are impossible: unavailable, wrong skill, wrong contract, Dimona gate.
 Eliminate them before the solver sees them.
 
-**Measured: a quarter of the model, 28% off build time and 16% off search, on 24 of 24 paired cases**
+**Measured: a quarter of the model, 28% off build time and 14% off search, on 28 of 28 paired cases**
 ([`studies/presolve.md`](../studies/presolve.md)). Free, as claimed — the exclusion table is computed
 either way because the reasons have to be retained (`D-045`). Not "the largest single win", which was
 the earlier wording: build time dominates search at these sizes (`D-081`), and this takes a quarter

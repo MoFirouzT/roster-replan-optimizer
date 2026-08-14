@@ -10,6 +10,18 @@ a pipe has twice destroyed it: `tail` truncates the per-mutant lines and reports
 exit status, so a run that leaked a mutated file into the working tree read as a clean pass.
 `jq .verdict tests/mutation-report.json` answers the only question that matters first.
 
+Four verdicts, in the order they outrank each other (`D-112`):
+
+    leaked        a mutation was left in the tree. The run is void, not caveated
+    survivors     a mutant nothing objected to. A hole in the layer that claims that ground
+    unverifiable  every mutant caught, and the run cannot vouch for the tree it ran in --
+                  a target file was already modified, or an editor wrote back late
+    clean         every mutant caught by the layer named to catch it, tree verified
+
+`unverifiable` exists because the alternative was a lie the harness had already told: `clean`,
+`trustworthy: true`, and a mutated `checker.py` in the tree, with the reason named three fields
+lower in the same object.
+
 `CLAUDE.md`: *a layer that has never been shown to fail is not known to work.* This module
 is that claim, executable. It edits a source file in place, runs the tests that ought to
 object, restores the file, and reports.
@@ -132,6 +144,22 @@ MUTANTS: tuple[Mutant, ...] = (
         "tests/test_ground_truth.py",
     ),
     Mutant(
+        "checker-weekly-rest-spans-the-horizon",
+        "checker",
+        CHECKER,
+        "            span = instance.week_span(week)",
+        "            span = instance.horizon()",
+        "tests/test_differential.py",
+    ),
+    Mutant(
+        "checker-weekly-budget-spans-the-horizon",
+        "checker",
+        CHECKER,
+        "                if instance.week_of(d) == week",
+        "                if True",
+        "tests/test_differential.py",
+    ),
+    Mutant(
         "checker-consecutive-days-off-by-one",
         "checker",
         CHECKER,
@@ -157,6 +185,26 @@ MUTANTS: tuple[Mutant, ...] = (
         MODEL,
         "            allowance = max(0, limit - min(before, limit))",
         "            allowance = max(0, limit + 1 - min(before, limit))",
+        "tests/test_differential.py",
+    ),
+    # `D-111`. Both readings scoped the week rules to the horizon, and neither the
+    # differential harness nor brute force could see it, because they were wrong in the
+    # same direction. These two mutants are that defect restored, one reading at a time,
+    # so the layer that could not catch it before is shown catching it now.
+    Mutant(
+        "model-weekly-rest-spans-the-horizon",
+        "model",
+        MODEL,
+        "            span = instance.week_span(week)",
+        "            span = instance.horizon()",
+        "tests/test_differential.py",
+    ),
+    Mutant(
+        "model-weekly-budget-spans-the-horizon",
+        "model",
+        MODEL,
+        "                if e == employee and instance.week_of(day) == week",
+        "                if e == employee",
         "tests/test_differential.py",
     ),
     # --- The objective --------------------------------------------------------------
@@ -210,6 +258,14 @@ MUTANTS: tuple[Mutant, ...] = (
         VALIDATION,
         "        if person.max_hours_this_week is None:",
         "        if False:",
+        "tests/test_validation.py",
+    ),
+    Mutant(
+        "validation-longer-horizon-accepted",
+        "validation",
+        VALIDATION,
+        "    if instance.days <= MAX_HORIZON_DAYS:",
+        "    if True:",
         "tests/test_validation.py",
     ),
     # --- The generator --------------------------------------------------------------
@@ -939,7 +995,14 @@ def _restore(path: pathlib.Path, original: str, *, attempts: int = 5) -> None:
 REPORT = _HERE / "mutation-report.json"
 
 
-def summarise(results: list[dict], *, leaked: list[str], skipped: list[str], full: bool) -> dict:
+def summarise(
+    results: list[dict],
+    *,
+    leaked: list[str],
+    skipped: list[str],
+    full: bool,
+    late: list[str] = (),
+) -> dict:
     """The run's verdict, as data. Pure, so the part that can be wrong is testable.
 
     **The verdict does not live in stdout.** A run takes tens of minutes and its result was
@@ -953,19 +1016,37 @@ def summarise(results: list[dict], *, leaked: list[str], skipped: list[str], ful
     mutants' catcher tests may have failed on the leftover defect rather than on their own,
     and would be scored as caught for the wrong reason. That is a void run, not a passing
     one with a caveat.
+
+    **And absence of assurance is not assurance** (`D-112`). Two conditions leave this run
+    unable to vouch for the tree it ran in, and both were reported in fields beside a
+    `clean` verdict that contradicted them:
+
+    - a target file **already modified** when the run started, which the clean-tree check
+      subtracts, so a mutation left in that file is invisible to it;
+    - a **late write**, where an editor reinstated the mutated text after its own restore
+      verified, so some mutant ran against source nobody chose.
+
+    Neither is a finding, so neither outranks a survivor -- a mutant that survived, survived.
+    Both deny the run its guarantee, so the verdict is `unverifiable` where it would have
+    been `clean`, and `trustworthy` is false either way. This is written from the run that
+    prompted it: `clean`, `trustworthy: true`, `leaked: []`, and a mutated `checker.py` in
+    the tree, with the reason stated three fields lower in the same object.
     """
     survivors = [r["name"] for r in results if not r["caught"]]
+    unvouched = sorted(set(skipped) | set(late))
     if leaked:
         verdict, exit_code = "leaked", 2
     elif survivors:
         verdict, exit_code = "survivors", 1
+    elif unvouched:
+        verdict, exit_code = "unverifiable", 3
     else:
         verdict, exit_code = "clean", 0
 
     return {
         "verdict": verdict,
         "exit_code": exit_code,
-        "trustworthy": verdict != "leaked",
+        "trustworthy": not leaked and not unvouched,
         "finished_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "selected": len(results),
         "caught": sum(1 for r in results if r["caught"]),
@@ -974,6 +1055,10 @@ def summarise(results: list[dict], *, leaked: list[str], skipped: list[str], ful
         # Files this run could not vouch for, because they were already modified when it
         # started. A mutation left in one of these is invisible to the clean-tree check.
         "unchecked_because_already_modified": sorted(skipped),
+        "restored_after_a_late_write": sorted(late),
+        # The union of the two, which is what the verdict is computed from. Named rather
+        # than left to be reconstructed, because it is the reason a run is not `clean`.
+        "unvouched_for": unvouched,
         "catcher_only": not full,
         "mutants": results,
     }
@@ -1155,8 +1240,8 @@ def main() -> int:
         leaked=sorted(_dirty(touched) - already),
         skipped=sorted(already),
         full=args.full,
+        late=late,
     )
-    report["restored_after_a_late_write"] = late
     # Written before every return below, so the verdict survives a truncated terminal, a
     # closed pager, or a pipe that reports its own exit status instead of this one.
     write_report(report, args.report)
@@ -1172,7 +1257,14 @@ def main() -> int:
         print(f"{len(report['survivors'])} survived: {', '.join(report['survivors'])}")
         print("A surviving mutant is a hole in the layer that claims that ground.")
         return report["exit_code"]
+
     print(f"all {len(chosen)} caught by the layer expected to catch them")
+    if report["unvouched_for"]:
+        print()
+        print(f"!! but this run cannot vouch for: {', '.join(report['unvouched_for'])}")
+        print("!! the clean-tree check is blind to a file that was already modified, and a")
+        print("!! late write means some mutant ran against source nobody chose. Diff those")
+        print("!! paths by hand, or commit and re-run, before believing the catches above.")
     return report["exit_code"]
 
 

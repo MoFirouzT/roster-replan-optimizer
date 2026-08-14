@@ -52,6 +52,7 @@ def validate_instance(instance: Instance) -> list[InputDefect]:
     a payload that is not well-formed has no meaningful optimum to degrade towards."""
     defects: list[InputDefect] = []
     defects += _min_shift(instance)
+    defects += _horizon_span(instance)
     defects += _derogations(instance)
     defects += _replan_pair(instance)
     defects += _shift_catalogue(instance)
@@ -164,6 +165,43 @@ def _replan_pair(instance: Instance) -> list[InputDefect]:
             f"R-PIN-PAST cannot pin a past it has no incumbent for",
             observed=None,
             required="present",
+        )
+    ]
+
+
+# --- The horizon a week's rules can be stated over ------------------------------------
+# `R-MAX-WEEKLY` and `R-WEEKLY-REST` are week rules, and both readings scope them to the
+# *horizon*: the model sums an employee's whole instance against one budget and asks for
+# one rest window anywhere in it, and the checker measures those same two things the same
+# way. At seven days the two scopes coincide. Past seven they do not, and the gap is
+# silent in both directions -- 35 hours of rest inside four weeks satisfies a rule that
+# means 35 hours inside each of them, and no value of `max_hours_this_week` can mean "this
+# much per week" when the sum it is compared against runs over four.
+#
+# **The differential harness cannot catch this**, because both readings are wrong in the
+# same direction. That is the shared-*assumption* form of what `domain.py` forbids for
+# shared thresholds, and it is why the guard is here: a longer horizon is refused as a
+# request rather than answered with a roster both readings certify and the statute does
+# not (`D-110`).
+#
+# Shorter horizons stay legal. There `R-WEEKLY-REST` is too strict rather than too weak,
+# which `D-029` already records and prices as conservatism, and a weekly budget spent
+# inside part of a week is exactly what the caller supplies it for.
+
+MAX_HORIZON_DAYS = 7
+
+
+def _horizon_span(instance: Instance) -> list[InputDefect]:
+    if instance.days <= MAX_HORIZON_DAYS:
+        return []
+    return [
+        InputDefect(
+            "days",
+            f"horizon of {instance.days} days: both readings scope R-MAX-WEEKLY and "
+            f"R-WEEKLY-REST to the horizon, so past {MAX_HORIZON_DAYS} days neither "
+            f"states the rule it is named for",
+            instance.days,
+            f"<= {MAX_HORIZON_DAYS}",
         )
     ]
 

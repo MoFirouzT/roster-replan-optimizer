@@ -89,6 +89,16 @@ computes, per employee, the hours already worked in the current period and the w
 remaining in it, and supplies a single `max_hours_this_week` budget. The solver and the checker see
 only that number. The horizon stays one week, the rule stays local, and the semantics are correct.
 
+**The budget is a week's hours, and it is enforced in every week of the horizon** (`D-111`): the sum
+runs over the assignments in one week, not over the instance. At a one-week horizon those are the
+same sum. What a single number still cannot express is a *different* ceiling in week two from week
+one, which is what a caller resolving a rolling reference period would supply — that is a payload
+change and it waits for the study that needs it.
+
+One week also remains a precondition of the request, and `validation.py` enforces it (`D-110`,
+narrowed by `D-111`) — no longer because the rules would be wrong, but because the stack around them
+is not yet verified past a week.
+
 The cost is stated rather than hidden: **correctness now depends on a computation this service does
 not perform.** Two consequences follow, and both are binding.
 
@@ -457,7 +467,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
   **Alternative, measured and rejected** (`D-089`): one optional interval variable per
   `(employee, shift instance)` inflated by `min_rest_hours`, under a single `add_no_overlap` per
-  employee. It is 23% smaller and builds 12% faster, and searches 16% slower on 24 of 24 cases — a 2%
+  employee. It is 23% smaller and builds 14% faster, and searches 15% slower on 28 of 28 cases — a 4%
   better total on the committed set that reverses to 11% worse on larger cold instances. It also
   coarsens the gate to one literal per employee-week, losing the slot coordinate this encoding
   reports. The scaling argument for it is about the **horizon**, which is fixed at one week here, so
@@ -593,8 +603,8 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
   **Alternative, measured and rejected** (`D-088`): a `regular` automaton over the worked/not-worked
   sequence, whose states count the current streak. It is the textbook encoding for sequence rules,
-  which is why the study had to confirm it rather than assume it — and it is **20% slower to search on
-  24 of 24 cases**, because at a seven-day horizon with a six-day limit this encoding builds exactly
+  which is why the study had to confirm it rather than assume it — and it is **19% slower to search on
+  28 of 28 cases**, because at a seven-day horizon with a six-day limit this encoding builds exactly
   **one** window per employee, so the automaton competes against a single inequality. It also gates
   only per employee-week, losing the day coordinate. It does not express `R-WEEKLY-REST` either: a
   continuous 35-hour free run is measured in hours, not days. See
@@ -617,8 +627,11 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
   Existential, which is why this is the only rule here that is not a sum over assignments.
 - **Class.** Hard. Art. 38ter §2's derogations reach §1, and this project does not relax §3.
-- **Parameters.** `min_weekly_rest_hours`, default **35**. Window: the horizon, for a seven-day
-  horizon.
+- **Parameters.** `min_weekly_rest_hours`, default **35**. Window: **each week of the horizon**,
+  seven days from its start, clipped to the horizon (`D-111`). At a one-week horizon that is the
+  horizon, which is what it was before weeks were named here. A window counts for a week only if it
+  lies inside it, so a rest straddling a boundary counts for neither — `D-029`'s conservatism, at
+  every internal boundary rather than only at the end.
 - **Model encoding.** Candidate windows plus at-least-one. Introduce `r[e, j]` for each candidate
   window `j`, require `Σ_j r[e, j] ≥ 1`, and for each shift instance overlapping window `j` add
   `r[e, j] ⟹ x[e, instance] = 0` — a reified implication CP-SAT handles natively.

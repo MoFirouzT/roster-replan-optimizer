@@ -102,10 +102,18 @@ for it.
 **Read the verdict from `tests/mutation-report.json`, not from the terminal.** A run takes tens of
 minutes, and reading its result through a pipe has twice destroyed it: `tail` truncates the
 per-mutant lines *and* reports its own exit status, so a run that leaked a mutated file into the
-working tree read as a clean pass. `jq .verdict tests/mutation-report.json` is the first question;
+working tree read as a clean pass. `jq .verdict tests/mutation-report.json` is the first question,
+and there are four answers: `clean`, `unverifiable`, `survivors`, `leaked`.
+
 `leaked` means the run is void, not passing-with-a-caveat, because every mutant after the leak may
 have been caught by the leftover defect. If it does leak, `git checkout --` the named paths —
 format-on-save is the usual culprit and is worth turning off for the duration.
+
+`unverifiable` means every mutant was caught and **the run could not vouch for the tree it ran in**
+(`D-112`): a file it mutated was already modified, so the clean-tree check skipped it, or an editor
+wrote the mutated text back after the restore verified. `unvouched_for` names the paths. Diff them by
+hand, or commit and re-run, before believing the catches. Running on a dirty tree is allowed — it is
+when a new layer is being proved — but it buys a weaker result, and now says so.
 
 This has found four blind spots so far, each behind a fully green suite: `D-066`, `D-058`, a rest
 threshold the differential harness could not see, and a validation rule with no test at all.

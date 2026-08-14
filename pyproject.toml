@@ -24,7 +24,12 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
+# The repo root as well as `tests`. There is no `[build-system]` -- this is a service, not
+# a distributable package -- so `roster_replan` and `benchmarks` are found on the path
+# rather than installed. Without the root, `uv run pytest` fails at conftest import while
+# `uv run python -m pytest` succeeds, and the difference is invisible to anyone who has not
+# hit it.
+pythonpath = [".", "tests"]
 
 # The independence rule from docs/specs/rules.md, mechanised. The module boundary is
 # enforceable; the no-shared-thresholds half is a review obligation no linter can

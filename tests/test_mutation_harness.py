@@ -91,6 +91,56 @@ def test_files_the_run_could_not_vouch_for_are_named():
     assert report["unchecked_because_already_modified"] == ["roster_replan/nl.py"]
 
 
+def test_a_run_that_could_not_vouch_for_the_tree_is_not_clean():
+    """The run that prompted `D-112`, reduced to its verdict.
+
+    Every mutant was caught and the clean-tree check found nothing — because both files it
+    would have checked were already modified, so it checked neither. The report said
+    `clean` and `trustworthy: true` with a mutated `checker.py` in the tree, and named the
+    reason three fields lower in the same object. Absence of assurance now reads as absence
+    of assurance.
+    """
+    report = mutation.summarise(
+        [_result("a"), _result("b")],
+        leaked=[],
+        skipped=["roster_replan/checker.py", "roster_replan/model.py"],
+        full=False,
+    )
+
+    assert report["verdict"] == "unverifiable"
+    assert report["exit_code"] == 3
+    assert not report["trustworthy"], "all caught is not the same as vouched for"
+    assert report["caught"] == report["selected"], "and the catches are still reported"
+
+
+def test_a_late_write_denies_the_run_its_guarantee_too():
+    """`_late_restore` puts the file back and the run continues, so nothing leaks. But a
+    mutant that ran inside that window was tested against source nobody chose, and the
+    window is only bounded to one mutant, not closed."""
+    report = mutation.summarise(
+        [_result("a")], leaked=[], skipped=[], full=False, late=["roster_replan/disruption.py"]
+    )
+
+    assert report["verdict"] == "unverifiable"
+    assert report["unvouched_for"] == ["roster_replan/disruption.py"]
+
+
+def test_a_survivor_is_a_finding_and_outranks_an_unvouched_tree():
+    """A mutant that survived, survived — that is true whatever the tree looked like, and
+    burying it under `unverifiable` would hide the one thing worth acting on. The verdict
+    names the finding; `trustworthy` still says the run could not vouch for itself."""
+    report = mutation.summarise(
+        [_result("a", caught=False)],
+        leaked=[],
+        skipped=["roster_replan/nl.py"],
+        full=False,
+    )
+
+    assert report["verdict"] == "survivors"
+    assert report["survivors"] == ["a"]
+    assert not report["trustworthy"]
+
+
 def test_the_report_round_trips_through_the_file(tmp_path):
     report = mutation.summarise([_result("a")], leaked=[], skipped=[], full=True)
     path = mutation.write_report(report, tmp_path / "report.json")

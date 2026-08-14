@@ -261,6 +261,96 @@ def test_brute_force_with_absences_agrees():
     assert [r for r in all_rosters(with_absence) if not agree(r, with_absence)] == []
 
 
+# --- The week rules, over more than one week ---------------------------------------
+# `D-111`. Both readings scoped these to the horizon, which is the week only while the
+# horizon is one. These are the assertions that the scope is now the week in both, and
+# that the two still agree about it -- agreement being the thing that was never in doubt
+# and never worth anything while they were wrong together.
+
+
+def fortnight(**overrides) -> Instance:
+    """Two weeks, one employee, one shift a day. Small enough to reason about by hand:
+    a morning shift is 07:00-15:00 with a 30-minute break, so 7.5h net."""
+    people = (
+        Employee(
+            name="Ana",
+            contract="salaried",
+            skills=frozenset({"bar"}),
+            max_hours_this_week=38.0,
+            max_daily_hours=8.0,
+        ),
+    )
+    base = dict(
+        days=14,
+        shift_types=(ShiftType("M", 7.0, 8.0, 0.5),),
+        employees=people,
+        open_shifts=tuple(OpenShift(day=d, shift=0, required=1) for d in range(14)),
+        params=RuleParams(
+            min_rest_hours=11.0,
+            min_weekly_rest_hours=35.0,
+            min_period_hours=3.0,
+            max_consecutive_days=6,
+        ),
+        disruption=shipped_d2(),
+    )
+    return Instance(**(base | overrides))
+
+
+def test_a_second_week_is_measured_on_its_own():
+    """Ana works the six days that close the fortnight. Her longest rest inside that
+    second week is 33h -- day 12's shift ends at 15:00 and the horizon ends 33 hours
+    later -- against the 35h the rule requires. The first week is untouched and offers a
+    rest seven days long, which is what used to satisfy both readings for the whole
+    horizon.
+    """
+    instance = fortnight()
+    roster = frozenset({(0, day, 0) for day in range(7, 13)})
+
+    assert ("R-WEEKLY-REST", 0, 7, None) in checker_keys(roster, instance)
+    assert ("R-WEEKLY-REST", 0, 0, None) not in checker_keys(roster, instance)
+    assert agree(roster, instance)
+
+
+def test_a_budget_is_a_week_of_hours_in_every_week():
+    """Six shifts is 45h against a 38h budget. Spread across the fortnight it is lawful
+    in both weeks; concentrated in one it is not, and the horizon-wide sum could not tell
+    those two rosters apart.
+    """
+    instance = fortnight()
+    concentrated = frozenset({(0, day, 0) for day in range(0, 6)})
+    spread = frozenset({(0, day, 0) for day in (0, 2, 4, 7, 9, 11)})
+
+    assert ("R-MAX-WEEKLY", 0, 0, None) in checker_keys(concentrated, instance)
+    assert "R-MAX-WEEKLY" not in {key[0] for key in checker_keys(spread, instance)}
+    assert agree(concentrated, instance)
+    assert agree(spread, instance)
+
+
+def test_the_rest_window_is_not_borrowed_across_the_boundary():
+    """`D-029`'s conservatism, now at every internal boundary rather than only at the
+    horizon's end.
+
+    Ana works every day except day 7, so her one long rest runs from 15:00 on day 6 to
+    07:00 on day 8 -- 40 uninterrupted hours, more than the rule asks for. It is split 9h
+    either side of the boundary, and both weeks are reported short. A reading that let a
+    straddling block count for the week it began in would accept this roster; requiring
+    it to lie inside the week refuses it. That is the conservative direction, and the
+    same one `D-029` already takes at the horizon's own edge.
+    """
+    relaxed = RuleParams(
+        min_rest_hours=11.0,
+        min_weekly_rest_hours=35.0,
+        min_period_hours=3.0,
+        max_consecutive_days=None,
+    )
+    instance = _with_first(fortnight(params=relaxed), max_hours_this_week=60.0)
+    roster = frozenset({(0, day, 0) for day in range(14) if day != 7})
+
+    short = {key[2] for key in checker_keys(roster, instance) if key[0] == "R-WEEKLY-REST"}
+    assert short == {0, 7}
+    assert agree(roster, instance)
+
+
 # --- Differential on a realistic instance ------------------------------------------
 
 

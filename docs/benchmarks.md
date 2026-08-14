@@ -192,7 +192,7 @@ shipped objective is reproducible across seeds without being asked to be.
 
 **Greedy ties the optimum on 71 of 84 cases** (`D-083`, `D-105`). Where it matched the optimal coverage, it
 matched the optimal disruption exactly — every time. Its lower *average* disruption is not a win: it
-gets there by leaving more shifts unstaffed (0.27 against 0.16 on clean weeks), which is precisely
+gets there by leaving more shifts unstaffed (0.31 against 0.15 on clean weeks), which is precisely
 the trade the shortfall weight is set to refuse. On the 13 cases where it left an extra hole —
 `tight/2`, `tight/4`, `small/5`, `large/2`, `flexi-heavy/5`, `thin-availability/2`,
 `thin-availability/3`, `multi-absence/2`, `busy/2`, `busy/5`, `overloaded/1`, `overloaded/4`,

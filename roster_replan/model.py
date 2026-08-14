@@ -399,37 +399,41 @@ def _rest_gap_intervals(built: Built, instance: Instance) -> None:
 def _weekly_rest(built: Built, instance: Instance) -> None:
     model = built.model
     width = instance.params.min_weekly_rest_hours
-    horizon = instance.horizon()
-    anchors = sorted(
-        {horizon.start} | {instance.window(o.day, o.shift).end for o in instance.open_shifts}
-    )
+    ends = {instance.window(o.day, o.shift).end for o in instance.open_shifts}
 
     for employee, person in enumerate(instance.employees):
-        floor = horizon.start
-        if person.last_shift_end_before_horizon is not None:
-            floor = max(floor, person.last_shift_end_before_horizon)
+        for week in range(instance.weeks):
+            span = instance.week_span(week)
+            floor = span.start
+            if person.last_shift_end_before_horizon is not None:
+                floor = max(floor, person.last_shift_end_before_horizon)
 
-        chosen = []
-        for index, start in enumerate(anchors):
-            if start < floor or start + width > horizon.end:
-                continue
-            selected = model.new_bool_var(f"r_{employee}_{index}")
-            chosen.append(selected)
-            for open_shift in instance.open_shifts:
-                key = (employee, open_shift.day, open_shift.shift)
-                if key not in built.x:
+            chosen = []
+            anchors = sorted({span.start} | {e for e in ends if e >= span.start})
+            for index, start in enumerate(anchors):
+                if start < floor or start + width > span.end:
                     continue
-                window = instance.window(open_shift.day, open_shift.shift)
-                if window.start < start + width and start < window.end:
-                    model.add(built.x[key] == 0).only_enforce_if(selected)
+                selected = model.new_bool_var(f"r_{employee}_{week}_{index}")
+                chosen.append(selected)
+                for open_shift in instance.open_shifts:
+                    key = (employee, open_shift.day, open_shift.shift)
+                    if key not in built.x:
+                        continue
+                    window = instance.window(open_shift.day, open_shift.shift)
+                    if window.start < start + width and start < window.end:
+                        model.add(built.x[key] == 0).only_enforce_if(selected)
 
-        literal = built.gate(model, Gate("R-WEEKLY-REST", employee))
-        if chosen:
-            model.add_bool_or(chosen).only_enforce_if(literal)
-        else:
-            # No window of this width fits the horizon at all. Forcing the gate false
-            # reports that through the same channel rather than as a bare infeasibility.
-            model.add(literal == 0)
+            literal = built.gate(
+                model, Gate("R-WEEKLY-REST", employee, instance.week_start_day(week))
+            )
+            if chosen:
+                model.add_bool_or(chosen).only_enforce_if(literal)
+            else:
+                # No window of this width fits inside this week at all. Forcing the gate
+                # false reports that through the same channel rather than as a bare
+                # infeasibility. A trailing part-week shorter than the rest itself is the
+                # way to reach this, which is `D-029`'s conservatism per week.
+                model.add(literal == 0)
 
 
 # --- R-MAX-WEEKLY and R-MAX-DAILY -------------------------------------------------
@@ -442,13 +446,18 @@ def _max_weekly(built: Built, instance: Instance) -> None:
     for employee, person in enumerate(instance.employees):
         if person.max_hours_this_week is None:
             continue
-        terms = [
-            _minutes(instance.shift_types[shift].work_hours) * built.x[e, day, shift]
-            for (e, day, shift) in built.x
-            if e == employee
-        ]
-        literal = built.gate(model, Gate("R-MAX-WEEKLY", employee))
-        model.add(sum(terms) <= _minutes(person.max_hours_this_week)).only_enforce_if(literal)
+        for week in range(instance.weeks):
+            terms = [
+                _minutes(instance.shift_types[shift].work_hours) * built.x[e, day, shift]
+                for (e, day, shift) in built.x
+                if e == employee and instance.week_of(day) == week
+            ]
+            literal = built.gate(
+                model, Gate("R-MAX-WEEKLY", employee, instance.week_start_day(week))
+            )
+            model.add(sum(terms) <= _minutes(person.max_hours_this_week)).only_enforce_if(
+                literal
+            )
 
 
 def _max_daily(built: Built, instance: Instance) -> None:

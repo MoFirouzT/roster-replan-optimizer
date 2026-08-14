@@ -291,7 +291,8 @@ separates the two effects.
 *cost-objective* solve for two independent reasons — the hint, and the fact that a disruption
 objective has its optimum near the incumbent — so only the cold *disruption-objective* baseline can
 tell them apart. Paired on case and solver seed across the committed set, the hint reduces CP-SAT's
-search time on 201 of 216 runs, median paired ratio 0.907.
+search time on 662 of 756 runs, median paired ratio 0.906 — reproducing the study's 0.907 on 201 of
+216, before `D-105` widened the set.
 
 **And it is small.** That is 9% of a 3 ms search, invisible in end-to-end latency because building
 the model costs about 5 ms. The objective is what carries the result: it cuts mean disruption from

@@ -1,5 +1,7 @@
 # roster-replan-optimizer
 
+[![CI](https://github.com/MoFirouzT/roster-replan-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/MoFirouzT/roster-replan-optimizer/actions/workflows/ci.yml)
+
 **Minimum-disruption shift-roster replanning under labour constraints.**
 
 Someone calls in sick at 09:00 on Saturday.
@@ -13,6 +15,22 @@ The penalty is what carries the result; the warm start is a small speedup, and t
 
 > Generation is not a separate feature.
 > It is the cold-start case of replanning — a replan from an empty roster.
+
+**The number.** On the 72 of 84 committed cases that were fully staffable before the disruption, the
+disruption objective cuts the score from 307 to 65 against a cold re-solve, and the people moved from
+12.4 to 2.4.
+
+```bash
+uv sync
+uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
+uv run pytest -q
+```
+
+**Ten minutes, in reading order.** The demo above and what it prints, then
+[`benchmarks.md`](docs/benchmarks.md) for what was measured and against what,
+[`studies/README.md`](docs/studies/README.md) for the eight levers and the five that lost,
+[`specs/validation.md`](docs/specs/validation.md) for how a legality claim is made true rather than
+assumed, and [`finish.md`](docs/finish.md) for what did not ship.
 
 ---
 
@@ -139,16 +157,16 @@ Test layers, invariants and the harness design: [`docs/specs/validation.md`](doc
 The scaling problem here is **many small instances** and **interactive latency**, not one large instance.
 Benchmarks are built accordingly; throughput and p95 across tenants, not a single 5000-employee monolith.
 
-Levers, measured, including the three that did not pay off:
+Levers, measured, including the five that did not pay off:
 
 | Lever | Result |
 | --- | --- |
-| Domain presolve | **28% off build, 16% off search**, 24/24 cases — a quarter of the model removed |
+| Domain presolve | **28% off build, 14% off search**, 28/28 cases — a quarter of the model removed |
 | Memoising the shift-window lookup | **The largest one**: 20% off build, found by profiling — building costs more than solving here |
 | Per-tenant compiled-model caching | **Null for replanning** — 0 hits in 144 solves; a replan changes the model's own inputs |
-| Warm starts from the previous solution | **9% of search time**, paired on 216 runs; invisible end to end |
-| Symmetry breaking | **Null** — 3 interchangeable employees across 24 cases. Worth 20% where symmetry exists, so the null is about the distribution |
-| `regular` automaton for shift sequences | **Rejected, 20% slower** — a one-week horizon leaves exactly one window to replace |
+| Warm starts from the previous solution | **9% of search time**, paired on 662 of 756 runs; invisible end to end |
+| Symmetry breaking | **Null** — 3 interchangeable employees across 28 cases. Worth 20% where symmetry exists, so the null is about the distribution |
+| `regular` automaton for shift sequences | **Rejected, 19% slower** — a one-week horizon leaves exactly one window to replace |
 | `no_overlap` intervals for rest gaps | **Rejected** — trades search time for build time, and the sign of the total flips by instance |
 | Pattern/column variables | **Rejected** — no proof of optimality in 30 s on a cold week, against ~20 ms |
 
@@ -168,10 +186,7 @@ The forecast → optimise interface is documented in [`docs/specs/model.md`](doc
 
 ## Quickstart
 
-```bash
-uv sync
-uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
-```
+The demo command at the top of this file prints:
 
 ```text
 tenant horeca-demo, profile horeca-2026.1
@@ -197,6 +212,14 @@ The scenario file is the real wire format, so it doubles as the worked example o
 sends. The shortfall is the honest outcome: E03 called in sick and **nobody could legally replace
 them** — the explanation says why, person by person, and every line is derived rather than phrased
 by a model.
+
+The suite and the import contracts are the two things CI runs on every push, and they run the
+same way here:
+
+```bash
+uv run pytest -q          # 752 tests, about a minute
+uv run lint-imports       # the 10 contracts that carry the independence rule
+```
 
 Everything above — and the whole test suite — runs with no API key. One script does not:
 
@@ -249,3 +272,17 @@ docs/
   benchmarks.md            results and method
 scenarios/horeca/          demo data — domain specificity lives here, not in the code
 ```
+
+---
+
+## About
+
+Mo Firouz — [github.com/MoFirouzT](https://github.com/MoFirouzT). MIT licensed. Every payload, roster
+and tenant here is synthetic: no customer data, no vendor formats, no wage data.
+
+**Built with heavy use of an AI coding assistant**, which is worth saying plainly, because the commit
+history makes it obvious and because the volume is not the interesting part. What the tooling does not
+supply is the judgement about what to measure and what to keep when the answer goes against the plan.
+Five of the eight levers above lost. [`D-001`](docs/decisions.md) records that the founding solver
+choice is not justified by speed. [`benchmarks.md`](docs/benchmarks.md) names the weakness that limits
+every number in it, and [`finish.md`](docs/finish.md) lists what did not ship beside what did.

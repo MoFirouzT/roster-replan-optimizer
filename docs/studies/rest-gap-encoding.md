@@ -42,8 +42,8 @@ build time.** It is 23% smaller because one `no_overlap` replaces many pairwise 
 model to construct — but a global propagator over intervals costs more to run than the inequalities it
 replaced, on 28 of 28 cases.
 
-**The two percentages are on different bases, and that is what decides the total.** 12% of a ~5.2 ms
-build is about 0.6 ms saved; 16% of a ~3.3 ms search is about 0.5 ms lost. The saving is the larger
+**The two percentages are on different bases, and that is what decides the total.** 14% of a ~5.2 ms
+build is about 0.7 ms saved; 15% of a ~3.3 ms search is about 0.5 ms lost. The saving is the larger
 number on the committed set, which is why the total comes out marginally ahead — and on the cold
 family, where search is a larger share of the work, the same two percentages land the other way and
 the total flips. Which side wins is therefore a property of the instance rather than of the encoding,

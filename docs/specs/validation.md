@@ -21,6 +21,7 @@ What lands here, and why each is *not* a roster property:
 |---|---|
 | `R-MIN-SHIFT` — every shift type meets the minimum period | No reachable roster can violate it; the catalogue either does or does not. See `rules.md` |
 | `max_hours_this_week[e]` within the absolute weekly ceiling | A too-large budget is a bad payload. Reporting it as `R-MAX-WEEKLY` blames the solver for the caller's arithmetic |
+| The horizon is at most seven days | `D-110`, narrowed by `D-111`. The two week rules are now measured per week and are correct at any horizon; what is not verified past a week is the stack around them — the profile probe's hard-coded week, the generator, and a horizon that ends in a part-week too short to hold the rest it owes |
 | `max_daily_hours[e]` within the lawful derogation ladder | Same shape: the ceiling is a property of the contract, not of the assignment |
 | A derogated parameter carries a non-empty `derogation_basis` | A legality claim with no source is the thing `rules.md` exists to prevent |
 | A legal `R-SKILL-MIX` entry carries a provenance string | As above, per entry |

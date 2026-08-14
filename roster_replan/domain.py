@@ -29,6 +29,14 @@ Roster = frozenset[Assignment]
 # Schema vocabulary, not a rule parameter: both readings name the same contract type.
 FLEXI = "flexi"
 
+# A week is seven days from the horizon's start, and it is the span the week rules are
+# measured over. This is calendar arithmetic of the same kind as the `day * 24.0` in
+# `window` below, not a rule threshold: no rule can be relaxed by changing it, and a
+# tenant cannot configure it. The domain still has no calendar -- a week here is a
+# position in the horizon, never a Monday -- so a caller who needs the two to coincide
+# starts the horizon on one.
+DAYS_PER_WEEK = 7
+
 
 @dataclass(frozen=True, slots=True)
 class Interval:
@@ -308,6 +316,31 @@ class Instance:
 
     def horizon(self) -> Interval:
         return Interval(0.0, self.days * 24.0)
+
+    @property
+    def weeks(self) -> int:
+        """Whole and part weeks in the horizon. A trailing part-week counts as a week:
+        hours worked in it are hours worked in a week, and the rule is measured over the
+        part that lies inside the horizon."""
+        return -(-self.days // DAYS_PER_WEEK)
+
+    def week_of(self, day: int) -> int:
+        return day // DAYS_PER_WEEK
+
+    def week_span(self, week: int) -> Interval:
+        """The week's hours, clipped to the horizon.
+
+        Clipping is what makes a one-week horizon behave exactly as it did before weeks
+        existed here: there is one week, its span is the horizon, and both readings
+        measure what they always measured.
+        """
+        start = week * DAYS_PER_WEEK * 24.0
+        return Interval(start, min(start + DAYS_PER_WEEK * 24.0, self.horizon().end))
+
+    def week_start_day(self, week: int) -> int:
+        """The day coordinate a week rule reports itself at, so a violation and a gate
+        name *which* week — the coordinate the automaton was rejected for losing."""
+        return week * DAYS_PER_WEEK
 
     def day_anchor(self, day: int) -> int:
         """The shift type anchoring publication state and notice for a whole day.

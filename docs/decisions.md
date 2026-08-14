@@ -2514,3 +2514,146 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   fairness objectives shipped (`D-108`), generation shipped here. Nothing in `PLAN.md` remains
   unbuilt except the items `finish.md` lists as externally blocked.
 - **Date.** 2026-08-14.
+
+## D-110 — A horizon longer than a week is refused, because both readings would agree it is legal
+
+- **Decision.** `validate_instance` rejects `days > 7`. Shorter horizons stay legal and are answered.
+- **Alternatives.** *Leave it unguarded*, on the grounds that every caller in this repo supplies seven
+  days and the generator hard-codes it. *Assert it in the model*, where the encoding actually makes the
+  assumption. *Fix the two rules instead*, scoping them to a week so any horizon is answerable.
+- **Reason.** `R-MAX-WEEKLY` and `R-WEEKLY-REST` are week rules, and both readings scope them to the
+  **horizon**. The model sums an employee's whole instance against one `max_hours_this_week` and asks
+  for one 35-hour window anywhere in the horizon; the checker sums the same roster and measures the
+  longest free run in the same span. At seven days those two scopes are the same span and the
+  encodings are right. Past seven they separate, in the weak direction: 35 hours of rest inside four
+  weeks satisfies a rule that means 35 hours inside each of them, and no supplied value can make one
+  budget mean "this much per week" when the sum runs over four.
+
+  What makes this worth refusing rather than documenting is that **nothing in the suite could catch
+  it**. The differential harness compares two readings that are wrong in the same direction, so it
+  reports agreement. Brute-force ground truth enumerates against the same predicates. This is the
+  shared-*assumption* form of the failure `domain.py` forbids for shared thresholds — where the
+  discipline is written down, seven days was never named as a threshold at all, because it does not
+  appear as a number in either reading.
+
+  Asserting it in the model was rejected for where it puts the answer: an assertion is a crash, and
+  this is a caller supplying a payload the service cannot price. That is the definition `D-040` gives
+  for input validation — no different roster fixes it — so it is an `InputDefect` with a field path
+  and a stated bound, reaching the caller through the same channel as every other malformed request.
+
+  Fixing the rules is the right end state and is not this record. It changes the payload schema, both
+  readings, the generator and four specs, and it should be measured rather than assumed — the claim in
+  `rules.md` that a longer horizon "multiplies instance size by an order of magnitude and destroys the
+  interactive latency" is the one major rejection in this project written without a measurement behind
+  it. The guard is what makes deferring that honest instead of silent.
+- **Consequences.** `rules.md` records the horizon scope of both rules as enforced rather than assumed,
+  and `D-029`'s conservatism note now has its opposite number: short horizons are too strict and
+  answered, long ones are too weak and refused. A test asserts that the checker certifies a two-week
+  roster whose second week has 33 hours of rest, which is the blind spot stated as a fact rather than
+  as a worry, and a mutant asserts the guard cannot quietly stop firing.
+
+  Generation mode (`D-109`) inherits the bound: a cold solve over a month is refused for the same
+  reason a replan is. That is a real restriction on the feature and is stated here rather than
+  discovered.
+- **Superseded in part by `D-111`.** The two rules are now scoped to the week in both readings, so
+  the blind spot this record was written about is closed: the test that documented it asserts the
+  opposite finding, and four mutants restore the defect one reading at a time. The guard itself
+  stays, for the narrower reasons `D-111` gives — this record's reasoning about *why* it went in is
+  left as written.
+- **Date.** 2026-08-14.
+
+## D-111 — The week rules are measured over a week, and the guard stays for narrower reasons
+
+- **Decision.** `R-MAX-WEEKLY` and `R-WEEKLY-REST` are enforced **per week** in both readings, over
+  weeks of seven days counted from the horizon's start. A rest window counts for a week only if it
+  lies inside that week. `domain.py` gains the week as a shared convention — `weeks`, `week_of`,
+  `week_span`, `week_start_day` — alongside half-open overlap and start-day attribution, and both
+  rules now report the week they are about in the day coordinate. `D-110`'s `days > 7` guard stays.
+- **Alternatives.** *A per-week budget field*, so week two can carry a different ceiling from week
+  one. *A rolling reading* — 35 free hours in every seven-day window, not in every aligned week.
+  *Lifting the guard here*, since the defect it stood for is fixed. *Leaving it alone* and treating
+  one week as a permanent restriction of the product.
+- **Reason.** At a one-week horizon the horizon and the week are the same span, which is why the
+  original encoding was right and why nothing could see that it was right for the wrong reason. The
+  generalisation costs nothing at that size and is verifiable as such: the model built for the
+  headline instance has **895 variables and 1,205 constraints before and after this change**. It is
+  the same model. At two weeks and beyond it is a different one, and the difference is the rule.
+
+  The **per-week budget field** is the right end state and is deliberately not here. It is a payload
+  change across 28 files, and it is the field the reference-period question actually turns on — a
+  caller resolving a rolling quarter supplies what is left of it, which is a horizon total, not a
+  weekly ceiling repeated. Both belong in the same record as the measurement that needs them, which
+  is the study `rules.md` still owes.
+
+  The **rolling reading** is stricter and was rejected on reporting rather than on strictness: it has
+  no week to name, so a violation could say a person is short of rest without saying when, which is
+  the coordinate `D-088` refused to give up for a 20% search win. Aligned weeks keep the day
+  coordinate. What that costs is real and is asserted rather than hidden: a 40-hour rest straddling
+  a week boundary counts for neither week, so a roster with one long break in the right place and
+  nothing else is refused. That is `D-029`'s conservatism at every internal boundary rather than only
+  at the horizon's end, and it is the same direction — too strict, never too weak.
+
+  **Lifting the guard was rejected on evidence rather than on caution.** Two rules are correct at any
+  horizon now; the stack around them is not known to be. `profile.py` probes feasibility over a
+  hard-coded `7 * 24.0`, the generator hard-codes seven days, and a horizon that is not a whole
+  number of weeks ends in a stub week that cannot contain a 35-hour rest — which this encoding
+  reports as an infeasibility naming `R-WEEKLY-REST`, correct and baffling. Each is a small piece of
+  work and none is done, so the request gate stays shut and `D-110` is amended rather than retired.
+- **Consequences.** Both rules report a day coordinate where they reported none, naming the week by
+  its first day, so the differential harness now compares *which week* rather than only *whether*.
+  The checker's `_longest_free_run` clips to the span it is given rather than assuming the horizon,
+  because an employee's roster reaches outside any one week.
+
+  Four mutants restore the old scoping one reading at a time, and all four are caught by
+  `test_differential.py`. That is the pointed part: the layer that was structurally unable to catch
+  this defect an hour ago catches it four ways now, because the two readings can finally disagree
+  about it.
+
+  What `D-110` still guards is now a list rather than a principle, and it is the work that lifts it:
+  the profile probe, the generator, and a whole-weeks rule for horizons past one week.
+- **Date.** 2026-08-14.
+
+## D-112 — The mutation harness says `unverifiable` where it used to say `clean`
+
+- **Decision.** A run that cannot vouch for the tree it ran in reports `verdict: unverifiable`,
+  exit code 3, `trustworthy: false`. Two conditions trigger it: a target file already modified when
+  the run started, and a late write an editor reinstated after the per-mutant restore verified. A
+  survivor still outranks both, because a mutant that survived, survived.
+- **Alternatives.** *Refuse to start on a dirty tree*, which is the strongest fix and forbids the
+  workflow that found this — running a new mutant against uncommitted work is exactly when a new
+  layer is being proved. *Leave it*, since the report already named the skipped files. *Check the
+  tree by content instead of by `git status`*, which is what `_late_restore` already does.
+- **Reason.** The harness knew and said nothing that mattered. The report from the run that prompted
+  this record read `verdict: clean`, `trustworthy: true`, `leaked: []` — with a mutated `checker.py`
+  sitting in the working tree — and named the reason three fields lower, in
+  `unchecked_because_already_modified`. The clean-tree check subtracts files that were already
+  modified, so it was blind to precisely the two files the run was mutating, and `trustworthy` was
+  computed as `verdict != "leaked"`, which is a tautology when the leak check cannot see.
+
+  `CLAUDE.md` tells a reader to ask `jq .verdict` first and treat `leaked` as void. That instruction
+  is only as good as the verdict, and here the verdict contradicted two other fields in its own
+  object. **A field a reader is told to trust must not be the one field that cannot see the failure.**
+
+  Refusing to start was rejected because of when the harness is used. `CLAUDE.md` says to run it when
+  a layer is added or is about to be trusted, which is mid-change by definition — a rule that forbids
+  dirty trees forbids the case the harness exists for. Labelling the run honestly costs nothing and
+  keeps it available.
+
+  Checking by content rather than by git was rejected as insufficient rather than wrong.
+  `_late_restore` already does it, and it is why nothing leaked *during* the run. It cannot reach the
+  failure that actually happened, which is a format-on-save watcher writing the mutated text back
+  **after the process exited**, into an idle tree. No in-process check can. What the harness can do
+  is decline to certify a tree it will not be around to watch.
+- **Consequences.** `summarise` takes `late` and computes `unvouched_for` from it, so the field the
+  verdict is derived from is in the report rather than reconstructable from two others. Four tests
+  pin the ordering — leak, survivor, unverifiable, clean — and one of them is the run that prompted
+  this record, reduced to its verdict.
+
+  The pre-flight anchor check remains the thing that catches the post-exit write, on the *next* run:
+  a mutant whose `old` text is missing means either a stale mutant or a leaked payload, and it
+  refuses to start. That is why this defect was survivable — the harness would have refused the next
+  run rather than testing against the leftover. It is a second line, not the first.
+
+  `CLAUDE.md` and the module docstring carry the new verdict, because the instruction to read
+  `.verdict` first is now worth following.
+- **Date.** 2026-08-14.

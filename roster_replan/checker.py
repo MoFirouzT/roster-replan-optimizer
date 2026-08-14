@@ -358,23 +358,26 @@ def _rest_gap(roster: Roster, instance: Instance) -> list[Violation]:
 
 def _weekly_rest(roster: Roster, instance: Instance) -> list[Violation]:
     minimum = instance.params.min_weekly_rest_hours
-    horizon = instance.horizon()
     out = []
     for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
         person = instance.employees[employee]
         occupied = _merge([instance.window(d, s) for d, s in shifts])
-        longest = _longest_free_run(occupied, horizon, person)
-        if longest < minimum:
-            out.append(
-                Violation(
-                    rule="R-WEEKLY-REST",
-                    message=f"{person.name}'s longest rest in the horizon is "
-                    f"{longest:g}h; {minimum:g}h uninterrupted is required",
-                    employee=employee,
-                    observed=longest,
-                    required=minimum,
+        for week in range(instance.weeks):
+            span = instance.week_span(week)
+            longest = _longest_free_run(occupied, span, person)
+            if longest < minimum:
+                out.append(
+                    Violation(
+                        rule="R-WEEKLY-REST",
+                        message=f"{person.name}'s longest rest in the week from day "
+                        f"{instance.week_start_day(week)} is {longest:g}h; "
+                        f"{minimum:g}h uninterrupted is required",
+                        employee=employee,
+                        day=instance.week_start_day(week),
+                        observed=longest,
+                        required=minimum,
+                    )
                 )
-            )
     return out
 
 
@@ -389,22 +392,29 @@ def _merge(intervals: list[Interval]) -> list[Interval]:
     return merged
 
 
-def _longest_free_run(occupied: list[Interval], horizon: Interval, person: Employee) -> float:
-    """Longest stretch inside the horizon touched by no assigned shift.
+def _longest_free_run(occupied: list[Interval], span: Interval, person: Employee) -> float:
+    """Longest stretch inside `span` touched by no assigned shift.
 
-    A shift that ran into the horizon from before it shortens the first stretch; one
-    that ended before the horizon began cannot, which is why the floor is a max.
+    A shift that ran into the span from before it shortens the first stretch; one that
+    ended before the span began cannot, which is why the floor is a max.
+
+    `occupied` is the employee's whole roster and may reach outside `span` in either
+    direction -- a shift in a neighbouring week, or one that ran into the horizon from
+    before it. Both are clipped rather than dropped: time a shift occupies inside this
+    span is occupied, and time outside it is not rest this span can offer.
     """
-    floor = horizon.start
+    floor = span.start
     if person.last_shift_end_before_horizon is not None:
         floor = max(floor, person.last_shift_end_before_horizon)
 
     longest, cursor = 0.0, floor
     for interval in occupied:
-        if interval.start > cursor:
-            longest = max(longest, interval.start - cursor)
-        cursor = max(cursor, interval.end)
-    return max(longest, horizon.end - cursor)
+        start = min(max(interval.start, span.start), span.end)
+        end = min(max(interval.end, span.start), span.end)
+        if start > cursor:
+            longest = max(longest, start - cursor)
+        cursor = max(cursor, end)
+    return max(longest, span.end - cursor)
 
 
 # --- R-MAX-WEEKLY and R-MAX-DAILY -------------------------------------------------
@@ -420,18 +430,25 @@ def _max_weekly(roster: Roster, instance: Instance) -> list[Violation]:
         person = instance.employees[employee]
         if person.max_hours_this_week is None:
             continue
-        worked = sum(instance.shift_types[s].work_hours for _, s in shifts)
-        if worked > person.max_hours_this_week:
-            out.append(
-                Violation(
-                    rule="R-MAX-WEEKLY",
-                    message=f"{person.name} is budgeted {person.max_hours_this_week:g}h this "
-                    f"week and this roster assigns {worked:g}h",
-                    employee=employee,
-                    observed=worked,
-                    required=person.max_hours_this_week,
-                )
+        for week in range(instance.weeks):
+            worked = sum(
+                instance.shift_types[s].work_hours
+                for d, s in shifts
+                if instance.week_of(d) == week
             )
+            if worked > person.max_hours_this_week:
+                out.append(
+                    Violation(
+                        rule="R-MAX-WEEKLY",
+                        message=f"{person.name} is budgeted "
+                        f"{person.max_hours_this_week:g}h a week and this roster assigns "
+                        f"{worked:g}h in the week from day {instance.week_start_day(week)}",
+                        employee=employee,
+                        day=instance.week_start_day(week),
+                        observed=worked,
+                        required=person.max_hours_this_week,
+                    )
+                )
     return out
 
 

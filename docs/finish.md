@@ -1,5 +1,19 @@
 # Finish declaration
 
+> **Two documents in one file.** Everything under *The declaration* is as it was written on
+> 2026-08-13, when T3 was the finish — **including the sentences later work made false**, because a
+> record that gets edited whenever the world moves is not a record. That is the rule `decisions.md`
+> already runs on: supersede, never rewrite. The bracketed notes inside it are the only additions and
+> they point forward — that, and the heading levels, which were demoted one step so the two
+> parts nest. No words inside it were changed.
+>
+> Everything under [*After the declaration*](#after-the-declaration) is what has happened since, held
+> to the same standard: what shipped, what it cost, what it got wrong, and what is still not done.
+> **For the current state of the project, start there** — the section below is history, and one of
+> its claims (*"T4 and T5 were always upside and remain unbuilt"*) stopped being true on 2026-08-14.
+
+## The declaration (2026-08-13)
+
 **T3 is complete. The project is finished in the sense `PLAN.md` defined**: T0 through T3 shipped,
 every tier gate passed on evidence rather than on prose, and every spec reconciled with its code.
 T4 and T5 were always upside and remain unbuilt.
@@ -10,7 +24,7 @@ that only lists achievements is the failure mode this project was built to avoid
 
 Date: 2026-08-13. Nineteen commits.
 
-## The gates, and what passed them
+### The gates, and what passed them
 
 | Tier | Gate | Passed by |
 | --- | --- | --- |
@@ -26,7 +40,7 @@ T2 analyses are not, and the two added classes sit outside their basis.)*
 one of them is wrong. T2 needed numbers that could have come out the other way, and several did. T3
 needed a service that runs.
 
-## What the project measured, including what it got wrong
+### What the project measured, including what it got wrong
 
 The headline claim held: **the disruption objective cuts mean disruption from 323 to 66** against a
 cold cost re-solve. The rest of the results are more interesting than that, because a majority of the
@@ -59,9 +73,9 @@ non-linear expressiveness are load-bearing for three other commitments — at a 
 wild reproduces the Ana/Bram example the spec invented to argue it was possible. *(Re-run over the
 widened set: 26 of 84, same structure, and `D-060` confirmed on a curve — `D-106`.)*
 
-## What is not done
+### What is not done
 
-### Scheduled and not delivered
+#### Scheduled and not delivered
 
 **Capture and replay** ([`specs/capture.md`](specs/capture.md)) is the one component `PLAN.md`
 scheduled inside a completed tier that does not exist. It never gated T2, by design: corpus
@@ -75,7 +89,7 @@ beats a re-solve *given a roster this model would produce*, not that the model r
 planners publish. Only a captured corpus can carry the second claim. That is the largest single gap
 in the evidence, and it is stated here rather than in a footnote.
 
-### Deferred with reasons, in the specs that own them
+#### Deferred with reasons, in the specs that own them
 
 - **The cost model is a flat rate** and `cost_weight` ships at `0` (`D-050`). The disruption/cost
   frontier therefore has no cost axis to trace. Needs wage data.
@@ -88,7 +102,7 @@ in the evidence, and it is stated here rather than in a footnote.
   marked optional and not encoded — asserted as such by `tests/test_specs.py` so they cannot quietly
   pass as implemented.
 
-### Never started, by design
+#### Never started, by design
 
 T4 (infeasibility explainer, tool surface, NL → profile) and T5 (LNS, generation mode, learned warm
 starts, fairness objectives). `PLAN.md`: *T3 is a legitimate finish. T4 and T5 are upside, each
@@ -98,7 +112,7 @@ independently shippable.*
 LNS and learned warm starts retired on measurement — `D-104`, `D-105` — with fairness objectives and
 generation mode built, `D-108` and `D-109`.)*
 
-## "All specs true", and how far that is checkable
+### "All specs true", and how far that is checkable
 
 Every spec has been reconciled with its code. Two were corrected during this declaration:
 `model.md` still carried a `[TODO]` for a wire format that shipped with T3, and `capture.md` still
@@ -113,7 +127,7 @@ Prose-level truth is a reading task and was done by reading. What can be mechani
 - **no decision ID is used twice** — `D-089` was assigned twice during T3 and only a human noticed;
 - every relative link between documents resolves — which failed on its first run.
 
-## The state of the repo
+### The state of the repo
 
 | | |
 | --- | --- |
@@ -129,7 +143,7 @@ found four blind spots behind a fully green suite during T1 and T2, and during T
 — a ladder rung that reported a timeout as a proof, an absence test passing for the wrong reason, a
 dead defensive call, and a fairness property no single response could show.
 
-## Ratifications
+### Ratifications
 
 `PLAN.md` listed two items to settle here. Both are settled (`D-095`).
 
@@ -145,12 +159,14 @@ dead defensive call, and a fairness property no single response could show.
 
 **This declaration is therefore complete.**
 
-## Postscript: T4, built after the declaration
+## After the declaration
 
-Date: 2026-08-14. The declaration above is left as it was written; this section says what changed
-rather than rewriting a record of what was true on 2026-08-13.
+Date: 2026-08-14. The declaration above is left as written. This section is the same exercise applied
+to everything since — and there is more of it than the word *postscript* implied, because **T4 and T5
+both closed**. `PLAN.md` is now built out in full; what remains is listed at the end and every item of
+it is blocked on something this project does not control.
 
-**T4 is built.** `PLAN.md` listed it as upside, and it shipped as five pieces:
+### T4, built in full
 
 | Piece | Where | The decision it turned on |
 | --- | --- | --- |
@@ -164,67 +180,103 @@ rather than rewriting a record of what was true on 2026-08-13.
 **The two open decisions are written.** `D-012` and `D-013` were the only entries left in the Open
 table, and both were writable once the boundary they describe existed. The table is now empty.
 
-**What T4 measured, and got wrong.** The pattern held. `D-100` deferred core minimisation on the
-grounds that a sufficient core names unnecessary rules; measured, the cause was not the one deferred
-work was aimed at — dropping the objective cuts a 160-gate core to two, and the deletion loop that
-was supposed to do the work removes nothing on top. `D-101` is the sharper one, because it is a
-defect rather than a null: the derogation field the prompt asked the model to fill compiled to an
-object that **could hold nothing**, and every behavioural test passed over it, because a stub returns
-what the test hands it. The layer now reads the compiled schema.
+**What T4 got wrong.** `D-100` deferred core minimisation on the grounds that a sufficient core names
+unnecessary rules; measured, the cause was not what the deferred work was aimed at — dropping the
+objective cuts a 160-gate core to two, and the deletion loop meant to do the work removes nothing on
+top. `D-101` is sharper because it is a defect rather than a null: the derogation field the prompt
+asked the model to fill compiled to an object that **could hold nothing**, and every behavioural test
+passed over it, because a stub returns what the test hands it. The layer now reads the compiled schema.
 
-**The parse has been measured.** `benchmarks/nl_eval.py` scores **18/18 on three consecutive runs**,
-after 16/18 on the first ([`studies/nl-parse.md`](studies/nl-parse.md)). It found one real defect and one of its own:
-`unclear` had been specified in a way that invited an assumptions log, so a profile that parsed
-perfectly came back with caveats about what the text did not say (`D-103`); and the eval had scored
-its author's capitalisation of a shift label as the correct one. The extraction itself was right in
-every case on the first run, Dutch and adversarial cases included.
+**The parse is measured**: **18/18 on three consecutive runs**, after 16/18 on the first
+([`studies/nl-parse.md`](studies/nl-parse.md)). It found one real defect — `unclear` specified in a
+way that invited an assumptions log (`D-103`) — and one of the eval's own, where it scored its
+author's capitalisation as the correct answer. Extraction was right in every case on the first run,
+Dutch and adversarial cases included.
 
-What that does **not** establish is stated in the study and belongs here too: fifteen cases written
-by the same person who wrote the parser and the prompt. It is the incumbent problem from
-[`benchmarks.md`](benchmarks.md) one layer up — **the text is text this system imagined**, not what
-a Belgian horeca operator would send. Two Dutch cases are a smoke test, and a single run says
-nothing about whether the same text parses the same way twice.
+What that does **not** establish belongs here as much as in the study: fifteen cases written by the
+same person who wrote the parser and the prompt. It is the incumbent problem from
+[`benchmarks.md`](benchmarks.md) one layer up — **the text is text this system imagined**, not what a
+Belgian horeca operator would send.
 
-**What is still not done.** Everything in *What is not done* above stands: capture and replay, the
-cost axis, the service `[TODO]`s, and the five unencoded optional rules.
+### T5, closed: two built, two retired on measurement
 
-**Half of T5 is retired rather than pending** (`D-104`, `D-105`). LNS improves a solution the solver
-cannot prove optimal in the time available, and neither half of that is true here — 2,268 solves
-returned `OPTIMAL`, longest search 15.4 ms, and solver-free greedy already ties the optimum on 71 of
-84 cases. Learned warm starts would optimise the 9% of search time `D-082` measured, on a search that
-takes milliseconds. Both are struck from the plan.
+| Item | Outcome |
+| --- | --- |
+| LNS | **Retired** (`D-104`, `D-105`) — improves a solution the solver cannot prove optimal in time, and neither half is true here |
+| Learned warm starts | **Retired** (`D-104`) — would optimise the 9% of search time `D-082` measured, on a search taking milliseconds |
+| Fairness objectives | **Shipped** (`D-108`) — rolling balance of unpopular shifts |
+| Generation mode | **Shipped** (`D-109`) — the cold-start case, made testable rather than argued |
 
-`D-105` then swept the generator's whole range rather than inferring from one sample of it: demand at
-105% of capacity, minimum slot slack of −7, 40 employees, every pressure at once — all `OPTIMAL` in 3
-to 11 ms, with the structurally short cases running *faster* than the baseline. What would reopen
-these is a longer horizon or a tenant an order of magnitude larger, and neither exists here.
+**The retirements rest on a swept range, not on one sample of it.** 2,268 solves returned `OPTIMAL`,
+longest search 15.4 ms, and solver-free greedy ties the optimum on 71 of 84 cases. `D-105` then swept
+the generator's whole parameter space — demand at 105% of capacity, minimum slot slack of −7, 40
+employees, every pressure at once — and every configuration returned `OPTIMAL` in 3 to 11 ms, with the
+structurally short cases running *faster* than the baseline. What would reopen LNS is a longer horizon
+or a tenant an order of magnitude larger, and neither exists here.
 
-**Fairness objectives shipped** (`D-108`) — the rolling balance of unpopular shifts `PLAN.md` scoped
-as fairness *beyond* disruption concentration. It is a third distinct meaning of the word in this
-repo: not `D-091`'s round-robin between tenants in the queue, and not D4's spreading of the changes a
-replan makes, but who works the shifts nobody wants, across weeks. Unpopularity is declared by the
-profile rather than derived from the clock, and the domination bound grew a term because an unstaffed
+**Fairness is a third meaning of the word in this repo**, and gets its own type for that reason: not
+`D-091`'s round-robin between tenants in the queue, and not D4's spreading of the changes a replan
+makes, but who works the shifts nobody wants, across weeks. Unpopularity is declared by the profile
+rather than derived from the clock, and the domination bound grew a term because an unstaffed
 unpopular shift is one nobody's count went up for.
 
-**Generation mode shipped** (`D-109`), and with it T5 is closed: LNS and learned warm starts retired
-on measurement, fairness objectives and generation built. Generation needed no formulation — it is a
-replan from an empty incumbent, and what shipped is the claim made testable at the solver, the ladder
-and the service. Testing it corrected the spec: cold disruption is flat at zero rather than the
-positive constant `replan.md` derived, so the shortfall caveat it carried describes a risk the
-implementation cannot have, and what actually ranks a cold roster is the peak-workload tie-breaker.
+**Generation needed no formulation.** It is a replan from an empty incumbent, so what shipped is the
+claim made testable at the solver, the ladder and the service. Testing it corrected `replan.md`: cold
+disruption is flat at zero rather than the positive constant the spec derived, so the shortfall caveat
+it carried describes a risk the implementation cannot have, and what actually ranks a cold roster is
+the peak-workload tie-breaker.
 
-**The mutation harness was run in full**, for the first time since T4's layers landed: 80 mutants,
-all caught by the layer named to catch them. Four of those are the parse layer's, and the first
-restores `D-101`.
+### The set widened, and what that re-measured
+
+The committed set held 60 of its 72 cases at ~0.70 demand with nothing between 0.73 and 0.89 — one
+tightness level and two deliberate outliers, which is what varying one axis at a time from a slack
+baseline produces. Two classes fill the gap and the set is **84 cases** (`D-105`).
+
+It moved a headline claim and left the rest standing. **Greedy ties on 71 of 84** where it tied on 64
+of 72, and the 13 losses are the original 8 reproduced case for case plus 5 in the new band: the tie
+rate was substantially a statement about where the set sampled. Conjunction — piling demand, scarcity
+and thin availability together — was tried first and **rejected**, because structurally short weeks
+make both methods leave the same unfillable holes and the benchmark goes blind rather than sharp.
+
+Everything else re-ran and reproduced (`D-106`, `D-107`): D0–D4 divergence at 26 of 84 with `D-060`
+confirmed on a curve for the first time, presolve, symmetry, the automaton, patterns, the rest-gap
+encoding. The one real find was not a lever but a **sampling bug**: `studies.py` selected its cold
+instances positionally, so adding two classes silently swapped two others out, and two results moved
+in ways that read exactly like findings. The sample is named now.
+
+### What is still not done
+
+Three of these four are blocked on something outside this repository, which is the honest reason
+they are not done. The fourth is not blocked at all — it is deployment work with no findings in it,
+and saying so is more useful than filing it beside the ones that need an external input.
+
+| Gap | Blocked on |
+| --- | --- |
+| **Capture and replay** — the largest gap in the evidence | External authorization and real vendor payloads |
+| The cost axis (`cost_weight` ships at 0, `D-050`) | Wage data |
+| `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each — every one is still `[CITE]`, and `rules.md` refuses a legality claim without provenance |
+| Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing — these are deployment choices, and `service.md` states each as the tier's honest limit |
+
+The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the system
+under test**. Every benchmark number here shows a replan beats a re-solve *given a roster this model
+would produce*, not that the model resembles what real planners publish.
+
+### The state of the repo
 
 | | At the declaration | Now |
 | --- | --- | --- |
 | Tests | 567 | 752 |
-| Mutants | 59 | 87 |
+| Mutants, each naming the layer that must catch it | 59 | 89 |
 | Import-linter contracts | 8 | 10 |
 | Decision records | 94, 2 open | 109, none open |
 | Studies, including nulls | 8 | 11 |
 | Python | ~12,000 lines | ~17,100 lines |
+
+The mutation harness has been run in full since every layer above landed: **89 mutants, all caught by
+the layer named to catch them**. It also had to be hardened twice while doing it — an editor's
+format-on-save watcher wrote mutated text back under it three times, once *minutes after* a run had
+finished, and the verdict now lives in a file rather than in stdout because reading it through a pipe
+destroyed two runs.
 
 ## Archived
 

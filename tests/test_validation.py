@@ -200,6 +200,43 @@ def test_unknown_shift_type_is_a_defect(make_instance, person):
     assert "open_shifts[0].shift" in fields(validate_instance(instance))
 
 
+# --- The horizon a week's rules can be stated over ---------------------------------
+
+
+def test_a_horizon_of_one_week_is_accepted(make_instance, person, one_shift):
+    assert validate_instance(make_instance([person], [one_shift], days=7)) == []
+
+
+def test_a_horizon_beyond_one_week_is_a_defect(make_instance, person, one_shift):
+    (defect,) = validate_instance(make_instance([person], [one_shift], days=8))
+    assert defect.field == "days"
+    assert (defect.observed, defect.required) == (8, "<= 7")
+
+
+def test_a_shorter_horizon_is_still_answered(make_instance, person, one_shift):
+    """`D-029` prices the short horizon as conservatism -- there `R-WEEKLY-REST` is too
+    strict, never too weak -- so it is answered rather than refused."""
+    assert validate_instance(make_instance([person], [one_shift], days=3)) == []
+
+
+def test_the_guard_outlives_the_defect_that_prompted_it(make_instance, person):
+    """`D-110` refused a long horizon because both readings would have called this roster
+    legal. `D-111` scoped the two week rules to a week, so the checker now reports it --
+    the paired assertion is `test_a_second_week_is_measured_on_its_own` in
+    `test_differential.py`, where both readings are compared.
+
+    The guard stays for the reasons `D-111` gives, which are elsewhere in the stack. This
+    asserts what it is now refusing: the request, not the roster.
+    """
+    ana = dataclasses.replace(person, max_hours_this_week=45.0)
+    shifts = [OpenShift(day=day, shift=MORNING, required=1) for day in range(7, 13)]
+    instance = make_instance([ana], shifts, days=14)
+    roster = frozenset({(0, day, MORNING) for day in range(7, 13)})
+
+    assert [(v.rule, v.day) for v in check(roster, instance)] == [("R-WEEKLY-REST", 7)]
+    assert fields(validate_instance(instance)) == ["days"]
+
+
 # --- The domination bound ----------------------------------------------------------
 # `D-057` derives the bound rather than choosing it, and says it is validated rather than
 # trusted. Nothing asserted that until mutation testing found the check could be disabled

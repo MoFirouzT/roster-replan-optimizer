@@ -52,8 +52,8 @@ replan changes the model's own inputs. The largest single win turned out to be m
 encodings. See [`model-cache.md`](model-cache.md) and `D-092`.
 
 **The search-time figure is the weakest of the four numbers** and is reported last for that reason.
-Search is about 3 ms, 16% of it is half a millisecond, and half a millisecond is near the resolution
-of the measurement. The sign test carries it: 24 of 24 is not a clock artifact.
+Search is about 3 ms, 14% of it is under half a millisecond, and that is near the resolution
+of the measurement. The sign test carries it: 28 of 28 is not a clock artifact.
 
 ## Why it is kept regardless of the number
 

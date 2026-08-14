@@ -1,0 +1,58 @@
+# What this file is for: `README.md`, `docs/specs/rules.md`, `docs/specs/validation.md` and
+# `docs/decisions.md` all say the model/checker independence is "enforced in CI". Until this
+# workflow existed, that was a claim about a linter nobody ran on a schedule. The two jobs
+# below are the two halves of it -- the suite, and the import contracts that carry the
+# independence rule.
+#
+# The mutation harness is deliberately not here. It rewrites source files and takes tens of
+# minutes, and `CLAUDE.md` says to run it when a test layer is added or is about to be
+# trusted, which is a judgement rather than a trigger.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # The version `docs/benchmarks.md` records for the committed numbers.
+  UV_PYTHON: "3.12"
+
+jobs:
+  suite:
+    name: tests (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Both halves of the optional-extra contract. Without `nl`, every deterministic
+          # layer must still pass -- that is the import contract restated as a test run.
+          # With it, the parse's schema tests actually execute rather than skipping, which
+          # is the layer that caught `D-101`. Neither job has an API key, because nothing
+          # in the suite calls a model.
+          - label: no extras
+            extras: ""
+          - label: nl extra
+            extras: "--extra nl"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # `--frozen` so a lockfile that has drifted from `pyproject.toml` fails here rather
+      # than resolving to something nobody committed.
+      - run: uv sync --frozen ${{ matrix.extras }}
+      - run: uv run pytest -q
+
+  contracts:
+    name: import contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run lint-imports
