@@ -32,6 +32,13 @@ uv run pytest -q
 [`specs/validation.md`](docs/specs/validation.md) for how a legality claim is made true rather than
 assumed, and [`finish.md`](docs/finish.md) for what did not ship.
 
+**If you only read one thing, make it a place the project was wrong.** The optimum was
+[degenerate](#the-same-input-gives-the-same-roster-and-that-had-to-be-earned) and nobody noticed
+until a CI runner disagreed with a laptop; the [horizon rejection](docs/studies/horizon.md) in the
+spec was upheld on evidence that contradicted both reasons it gave; and the
+[mutation harness](docs/decisions.md) reported `clean` three times while a defect sat in the working
+tree.
+
 ---
 
 ## What it does
@@ -132,9 +139,9 @@ show — nothing here ever came close to a time budget, and median damage is one
 
 - **The solver service is stateless**:
   payload in, payload out, no database reads.
-  Every solve's input, profile version and seed are persisted by the caller, so any roster produced in production can be reproduced offline **on the same solver build**.
-  That qualifier is measured, not defensive: the optimum is degenerate, so among equally good rosters CP-SAT returns whichever its search reaches first, and the search path belongs to the binary as much as to the seed ([`D-118`](docs/decisions.md)).
-  The objective value reproduces anywhere; the roster does not.
+  Every solve's input, profile version and seed are persisted by the caller, so any roster produced in production can be reproduced offline — **on any machine, not just the one that produced it**.
+  That is a repaired claim rather than an assumed one. The optimum is *degenerate*: on the committed set, four solver seeds return the same objective every time and a different roster on 24 of the replans and on all 84 cold weeks, so the roster used to be chosen by the search and therefore by the binary.
+  It is now chosen by the model — the optimal value is pinned and a canonical criterion picks one point on the optimal face ([`D-119`](docs/decisions.md)) — and CI proves it on a different ortools build from the one every committed artifact was recorded with ([`D-121`](docs/decisions.md)).
 - **Async by construction.**
   Solves take real time;
   synchronous HTTP breaks on timeouts, retry storms and the absence of cancellation.
@@ -153,6 +160,26 @@ They share no rule logic — no predicate, no threshold — enforced in CI, and 
 Solver objectives are held against exhaustively enumerated optima on committed micro-instances, so the correctness claim rests on ground truth rather than on the solver agreeing with itself.
 
 Test layers, invariants and the harness design: [`docs/specs/validation.md`](docs/specs/validation.md).
+
+### The same input gives the same roster, and that had to be earned
+
+The objective turned out to be **flat across many rosters**. On the committed set, four solver seeds
+return the same objective value *every time* and a different roster on 24 of the 84 replans and on
+all 84 cold weeks. So which optimum came back was decided by the search — and therefore by the
+ortools binary, not by anything in the specification. That falsified the reproducibility claim above,
+and it did it quietly: every objective value, every benchmark number and every test stayed green,
+because none of them looked at *which* optimum.
+
+CI found it, by being the first machine that had never run this code. The fix is a second phase on
+every proved optimum — pin the optimal value, minimise a canonical criterion over the optimal face —
+so nothing about what is optimal changes and the roster becomes a function of the model
+([`D-119`](docs/decisions.md)). Degeneracy went to zero on both counts, and CI now proves it on a
+different build from the one every committed artifact was recorded with.
+
+It cost 61% of search time and a premise this repo reasoned from everywhere: build no longer
+outruns search at a one-week horizon, so [`D-081`](docs/decisions.md)'s two-clock argument is now
+scoped rather than general. Both are stated because a fix whose price is unrecorded is half a
+finding.
 
 ## Performance
 

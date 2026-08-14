@@ -108,6 +108,15 @@ class Employee:
     # validation rejects rather than defaulting -- never a silent zero.
     max_hours_this_week: float | None = None
     max_daily_hours: float | None = None
+
+    # What is left of the rolling reference period, over the whole horizon (`R-MAX-PERIOD`,
+    # `D-123`). Optional in a way the two above are not: a one-week horizon cannot tell it
+    # apart from `max_hours_this_week`, so a caller with nothing to add says nothing.
+    #
+    # This is the freedom a single weekly number destroys. A quarter's remainder spent as
+    # 45 hours one week and 31 the next is lawful and is not expressible as "38 a week";
+    # the weekly ceiling still binds every week, and this binds their sum.
+    max_hours_this_period: float | None = None
     consecutive_days_worked_before_horizon: int = 0
     last_shift_end_before_horizon: float | None = None
 

@@ -144,6 +144,22 @@ MUTANTS: tuple[Mutant, ...] = (
         "tests/test_ground_truth.py",
     ),
     Mutant(
+        "checker-period-budget-never-binds",
+        "checker",
+        CHECKER,
+        "        if person.max_hours_this_period is None:",
+        "        if True:",
+        "tests/test_differential.py",
+    ),
+    Mutant(
+        "model-period-budget-never-binds",
+        "model",
+        MODEL,
+        "        if person.max_hours_this_period is None:",
+        "        if True:",
+        "tests/test_differential.py",
+    ),
+    Mutant(
         "checker-weekly-rest-spans-the-horizon",
         "checker",
         CHECKER,

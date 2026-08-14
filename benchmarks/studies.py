@@ -518,6 +518,55 @@ def horizon_study() -> None:
                 f"{chained_short:>9} {chained_ms:>11.1f}"
             )
 
+    # The third arm, and the question `rules.md` is actually about (`D-123`). Both arms
+    # above hold the same weekly ceiling, so what they compare is horizon *length*. A
+    # caller resolving a rolling quarter supplies a pool as well as a rate, and the pool is
+    # the thing a chained weekly solve cannot spend unevenly. Here the same total hours are
+    # given two ways: as a pooled remainder the four-week solve may spend as it likes, and
+    # as the flat weekly ceiling a chained solve is stuck with.
+    print(f"\n{'ratio':>6} {'seed':>5} {'pooled: short':>14} {'uneven weeks':>13} "
+          f"{'flat: short':>12}")
+    for ratio in (0.70, 0.90):
+        for seed in seeds:
+            scenario = generator.generate(
+                seed, generator.ScenarioParams(days=28, demand_ratio=ratio)
+            )
+            whole = scenario.base
+            weeks = whole.weeks
+
+            # The pool is exactly what the flat ceiling would have allowed in total, so the
+            # two arms are given the same hours and differ only in how freely they spend.
+            pooled = dataclasses.replace(
+                whole,
+                employees=tuple(
+                    dataclasses.replace(
+                        person,
+                        max_hours_this_period=(person.max_hours_this_week or 0.0) * weeks,
+                    )
+                    for person in whole.employees
+                ),
+            )
+            answer = solve(pooled, time_limit=30.0)
+            flat = solve(whole, time_limit=30.0)
+
+            worked: dict[tuple[int, int], float] = {}
+            for employee, day, shift in answer.roster:
+                key = (employee, pooled.week_of(day))
+                worked[key] = worked.get(key, 0.0) + pooled.shift_types[shift].work_hours
+            spread = {
+                employee: {w for (e, w) in worked if e == employee}
+                for employee in range(len(pooled.employees))
+            }
+            uneven = sum(
+                1
+                for employee, weeks_worked in spread.items()
+                if len({round(worked[employee, w], 2) for w in weeks_worked}) > 1
+            )
+            print(
+                f"{ratio:>6.2f} {seed:>5} {sum(answer.shortfall.values()):>14} "
+                f"{uneven:>13} {sum(flat.shortfall.values()):>12}"
+            )
+
 
 def _guard(control: dict, treatment: dict) -> None:
     """No timing is reported until the two configurations agree about the answer."""

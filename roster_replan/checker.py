@@ -63,6 +63,7 @@ def check(roster: Roster, instance: Instance) -> list[Violation]:
     violations += _rest_gap(roster, instance)
     violations += _weekly_rest(roster, instance)
     violations += _max_weekly(roster, instance)
+    violations += _max_period(roster, instance)
     violations += _max_daily(roster, instance)
     violations += _consec_days(roster, instance)
     return sorted(violations, key=lambda v: (v.rule, _nk(v.employee), _nk(v.day), _nk(v.shift)))
@@ -449,6 +450,33 @@ def _max_weekly(roster: Roster, instance: Instance) -> list[Violation]:
                         required=person.max_hours_this_week,
                     )
                 )
+    return out
+
+
+# --- R-MAX-PERIOD ---------------------------------------------------------------------
+# The horizon's whole sum against the reference period's remainder. Verified as supplied,
+# never rederived: the caller owns the arithmetic that produced it and a checker that
+# recomputes a reference period is testing the caller rather than the roster.
+
+
+def _max_period(roster: Roster, instance: Instance) -> list[Violation]:
+    out = []
+    for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
+        person = instance.employees[employee]
+        if person.max_hours_this_period is None:
+            continue
+        worked = sum(instance.shift_types[s].work_hours for _, s in shifts)
+        if worked > person.max_hours_this_period:
+            out.append(
+                Violation(
+                    rule="R-MAX-PERIOD",
+                    message=f"{person.name} has {person.max_hours_this_period:g}h left in "
+                    f"the reference period and this roster assigns {worked:g}h",
+                    employee=employee,
+                    observed=worked,
+                    required=person.max_hours_this_period,
+                )
+            )
     return out
 
 

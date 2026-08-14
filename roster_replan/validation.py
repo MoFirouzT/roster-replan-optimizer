@@ -316,6 +316,20 @@ def _employees(instance: Instance) -> list[InputDefect]:
                 )
             )
 
+        # A reference period with negative time left is arithmetic that went wrong
+        # upstream, and it makes every roster illegal including the empty one -- so it is
+        # a malformed request rather than an infeasible instance (`D-123`).
+        if person.max_hours_this_period is not None and person.max_hours_this_period < 0:
+            defects.append(
+                InputDefect(
+                    f"{where}.max_hours_this_period",
+                    f"{person.name} has {person.max_hours_this_period:g}h left in the "
+                    f"reference period, which no roster can satisfy",
+                    person.max_hours_this_period,
+                    ">= 0",
+                )
+            )
+
         if person.consecutive_days_worked_before_horizon < 0:
             defects.append(
                 InputDefect(

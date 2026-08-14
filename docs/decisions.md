@@ -1469,6 +1469,13 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   objective encoding. A single digest says "something changed" and leaves the reader to work out
   what, which `D-067` already names as the failure that trains everyone to regenerate without
   reading.
+- **Amended by `D-123`: there is a third case, and this record calls it impossible.** A `week` hash
+  moving while every `incumbent` holds — 84 of 84 against 0 of 84 — is what a **payload schema**
+  change looks like: an optional field added to `Employee` alters the digest of every generated week
+  while every solved roster, tightness figure and damage count stays identical. The reasoning below
+  assumed the incumbent is solved *from* the week and therefore cannot hold while the week moves. It
+  can, when what moved is the shape rather than the content, and that reading is worth having because
+  it is the one case where regenerating changes nothing anybody measured.
 - **Consequences.** A `week` hash holding while incumbents move is a solver change, and the
   instances stay comparable across it. Both moving is a generator change, and they do not.
   `GENERATOR_VERSION` carries the second case explicitly, and the manifest test fails when it is not
@@ -2920,6 +2927,12 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   `D-117`'s split stands and is still right — the generated half of the manifest travels and the solved
   half does not — but its framing of the problem as *the manifest's* was too narrow, and this record is
   the correction.
+- **Retired by `D-121`.** Both halves of this record are spent. `D-119` made the roster a function of
+  the model rather than of the search, so the artifacts no longer carry the binary that made them;
+  CI is back on linux and green against artifacts recorded on macOS, so the qualifier this record
+  added to `README.md` is gone and the manifest's solved half is checked everywhere again. The
+  reasoning stays as written, because it was right about the defect and right about what the
+  workaround cost.
 - **Date.** 2026-08-14.
 
 ## D-119 — The optimum is canonical, because the model should decide the roster and the search should not
@@ -3053,6 +3066,15 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   Either way the cost is now known and paid: 61% of search time, and `D-081`'s premise. A null here
   would be the expensive kind.
+- **Outcome.** **Green.** The six scenario tests and the manifest's solved half all pass on a linux
+  x86-64 runner, against artifacts recorded on macOS arm64. The canonical optimum travels between
+  ortools builds, which is the claim `D-119` could not make from one machine and the reason its cost
+  was worth paying.
+
+  Three things follow and are done. `README.md` drops the *on the same solver build* qualifier
+  `D-118` had to add, so the reproducibility claim stands unconditionally for the first time.
+  `D-118` is retired. And CI is testing portability again rather than assuming it — the loss that
+  record named as the price of its workaround is repaid.
 - **Date.** 2026-08-14.
 
 ## D-122 — The time-boxed rung is tested by handing the ladder a time-boxed answer, not by racing a budget
@@ -3093,4 +3115,56 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   That is the honest shape of it. The ladder's time-boxed rung remains a branch this repo can test the
   reporting of and cannot test the provocation of, and `test_ladder.py` says so at the top.
+- **Date.** 2026-08-14.
+
+## D-123 — The reference period gets its own rule, and the approximation it tests turns out to be free
+
+- **Decision.** `R-MAX-PERIOD` ships: an **optional** per-employee ceiling on hours across the whole
+  horizon, carrying what is left of the rolling reference period. `Employee.max_hours_this_period`
+  is the field, both readings enforce it, and `rules.md` specifies it beside `R-MAX-WEEKLY`. This
+  closes the deferral `D-111` made and `D-116` reopened.
+- **Alternatives.** Leave it deferred, since the horizon study already upheld the rejection it was
+  meant to test. Fold it into `R-MAX-WEEKLY` as a second parameter. Make it mandatory.
+- **Reason.** `D-116` measured a longer horizon and found it buys nothing, then said plainly what it
+  could not reach: **both arms held the same weekly ceiling, so what was compared was horizon
+  length.** The approximation `rules.md` actually makes is different. Component 1 of the weekly
+  budget's own derivation is an *average over a reference period*, and an average is a pool. A caller
+  with 140 hours left in the quarter and a 38-hour weekly ceiling is stating two facts, and one number
+  cannot hold both: collapsing them forbids the lawful 45-and-31 split in favour of 38-and-38.
+
+  Neither rule implies the other, which is why this is a second rule rather than a second parameter.
+  The ceiling is a **rate** and permits thirteen consecutive weeks at the maximum; the pool is a
+  **budget** and permits a quarter's hours in one week. `test_the_period_budget_binds_where_the_weekly_one_cannot`
+  holds a witness for each direction.
+
+  **Optional is the unusual part and it is deliberate.** Every other caller-supplied quantity in
+  `model.md` is mandatory, because a missing one has a dangerous default. This one does not: absent
+  means the caller has nothing to add beyond the weekly ceiling, which is the ordinary case and the
+  only one a single-week horizon can even express. Making it mandatory would force every caller to
+  compute a quarter remainder to solve a Tuesday.
+- **Consequences.** **The approximation is free, measured.** Given the same total hours as a pool
+  rather than as a flat weekly rate, four to nine employees per case work unequal weeks — so the
+  freedom is real and the solver uses it — and coverage is *identical* on every case at both ends of
+  the tightness axis. `rules.md` has assumed since T1 that resolving the reference period upstream
+  costs nothing, and that is the last sentence in the section which was standing on an assertion.
+
+  It is a null with a stated edge. The pool is given here as exactly the flat ceiling's total, so the
+  two arms are equally generous and differ only in distribution. **A pool tighter than the weeks it
+  spans** — a quarter nearly spent — binds where no weekly ceiling would, and this set contains no
+  such case because the generator does not produce one. The rule now exists to express that instance
+  when someone has one; the study does not claim to have tested it.
+
+  One thing fell out on the way: `rules.md`'s `R-MAX-WEEKLY` predicate still summed over the whole of
+  `O`, which `D-111` should have scoped to a week and did not. A spec that survived a rule change
+  unedited is the reconcile beat failing quietly, and it is corrected here.
+
+  **And the manifest found a case `D-074` does not have a name for.** Adding an optional field to
+  `Employee` moved **84 of 84 `week` digests and 0 of 84 `incumbent` digests**, with every other
+  recorded figure — tightness, damage, shortfall — unchanged. `D-074` reads a moving `week` with a
+  held `incumbent` as impossible by construction, because it assumed the week is what the incumbent is
+  solved *from*. This is the third thing that can move: the **payload schema**, where the instances are
+  semantically identical and only their shape changed. The regeneration is committed with that as its
+  justification, and `GENERATOR_VERSION` is deliberately not bumped — old results remain comparable,
+  because no instance moved.
+- **Study.** [`docs/studies/horizon.md`](studies/horizon.md)
 - **Date.** 2026-08-14.

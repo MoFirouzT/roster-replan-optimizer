@@ -541,6 +541,38 @@ def test_replan_absorbs_an_absence():
     assert changed, "a replan around an absence must change something"
 
 
+def test_the_period_budget_binds_where_the_weekly_one_cannot():
+    """`R-MAX-PERIOD` against `R-MAX-WEEKLY`, on the rosters that separate them (`D-123`).
+
+    Ana is budgeted 38h in any week and 45h across the fortnight, and a shift is 7.5h net.
+    Neither rule implies the other, and each direction has a witness here:
+
+    - **five shifts a week** is 37.5h, inside the weekly ceiling twice over, and 75h across
+      the fortnight — far past the pool. The weekly ceiling alone cannot see it.
+    - **six shifts in one week** is 45h, exactly the pool and nothing over it, but 45h in a
+      week the ceiling caps at 38. The pool alone cannot see it.
+    """
+    instance = _with_first(fortnight(), max_hours_this_period=45.0)
+
+    lawful = frozenset({(0, day, 0) for day in (0, 2, 4, 8, 10, 12)})
+    assert checker_keys(lawful, instance) == set(), "45h across two weeks is inside both"
+    assert agree(lawful, instance)
+
+    # Inside every weekly ceiling, past the pool: 5 shifts a week is 37.5h each.
+    over_period = frozenset({(0, day, 0) for day in (0, 2, 4, 6, 8, 9, 11, 13)})
+    keys = checker_keys(over_period, instance)
+    assert ("R-MAX-PERIOD", 0, None, None) in keys
+    assert "R-MAX-WEEKLY" not in {key[0] for key in keys}, "no week exceeds 38h"
+    assert agree(over_period, instance)
+
+    # Inside the pool, past a weekly ceiling: six shifts in one week is 45h.
+    over_week = frozenset({(0, day, 0) for day in range(6)})
+    keys = checker_keys(over_week, instance)
+    assert ("R-MAX-WEEKLY", 0, 0, None) in keys
+    assert "R-MAX-PERIOD" not in {key[0] for key in keys}, "45h is exactly the pool"
+    assert agree(over_week, instance)
+
+
 def test_a_fortnight_solves_and_verifies_end_to_end():
     """What lifting `D-110`'s guard rests on (`D-113`): the whole path at two weeks, not
     only the two rules that were fixed.

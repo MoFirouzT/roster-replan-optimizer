@@ -33,6 +33,7 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | `R-MIN-SHIFT` | Minimum shift length — 2h horeca, 3h general | **input validation** — not roster-violable, see below | hours, per tenant | Arbeidswet art. 21; KB 18 June 1990; PC 302 CBA `[CITE]` |
 | `R-REST-GAP` | Minimum rest between consecutive shifts | hard | hours | Arbeidswet art. 38ter §1; WTD art. 3 |
 | `R-MAX-WEEKLY` | Maximum hours this week, as a supplied per-employee budget | hard | hours, per employee | Arbeidswet art. 19, 26bis; WTD art. 6, 16(b) |
+| `R-MAX-PERIOD` | Hours left in the rolling reference period, over the whole horizon | hard, **optional** | hours, per employee | Arbeidswet art. 26bis §1; WTD art. 16(b), 19 |
 | `R-MAX-DAILY` | Maximum hours per day | hard | hours, per contract | Arbeidswet art. 19, 20, 20bis, 22 |
 | `R-CONSEC-DAYS` | Maximum consecutive working days | hard | days | **not statutory** — operational/CBA, see below |
 | `R-WEEKLY-REST` | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
@@ -496,14 +497,15 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
 - **Statement.** An employee's assigned hours this week do not exceed the budget the caller supplied
   for them.
-- **Predicate.** For every `e ∈ E`:
+- **Predicate.** For every `e ∈ E` and every week `w ∈ W` (`D-111`):
 
   ```
-  Σ_{(d, s) ∈ O} work_hours(d, s) · x[e, d, s]  ≤  max_hours_this_week[e]
+  Σ_{(d, s) ∈ O, week(d) = w} work_hours(d, s) · x[e, d, s]  ≤  max_hours_this_week[e]
   ```
 
   Net working time, not span — breaks are not working time. Pinned past shifts are inside this sum, not
-  exempt from it.
+  exempt from it. At a one-week horizon `W` has one member and this is the sum over all of `O`, which
+  is what it was before weeks were named here.
 - **Class.** Hard.
 - **Parameters.** `max_hours_this_week[e]`, hours, caller-supplied and mandatory. No default: a missing
   budget is a malformed payload, because the safe fallback — some fixed weekly ceiling — is precisely
@@ -537,8 +539,45 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   validation**, not as a roster violation. A too-large budget is a bad payload; it is not a property of
   the roster, and reporting it as an `R-MAX-WEEKLY` violation would blame the solver for the caller's
   arithmetic. `validation.md` owns the input-validation layer.
-- **Explainer text.** `Hugo is budgeted 32h this week and this roster assigns him 40h.`
+- **Explainer text.** `Hugo is budgeted 32h a week and this roster assigns him 40h in the week from day 0.`
 - **Provenance.** Arbeidswet art. 19 and art. 26bis §1, §1bis. **WTD art. 6** and art. 16(b).
+
+### `R-MAX-PERIOD` — what is left of the reference period
+
+- **Statement.** An employee's assigned hours across the whole horizon do not exceed the working time
+  the caller says remains in their rolling reference period.
+- **Predicate.** For every `e ∈ E` with a supplied remainder:
+
+  ```
+  Σ_{(d, s) ∈ O} work_hours(d, s) · x[e, d, s]  ≤  max_hours_this_period[e]
+  ```
+
+  The whole horizon, deliberately — this is the one rule here whose span is the payload rather than a
+  week, because the quantity it bounds is a pool rather than a rate.
+- **Class.** Hard, and **optional**: absent means the caller had nothing to add beyond the weekly
+  ceiling. It is the only rule in this registry whose absence is ordinary rather than a defect.
+- **Parameters.** `max_hours_this_period[e]`, hours, caller-supplied. No default and no derivation —
+  the same prohibition as `R-MAX-WEEKLY`, for the same reason.
+- **Why both, when `R-MAX-WEEKLY` already exists** (`D-123`). The section above concedes that one
+  weekly number cannot express a *different* ceiling in week two from week one. This is the part of
+  that gap worth closing: component 1 of the weekly budget's derivation is an **average over a
+  reference period**, and an average is a pool. A caller with 140 hours left in the quarter and a 38h
+  weekly ceiling is stating two different facts, and collapsing them into one number forbids the
+  lawful 45-and-31 split in favour of 38-and-38.
+
+  Both bind. The weekly ceiling is a rate limit and this is a budget, and neither implies the other:
+  the ceiling alone permits thirteen consecutive weeks at the maximum, and the pool alone permits the
+  whole quarter's hours in one week.
+- **Model encoding.** One linear inequality per employee with a remainder supplied, over the whole
+  horizon. Gated like every other hard constraint, so an infeasibility names it.
+- **Checker encoding.** Sum the employee's assigned work hours and compare to the supplied remainder.
+  **Never rederived from a period the payload does not contain**, which is `R-MAX-WEEKLY`'s
+  prohibition applied to the quantity it was originally written about.
+- **Explainer text.** `Hugo has 140h left in the reference period and this roster assigns him 152h.`
+- **Provenance.** Arbeidswet art. 26bis §1 — the average measured over the reference period, which is
+  the calendar quarter by default and at most a year by royal decree or CBA. **WTD art. 16(b)** allows
+  a reference period up to four months, and art. 19 caps its extension; the Belgian computation is the
+  stricter one and the caller owns reconciling them (`D-024`).
 
 ### `R-MAX-DAILY` — daily maximum
 

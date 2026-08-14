@@ -177,6 +177,7 @@ def build(
         _rest_gap(built, instance)
     _weekly_rest(built, instance)
     _max_weekly(built, instance)
+    _max_period(built, instance)
     _max_daily(built, instance)
     if sequence == "automaton":
         _consec_days_automaton(built, instance)
@@ -458,6 +459,27 @@ def _max_weekly(built: Built, instance: Instance) -> None:
             model.add(sum(terms) <= _minutes(person.max_hours_this_week)).only_enforce_if(
                 literal
             )
+
+
+# --- R-MAX-PERIOD ---------------------------------------------------------------------
+# The reference period's remainder, over the whole horizon. Absent means the caller had
+# nothing to add beyond the weekly ceiling, which is the ordinary case and the only one a
+# one-week horizon can express -- so this is omitted rather than defaulted, exactly as a
+# missing weekly budget is.
+
+
+def _max_period(built: Built, instance: Instance) -> None:
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        if person.max_hours_this_period is None:
+            continue
+        terms = [
+            _minutes(instance.shift_types[shift].work_hours) * built.x[e, day, shift]
+            for (e, day, shift) in built.x
+            if e == employee
+        ]
+        literal = built.gate(model, Gate("R-MAX-PERIOD", employee))
+        model.add(sum(terms) <= _minutes(person.max_hours_this_period)).only_enforce_if(literal)
 
 
 def _max_daily(built: Built, instance: Instance) -> None:

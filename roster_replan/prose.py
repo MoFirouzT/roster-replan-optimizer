@@ -56,6 +56,7 @@ RULE_TEXT: dict[str, str] = {
     "R-REST-GAP": "would not get the minimum rest between shifts",
     "R-WEEKLY-REST": "would lose their minimum weekly rest",
     "R-MAX-WEEKLY": "would exceed their hours for the week",
+    "R-MAX-PERIOD": "have no hours left in the reference period",
     "R-MAX-DAILY": "would exceed their hours for the day",
     "R-CONSEC-DAYS": "would work too many consecutive days",
     "R-FLEXI-ELIG": "are not eligible for a flexi-job that day",
