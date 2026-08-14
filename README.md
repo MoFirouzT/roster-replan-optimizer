@@ -230,12 +230,10 @@ uv run pytest -q          # 766 tests, about a minute
 uv run lint-imports       # the 10 contracts that carry the independence rule
 ```
 
-CI runs the first with `-m "not machine"`, which drops the four tests that assert an artifact against
-the machine that recorded it: three timing guards calibrated to this hardware
-([`D-114`](docs/decisions.md)), and the solved half of the benchmark manifest, whose fingerprints are
-a property of one ortools build because the optimum is degenerate
-([`D-117`](docs/decisions.md)). The generated half of the manifest — the half that answers *did the
-instances move* — is checked everywhere.
+CI runs the first with `-m "not machine"`, which drops the three timing guards calibrated to this
+hardware ([`D-114`](docs/decisions.md)). Everything else runs everywhere, including the benchmark
+manifest's solved half — that one was deselected too until the optimum became canonical and stopped
+carrying the build that produced it ([`D-119`](docs/decisions.md), [`D-121`](docs/decisions.md)).
 
 Everything above — and the whole test suite — runs with no API key. One script does not:
 

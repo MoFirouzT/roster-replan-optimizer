@@ -22,14 +22,13 @@ env:
 jobs:
   suite:
     name: tests (${{ matrix.label }})
-    # macOS arm64, because the committed artifacts were recorded on one (`D-118`). The
-    # optimum is degenerate — four solver seeds on one instance give the same objective and
-    # four different rosters — so which roster comes back is a property of the ortools
-    # binary. On a linux x86-64 runner every committed scenario diverges from its
-    # regeneration, and six tests fail for a reason that has nothing to do with the change
-    # under test. This is a workaround for that, not a fix: the fix is an optimum that does
-    # not depend on the search, and `D-118` says why it is not being rushed in here.
-    runs-on: macos-latest
+    # Back on linux x86-64, which is a claim rather than a preference (`D-121`). `D-118`
+    # moved CI to macOS because the committed artifacts carried the ortools build that made
+    # them; `D-119` made the roster a function of the model instead of the search, so they
+    # should not any more. This runner is the experiment: a different binary from the one
+    # every artifact here was recorded on. If the six scenario tests and the manifest agree,
+    # the canonical optimum travels; if they do not, it does not.
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -60,14 +59,13 @@ jobs:
 
   contracts:
     name: import contracts
-    # macOS arm64, because the committed artifacts were recorded on one (`D-118`). The
-    # optimum is degenerate — four solver seeds on one instance give the same objective and
-    # four different rosters — so which roster comes back is a property of the ortools
-    # binary. On a linux x86-64 runner every committed scenario diverges from its
-    # regeneration, and six tests fail for a reason that has nothing to do with the change
-    # under test. This is a workaround for that, not a fix: the fix is an optimum that does
-    # not depend on the search, and `D-118` says why it is not being rushed in here.
-    runs-on: macos-latest
+    # Back on linux x86-64, which is a claim rather than a preference (`D-121`). `D-118`
+    # moved CI to macOS because the committed artifacts carried the ortools build that made
+    # them; `D-119` made the roster a function of the model instead of the search, so they
+    # should not any more. This runner is the experiment: a different binary from the one
+    # every artifact here was recorded on. If the six scenario tests and the manifest agree,
+    # the canonical optimum travels; if they do not, it does not.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5

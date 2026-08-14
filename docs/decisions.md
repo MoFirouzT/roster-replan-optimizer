@@ -3020,3 +3020,77 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   underneath it before.
 - **Study.** [`docs/studies/disruption-metrics.md`](studies/disruption-metrics.md)
 - **Date.** 2026-08-14.
+
+## D-121 — CI goes back to linux, because the canonical optimum is a claim that needs a foreign binary to test
+
+- **Decision.** CI returns to `ubuntu-latest`, and the solved half of the benchmark manifest loses its
+  `machine` mark. The timing guards keep theirs. `D-118`'s move to macOS is retired; `D-117`'s mark on
+  the manifest is retired with it.
+- **Alternatives.** Stay on macOS, where everything is known to pass. Flip the runner but leave the
+  manifest marked, so a failure could only come from the six scenario tests.
+- **Reason.** `D-118` moved CI to macOS to match the binary the committed artifacts were recorded
+  with, and said plainly what that cost: **CI could no longer tell anyone the project was portable**,
+  because it only ran where the project was known to work. That was a workaround with a stated
+  expiry, and `D-119` is the expiry — the roster is now a function of the model rather than of the
+  search, so an artifact should no longer carry the binary that made it.
+
+  Should is not does, and this is the experiment rather than the conclusion. A linux x86-64 runner is
+  a different ortools build from every machine any of these artifacts were recorded on, which is
+  exactly the property under test. Degeneracy measures zero across the committed set at four solver
+  seeds *on one machine*; whether that survives a different binary is the question `D-119` left open
+  and the one this answers.
+
+  **Leaving the manifest marked was rejected for making the experiment weaker on purpose.** Its mark
+  existed because the solved digests carried the build; if that is still true the test should fail and
+  say so, and if it is false the mark is a lie the suite tells about itself. Both readings argue for
+  taking it off.
+- **Consequences.** The failure mode is legible in advance, which is the point of writing this before
+  the run rather than after. **Green** means the canonical optimum travels between builds, the
+  reproducibility claim in `README.md` can drop its *on the same solver build* qualifier, and CI is
+  back to testing portability rather than assuming it. **Red on the six scenario tests or the
+  manifest** means it does not travel, `D-119` bought reproducibility on one machine only, and the
+  honest response is macOS plus a qualifier that stays.
+
+  Either way the cost is now known and paid: 61% of search time, and `D-081`'s premise. A null here
+  would be the expensive kind.
+- **Date.** 2026-08-14.
+
+## D-122 — The time-boxed rung is tested by handing the ladder a time-boxed answer, not by racing a budget
+
+- **Decision.** `test_time_boxed_rung_reports_a_gap_rather_than_hiding_it` stubs `ladder.solve` to
+  return a feasible-but-unproven `Solution` rather than trying to provoke one with a small budget.
+  The other three rungs keep their constructed conditions.
+- **Alternatives.** Widen the budget window. Use a harder instance so optimality cannot be proven.
+  Mark the test `machine`, as `D-114` did for the timing guards.
+- **Reason.** The test asked for a budget that finds a roster and cannot prove it optimal, which is
+  the gap between first-feasible and proven-optimal. On the machine it was written on that window is
+  roughly 50 ms to 87 ms. CI fell below its lower edge — the search found nothing at all in 50 ms, so
+  `solve` returned `Unproven`, the ladder fell through a cold instance with no incumbent, and the rung
+  came back `incumbent`. It failed in **one of the two jobs of the same commit on the same hardware**,
+  which is the signature of a race rather than a defect.
+
+  **Widening the window is not available, and that was measured before concluding it.** This instance
+  family is proved optimal in about 90 ms at every size tried — 20, 30 and 40 employees — so making it
+  bigger moves the *lower* edge up without moving the upper one, and at 40 employees a 50 ms budget
+  already finds nothing. A four-week generated instance at 0.90 demand stretches the window to about
+  0.1 s–0.6 s, which is wider and still a race a three-times-slower runner loses.
+
+  **None of that window is the ladder's behaviour.** What the test asserts lives entirely in
+  `_from_solve`: given a solution the solver could not prove optimal, the rung is `TIME_BOXED`, the
+  gap is positive, `degraded` is set, `trustworthy` stays true because the roster is still legal, and
+  the percentage reaches the caller's `reason`. Handing it exactly such a solution tests exactly that,
+  deterministically, on any machine.
+
+  Marking it `machine` was rejected because it is not a machine-calibrated claim. `timings.json`
+  asserts a measured quantity; this asserts a branch. A branch that only runs when a stopwatch lands
+  in a 37 ms window is untested most of the time on any machine, including this one.
+- **Consequences.** The stub is the *solver's own output shape*, taken from a real proved solve and
+  relabelled — the roster is genuine and legal, so `trustworthy` and the violation check are still
+  meaningful rather than mocked away. What is no longer covered is the solver actually producing a
+  feasible-but-unproven answer under a budget, and that was never covered reliably: `benchmarks.md`
+  records that **no committed case has ever reached a time budget**, all 2,268 runs returning
+  `OPTIMAL`, so the rung has no natural instance anywhere in this project.
+
+  That is the honest shape of it. The ladder's time-boxed rung remains a branch this repo can test the
+  reporting of and cannot test the provocation of, and `test_ladder.py` says so at the top.
+- **Date.** 2026-08-14.

@@ -8,8 +8,9 @@ position `CLAUDE.md` describes for a test layer that has never been shown to fai
 So each test here **constructs the condition** rather than hoping for it:
 
 - `exact` — an ordinary case.
-- `time-boxed` — a symmetric cold week on a budget too small to prove optimality, but large
-  enough to find something.
+- `time-boxed` — a solve stubbed to return what a budget-exhausted search returns, because
+  the budget window that produces one for real is narrower than the machines CI runs on
+  (`D-122`).
 - `greedy` — a budget too small to find anything at all.
 - `incumbent` — an incumbent whose *past* is already illegal, which greedy cannot repair
   because the past is pinned.
@@ -28,6 +29,7 @@ from benchmarks import studies, suite
 from roster_replan import ladder
 from roster_replan.checker import check
 from roster_replan.domain import Employee, Instance, Interval, OpenShift
+from roster_replan.model import solve
 
 
 @pytest.fixture(scope="module")
@@ -45,14 +47,32 @@ def test_exact_rung_on_an_ordinary_case(scenario):
     assert answer.attempts == (ladder.EXACT,)
 
 
-def test_time_boxed_rung_reports_a_gap_rather_than_hiding_it():
-    """A budget that finds a roster but cannot prove it optimal.
+def test_time_boxed_rung_reports_a_gap_rather_than_hiding_it(monkeypatch, scenario):
+    """A feasible roster the budget could not prove optimal, handed to the ladder directly.
 
-    The instance is deliberately symmetric, which is what makes proving optimality slow
-    enough to catch mid-search -- `studies/symmetry-breaking.md` is where that property was
-    measured, and this reuses it rather than inventing a hard instance.
+    **Stubbing the solve here is a correction, not a shortcut** (`D-122`). The previous
+    version asked for a budget that finds a roster and cannot prove it optimal, which is a
+    window between first-feasible and proven-optimal — about 50 ms wide on the machine it
+    was written on. CI fell below its lower edge and the ladder reported `incumbent`, on one
+    of two jobs of the same commit on the same hardware. Widening it is not available
+    either: this instance family proves optimal in about 90 ms at every size, and a
+    four-week instance only stretches the window to 0.1-0.6 s, which a slower runner still
+    loses.
+
+    None of that window is the ladder's behaviour. What is asserted lives entirely in
+    `_from_solve`: given a solution the solver could not prove optimal, the rung is
+    `TIME_BOXED`, the gap is positive, and the caller is told in words. Handing it exactly
+    that solution tests exactly that, on any machine, every time.
     """
-    instance = studies.identical_workforce(20, required=3)
+    instance = scenario.instance
+    proven = solve(instance)
+    assert not isinstance(proven, list) and proven.status == "OPTIMAL"
+
+    # The same legal roster, presented as the solver presents a time-boxed one: a real
+    # answer with a bound it never closed.
+    unproven = dataclasses.replace(proven, status="FEASIBLE", bound=proven.objective - 40)
+    monkeypatch.setattr(ladder, "solve", lambda *args, **kwargs: unproven)
+
     answer = ladder.answer(instance, budget_seconds=0.05)
 
     assert answer.rung == ladder.TIME_BOXED

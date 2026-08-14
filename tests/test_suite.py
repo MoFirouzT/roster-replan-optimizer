@@ -76,16 +76,20 @@ def test_the_generated_half_of_the_manifest_matches_regeneration(committed):
     )
 
 
-@pytest.mark.machine
 def test_the_solved_half_of_the_manifest_matches_regeneration(committed):
     """The whole manifest, including everything downstream of a solve.
 
-    Marked `machine` because the optimum is **degenerate** and the roster that comes back
-    is a property of the search path: four solver seeds on one instance give the same
-    objective and four different rosters. The committed digests are therefore an artifact
-    of the ortools build that wrote them, in the same way `timings.json` is an artifact of
-    the hardware that wrote it (`D-117`). Asserting them on a foreign build tests the
-    build, not the generator.
+    `D-117` marked this `machine`, because the optimum was degenerate and the roster that
+    came back was a property of the search path — four solver seeds on one instance gave
+    the same objective and four different rosters, so the committed digests were an artifact
+    of the ortools build that wrote them.
+
+    **`D-119` removed the reason.** The roster is now a function of the model: the optimal
+    value is pinned and a canonical criterion picks a single point on the optimal face, and
+    degeneracy across this set measures zero on both cold weeks and replans. So the mark
+    comes off, and this test is what says whether that holds on a *different binary* rather
+    than merely a different seed (`D-121`). If it fails in CI, the canonical optimum does
+    not travel and `D-119` bought reproducibility on one machine only.
     """
     assert committed == manifest(), (
         f"{MANIFEST_PATH.name} is stale. If the change was intended, regenerate it, bump "
