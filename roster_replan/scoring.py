@@ -32,10 +32,18 @@ class Score:
     mix_shortfall: int
     cost: int
     peak: int
+    fairness: int = 0
 
     @property
     def total(self) -> int:
-        return self.disruption + self.shortfall + self.mix_shortfall + self.cost + self.peak
+        return (
+            self.disruption
+            + self.shortfall
+            + self.mix_shortfall
+            + self.cost
+            + self.peak
+            + self.fairness
+        )
 
 
 def score(roster: Roster, instance: Instance) -> Score:
@@ -49,7 +57,32 @@ def score(roster: Roster, instance: Instance) -> Score:
         mix_shortfall=_mix_shortfall(roster, instance, params),
         cost=_cost(roster, instance, params),
         peak=_peak(roster, instance, params),
+        fairness=fairness_of(roster, instance),
     )
+
+
+def fairness_of(roster: Roster, instance: Instance) -> int:
+    """Rolling balance of unpopular shifts, read independently of the model (`D-108`).
+
+    Deliberately written from `replan.md` rather than from `disruption.py`: this is the
+    reading the differential harness compares the encoding against, so sharing a helper
+    would make the comparison an identity. `_convex` is reused because it is *this*
+    module's convex function, already used by D4.
+    """
+    params = instance.fairness
+    if params is None or not params.active:
+        return 0
+
+    total = 0
+    for employee, person in enumerate(instance.employees):
+        worked = sum(
+            1
+            for (candidate, _, shift) in roster
+            if candidate == employee and shift in params.unpopular_shifts
+        )
+        count = person.unpopular_shifts_before_horizon + worked
+        total += _convex(count, params.tiers)
+    return params.weight * total
 
 
 # --- Disruption ---------------------------------------------------------------------

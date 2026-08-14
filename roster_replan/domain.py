@@ -103,6 +103,12 @@ class Employee:
     consecutive_days_worked_before_horizon: int = 0
     last_shift_end_before_horizon: float | None = None
 
+    # History the horizon does not contain, for the fairness term. One week cannot be fair
+    # on its own -- somebody has to work Saturday -- so the balance is struck over a window
+    # the caller states and counts here (`D-108`). Parallel to the two fields above, which
+    # carry history for `R-CONSEC-DAYS` and `R-REST-GAP` for the same reason.
+    unpopular_shifts_before_horizon: int = 0
+
     # Eligibility gates, indexed by day: a Dimona may not cross a quarter boundary, so
     # one employee can be eligible on 30 June and not on 1 July inside one horizon.
     # None means "not supplied", which input validation rejects for a flexi contract --
@@ -198,6 +204,35 @@ def shipped_d2(**overrides) -> Disruption:
 
 
 @dataclass(frozen=True, slots=True)
+class Fairness:
+    """Rolling balance of unpopular shifts. Separate from `Disruption` on purpose.
+
+    `replan.md` scopes this as fairness *beyond* disruption concentration, and the two answer
+    different questions: D4 spreads the **changes** a replan makes, this spreads the
+    **shifts nobody wants** across weeks. A tenant can want either without the other, and
+    folding them into one dataclass would make that impossible to express (`D-108`).
+
+    `unpopular_shifts` holds indices into `Instance.shift_types`. Which shifts those are is a
+    social fact about a tenant, not something this system can derive -- a late shift is a
+    burden in one restaurant and the shift people compete for in another.
+    """
+
+    weight: int
+    unpopular_shifts: frozenset[int]
+    tiers: int
+
+    @property
+    def active(self) -> bool:
+        """Off unless it is switched on, priced, and pointed at some shift.
+
+        Three ways to be inert and all of them mean the same thing to the objective, so the
+        term is skipped rather than encoded at zero: an unused variable per employee is not
+        free at build time, and build time is most of the solve here (`D-081`).
+        """
+        return bool(self.weight and self.tiers and self.unpopular_shifts)
+
+
+@dataclass(frozen=True, slots=True)
 class RuleParams:
     """Every rule threshold, supplied explicitly. No defaults live here -- see module docstring."""
 
@@ -224,6 +259,7 @@ class Instance:
     # special case of a general `published ⊆ O` -- see replan.md.
     published_through: float | None = None
     disruption: Disruption | None = None
+    fairness: Fairness | None = None
 
     # Memoised `window` results, filled on first use. Not a field a caller supplies:
     # excluded from `init`, from equality and from `repr`, so two instances differing only

@@ -95,7 +95,8 @@ starts, fairness objectives). `PLAN.md`: *T3 is a legitimate finish. T4 and T5 a
 independently shippable.*
 
 *(T4 was built after this declaration and is described in the postscript below. Half of T5 was
-retired on measurements this project had already taken — `D-104`.)*
+retired on measurements this project had already taken — `D-104` — and fairness objectives shipped,
+`D-108`. Generation mode is the last item left in it.)*
 
 ## "All specs true", and how far that is checkable
 
@@ -198,9 +199,14 @@ takes milliseconds. Both are struck from the plan.
 to 11 ms, with the structurally short cases running *faster* than the baseline. What would reopen
 these is a longer horizon or a tenant an order of magnitude larger, and neither exists here.
 
-Generation mode and fairness objectives stay open, because nothing measured here touches them. The
-fairness T3 shipped is round-robin across *tenants in the queue* (`D-091`) and says nothing about
-how unsocial shifts fall across *people*, which is the fairness a works council argues about.
+**Fairness objectives shipped** (`D-108`) — the rolling balance of unpopular shifts `PLAN.md` scoped
+as fairness *beyond* disruption concentration. It is a third distinct meaning of the word in this
+repo: not `D-091`'s round-robin between tenants in the queue, and not D4's spreading of the changes a
+replan makes, but who works the shifts nobody wants, across weeks. Unpopularity is declared by the
+profile rather than derived from the clock, and the domination bound grew a term because an unstaffed
+unpopular shift is one nobody's count went up for.
+
+Generation mode stays open, and is the last item left in T5.
 
 **The mutation harness was run in full**, for the first time since T4's layers landed: 80 mutants,
 all caught by the layer named to catch them. Four of those are the parse layer's, and the first
@@ -208,10 +214,10 @@ restores `D-101`.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 729 |
-| Mutants | 59 | 83 |
+| Tests | 567 | 741 |
+| Mutants | 59 | 87 |
 | Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 107, none open |
+| Decision records | 94, 2 open | 108, none open |
 | Studies, including nulls | 8 | 11 |
 | Python | ~12,000 lines | ~17,100 lines |
 

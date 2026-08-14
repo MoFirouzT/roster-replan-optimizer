@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 
 from ortools.sat.python import cp_model
 
-from .disruption import objective_terms
+from .disruption import fairness_terms, objective_terms
 from .domain import FLEXI, Instance, Roster
 
 def _minutes(hours: float) -> int:
@@ -801,6 +801,7 @@ def _objective(built: Built, instance: Instance) -> None:
             objective_terms(
                 built.model, instance, built.x, built.shortfall, built.mix_shortfall
             )
+            + fairness_terms(built.model, instance, built.x)
         )
     )
 

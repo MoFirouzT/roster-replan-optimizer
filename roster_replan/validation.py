@@ -68,6 +68,11 @@ def validate_instance(instance: Instance) -> list[InputDefect]:
 #
 # `replan.md` derives the bound rather than choosing it, which makes it checkable, so it
 # is checked. A weight scale that violates it is a malformed request, not a preference.
+#
+# **Fairness pays for understaffing too** (`D-108`). An unstaffed unpopular shift is one
+# nobody's rolling count went up for, so the fairness term gives the optimiser a second
+# reason to leave one empty and the bound has to cover it. `tiers` is the escalation's
+# steepest slope, so `weight x tiers` is the most one extra unpopular assignment can cost.
 
 
 def _weight_domination(instance: Instance) -> list[InputDefect]:
@@ -76,15 +81,19 @@ def _weight_domination(instance: Instance) -> list[InputDefect]:
         return []
 
     largest_demand = max(o.required for o in instance.open_shifts)
-    bound = largest_demand * max_change_weight(instance)
+    fair = instance.fairness
+    per_assignment = max_change_weight(instance)
+    if fair is not None and fair.active:
+        per_assignment += fair.weight * fair.tiers
+    bound = largest_demand * per_assignment
     if params.shortfall_weight > bound:
         return []
     return [
         InputDefect(
             field="disruption.shortfall_weight",
             message=f"shortfall_weight of {params.shortfall_weight} does not dominate the "
-            f"{bound} of disruption that leaving one shift unstaffed can avoid, so the "
-            f"optimiser could buy stability by understaffing",
+            f"{bound} of disruption and fairness that leaving one shift unstaffed can "
+            f"avoid, so the optimiser could buy stability by understaffing",
             observed=params.shortfall_weight,
             required=f"> {bound}",
         )

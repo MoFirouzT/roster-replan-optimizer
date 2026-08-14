@@ -2417,3 +2417,57 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   `OPTIMAL`, and **no answer changed with the budget on any of 756 (case, method, seed) triples**.
   The three budgets are indistinguishable case by case, not just uniformly optimal.
 - **Date.** 2026-08-14.
+
+## D-108 — Fairness is a third thing, and it pays for understaffing like everything else
+
+- **Decision.** T5's fairness objective ships: a rolling balance of unpopular shifts, carried in its
+  own `Fairness` dataclass on the instance rather than inside `Disruption`, encoded by
+  `disruption.fairness_terms` and read back independently by `scoring.fairness_of`. Which shifts are
+  unpopular is **declared by the profile**, and each employee carries
+  `unpopular_shifts_before_horizon` so the balance is struck over a window wider than the horizon.
+  `D-057`'s domination bound grows a term to cover it.
+- **Alternatives.** Add the weights to `Disruption`, which already holds every other objective
+  parameter. Derive unpopularity from the shift times — evenings and weekends — instead of asking.
+  Balance with a `max − min` range term instead of a convex penalty.
+- **Reason.** **This repo already had two things called fairness and this is neither**, which is why
+  it gets its own type rather than three more fields on `Disruption`. `D-091`'s round-robin is
+  fairness between *tenants in the queue*; D4's concentration spreads *the changes a replan makes*.
+  Both are about the replan. This one is about the roster — who works the shifts nobody wants, across
+  weeks. A tenant can want any one of the three without the others, and folding them together would
+  make that impossible to say.
+
+  **Unpopularity cannot be derived.** A late shift is a burden in one restaurant and the shift people
+  compete for in another; a Sunday is unpopular in a bakery and normal in a hotel. Computing it from
+  the clock would encode one tenant's culture as arithmetic, in the one part of this system that is
+  supposed to be policy-as-data.
+
+  **Convex, not a range.** `replan.md` already rejects the max-term for D4 — it is the `tiers = 1`
+  case and is blind to everything between the extremes — and the same argument applies here: a range
+  term equalises the two ends and ignores everyone in the middle. The convex escalation is reused
+  wholesale, including `D-055`'s lower-bound encoding.
+- **Consequences.** **Fairness gives the optimiser a second reason to leave a shift empty**: an
+  unstaffed unpopular shift is one nobody's rolling count went up for. That is `D-057`'s failure mode
+  arriving through a new door, so the bound now reads
+  `req × (max_change_weight + fairness_weight × fairness_tiers)` and a weight scale that breaks it is
+  a malformed request, not an aggressive preference. `fairness-escapes-the-domination-bound` is the
+  mutant that holds it.
+
+  **The escalation flattens past `fairness_tiers`**, and the limit is stated in `replan.md` and
+  asserted by test rather than left to be discovered: everyone whose rolling total already exceeds the
+  tier count sits in the linear region where the term cannot distinguish them, so a window long enough
+  to push the whole workforce past it switches fairness off while still looking configured.
+
+  **Every `week` fingerprint moved and no `incumbent` did.** Adding a field to `Employee` changes the
+  serialised payload for all 84 cases while the solved rosters and every measured field — demand
+  ratio, slack, shortfall, damage — are identical. `D-074` named two patterns, a solver change and a
+  generator change; this is a third, a **schema** change, and the split diagnosed it exactly. Results
+  taken before it remain comparable, so `GENERATOR_VERSION` stays at 1 and the manifest is regenerated
+  with this record as its justification.
+
+  The committed set cannot exercise this term, and that is recorded rather than worked around: its
+  evenings require a scarce skill, so the employees with no late shifts are the ones who *cannot work
+  them*, and a balanced roster there is indistinguishable from an unbalanced one that ran out of
+  eligible staff. The behavioural tests therefore run over `identical_workforce`, on the same argument
+  `D-087` used for symmetry breaking — a lever needs an instance that contains the structure it
+  exploits before a null over the committed set means anything.
+- **Date.** 2026-08-14.

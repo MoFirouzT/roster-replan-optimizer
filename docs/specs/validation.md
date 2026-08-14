@@ -28,6 +28,7 @@ What lands here, and why each is *not* a roster property:
 | `flexi_eligible` / `dimona_ok` present for every flexi employee | Absence must never default to `true`; that would invent an eligibility the NSSO did not grant |
 | Every rule parameter is supplied explicitly | The independence rule forbids central defaults for rule thresholds |
 | Horizon begins at or after `now` on a cold solve | Otherwise `R-PIN-PAST` has past shifts and no incumbent to pin them to |
+| `shortfall_weight` dominates what one unstaffed shift can save | A weight scale that lets the optimiser buy stability by understaffing is an ordering error, not a preference. `D-057` derives the bound; `D-108` extends it to the fairness term, which pays for an empty shift the same way |
 
 `InputDefect` carries the offending field path, the observed value, and the constraint it broke. It is a
 distinct type from `Violation`: the two are never mixed in one list, because they have different

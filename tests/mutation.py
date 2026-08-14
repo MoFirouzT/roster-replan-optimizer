@@ -825,6 +825,41 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if unset_want and not unset_have:\n            pass",
         "tests/test_nl.py",
     ),
+    # --- Fairness ----------------------------------------------------------------------
+    # The dangerous defect is not a wrong score, it is a term that prices correctly and
+    # steers nothing, or one that outbids coverage. Both look like a working feature.
+    Mutant(
+        "fairness-ignores-history-before-the-horizon",
+        "fairness",
+        DISRUPTION,
+        "        model.add(total == prior + sum(assigned))",
+        "        model.add(total == sum(assigned))",
+        "tests/test_fairness.py",
+    ),
+    Mutant(
+        "fairness-scorer-ignores-history",
+        "fairness",
+        SCORING,
+        "        count = person.unpopular_shifts_before_horizon + worked",
+        "        count = worked",
+        "tests/test_fairness.py",
+    ),
+    Mutant(
+        "fairness-escalation-is-flat",
+        "fairness",
+        DISRUPTION,
+        "        for k in range(1, params.tiers + 1):\n            model.add(penalty >= k * total - k * (k - 1) // 2)",
+        "        for k in range(1, 2):\n            model.add(penalty >= k * total - k * (k - 1) // 2)",
+        "tests/test_fairness.py",
+    ),
+    Mutant(
+        "fairness-escapes-the-domination-bound",
+        "fairness",
+        VALIDATION,
+        "        per_assignment += fair.weight * fair.tiers",
+        "        per_assignment += 0",
+        "tests/test_fairness.py",
+    ),
     # A `.env` that overrides an exported key bills the wrong account, and looks like
     # nothing at all -- the run succeeds, against credentials the caller did not choose.
     Mutant(

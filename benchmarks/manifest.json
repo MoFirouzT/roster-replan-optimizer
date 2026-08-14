@@ -11,7 +11,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "abddf9667cfafd53"
+      "week": "3ba8eae0af8cb572"
     },
     "busy/1": {
       "base_shortfall": 0,
@@ -24,7 +24,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "55c11ce8fa24c0a8"
+      "week": "1d3b83394d7150d7"
     },
     "busy/2": {
       "base_shortfall": 0,
@@ -37,7 +37,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1dd103de80cb22e7"
+      "week": "3abffb2fd889b9ab"
     },
     "busy/3": {
       "base_shortfall": 0,
@@ -50,7 +50,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "8cacf4264562168a"
+      "week": "130a9b09e3ca7731"
     },
     "busy/4": {
       "base_shortfall": 0,
@@ -63,7 +63,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0cde7c9ab0cbcdf9"
+      "week": "22636538ef8bf4b4"
     },
     "busy/5": {
       "base_shortfall": 0,
@@ -76,7 +76,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "6dc9fe886c1b1a2f"
+      "week": "ad9e1003c722f80f"
     },
     "demand-spike/0": {
       "base_shortfall": 0,
@@ -89,7 +89,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "927bd269b817ff33"
+      "week": "a1b08e08c0977aef"
     },
     "demand-spike/1": {
       "base_shortfall": 0,
@@ -102,7 +102,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "fa49e237eb91b7cd"
+      "week": "a26c70ef3a257368"
     },
     "demand-spike/2": {
       "base_shortfall": 0,
@@ -115,7 +115,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0c0ff63bbbea2ec5"
+      "week": "0952e234efd2ce31"
     },
     "demand-spike/3": {
       "base_shortfall": 0,
@@ -128,7 +128,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "34cd9fa4ad31a1ed"
+      "week": "3cfdb993f155dae7"
     },
     "demand-spike/4": {
       "base_shortfall": 0,
@@ -141,7 +141,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1485529b39cd5d18"
+      "week": "6b0c5b98b37c81c2"
     },
     "demand-spike/5": {
       "base_shortfall": 0,
@@ -154,7 +154,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a5c9e5860f8f8fbe"
+      "week": "4ad66b08bb829f74"
     },
     "early-notice/0": {
       "base_shortfall": 0,
@@ -167,7 +167,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "927bd269b817ff33"
+      "week": "a1b08e08c0977aef"
     },
     "early-notice/1": {
       "base_shortfall": 0,
@@ -180,7 +180,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "fa49e237eb91b7cd"
+      "week": "a26c70ef3a257368"
     },
     "early-notice/2": {
       "base_shortfall": 0,
@@ -193,7 +193,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0c0ff63bbbea2ec5"
+      "week": "0952e234efd2ce31"
     },
     "early-notice/3": {
       "base_shortfall": 0,
@@ -206,7 +206,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "34cd9fa4ad31a1ed"
+      "week": "3cfdb993f155dae7"
     },
     "early-notice/4": {
       "base_shortfall": 0,
@@ -219,7 +219,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1485529b39cd5d18"
+      "week": "6b0c5b98b37c81c2"
     },
     "early-notice/5": {
       "base_shortfall": 0,
@@ -232,7 +232,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a5c9e5860f8f8fbe"
+      "week": "4ad66b08bb829f74"
     },
     "flexi-heavy/0": {
       "base_shortfall": 0,
@@ -245,7 +245,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "606048a815f0f85d"
+      "week": "7780c79c746dee4e"
     },
     "flexi-heavy/1": {
       "base_shortfall": 0,
@@ -258,7 +258,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "896f16b27a563ceb"
+      "week": "f67ffcc0f14da281"
     },
     "flexi-heavy/2": {
       "base_shortfall": 0,
@@ -271,7 +271,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a269cfa0ddd1a469"
+      "week": "65418fa6e3f62732"
     },
     "flexi-heavy/3": {
       "base_shortfall": 0,
@@ -284,7 +284,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "41b1dffba7de0275"
+      "week": "c855a6c91b67e9da"
     },
     "flexi-heavy/4": {
       "base_shortfall": 0,
@@ -297,7 +297,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "489c30a37afca406"
+      "week": "52a7d5c7a48b6e94"
     },
     "flexi-heavy/5": {
       "base_shortfall": 0,
@@ -310,7 +310,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "d940b034eb65e6e4"
+      "week": "bb58c4d62a2a758a"
     },
     "headline/0": {
       "base_shortfall": 0,
@@ -323,7 +323,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "927bd269b817ff33"
+      "week": "a1b08e08c0977aef"
     },
     "headline/1": {
       "base_shortfall": 0,
@@ -336,7 +336,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "fa49e237eb91b7cd"
+      "week": "a26c70ef3a257368"
     },
     "headline/2": {
       "base_shortfall": 0,
@@ -349,7 +349,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0c0ff63bbbea2ec5"
+      "week": "0952e234efd2ce31"
     },
     "headline/3": {
       "base_shortfall": 0,
@@ -362,7 +362,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "34cd9fa4ad31a1ed"
+      "week": "3cfdb993f155dae7"
     },
     "headline/4": {
       "base_shortfall": 0,
@@ -375,7 +375,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1485529b39cd5d18"
+      "week": "6b0c5b98b37c81c2"
     },
     "headline/5": {
       "base_shortfall": 0,
@@ -388,7 +388,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a5c9e5860f8f8fbe"
+      "week": "4ad66b08bb829f74"
     },
     "large/0": {
       "base_shortfall": 0,
@@ -401,7 +401,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "258ab5c56a396396"
+      "week": "8967a89fe6d87ca3"
     },
     "large/1": {
       "base_shortfall": 0,
@@ -414,7 +414,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "bd5da82f7f13ecda"
+      "week": "40a91c2b27795399"
     },
     "large/2": {
       "base_shortfall": 0,
@@ -427,7 +427,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "16c130b3113b8ea7"
+      "week": "4d618f9711625fcd"
     },
     "large/3": {
       "base_shortfall": 0,
@@ -440,7 +440,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1d5035fa43b86fdc"
+      "week": "67bbdc47cb2b1e08"
     },
     "large/4": {
       "base_shortfall": 0,
@@ -453,7 +453,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "19d6f99684c34ad0"
+      "week": "965f72a87b04b160"
     },
     "large/5": {
       "base_shortfall": 0,
@@ -466,7 +466,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "59fcde9951993cee"
+      "week": "36f440a7dee367ec"
     },
     "loose/0": {
       "base_shortfall": 0,
@@ -479,7 +479,7 @@
       "open_shifts": 18,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "d11b7ec181cf3423"
+      "week": "8eafadc21030aeff"
     },
     "loose/1": {
       "base_shortfall": 0,
@@ -492,7 +492,7 @@
       "open_shifts": 19,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "c682c2486499a88d"
+      "week": "0d19b30923dfbcda"
     },
     "loose/2": {
       "base_shortfall": 0,
@@ -505,7 +505,7 @@
       "open_shifts": 18,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "3edfd842749152a9"
+      "week": "57999bcd44525485"
     },
     "loose/3": {
       "base_shortfall": 0,
@@ -518,7 +518,7 @@
       "open_shifts": 17,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "cb7b93a4eb497016"
+      "week": "ec01301420fba35a"
     },
     "loose/4": {
       "base_shortfall": 0,
@@ -531,7 +531,7 @@
       "open_shifts": 17,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "ca3a9473058a967c"
+      "week": "c47536643e2d8cc4"
     },
     "loose/5": {
       "base_shortfall": 0,
@@ -544,7 +544,7 @@
       "open_shifts": 18,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "b75295c352651505"
+      "week": "52ee4ddf05dec95a"
     },
     "multi-absence/0": {
       "base_shortfall": 0,
@@ -557,7 +557,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 2,
-      "week": "927bd269b817ff33"
+      "week": "a1b08e08c0977aef"
     },
     "multi-absence/1": {
       "base_shortfall": 0,
@@ -570,7 +570,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "fa49e237eb91b7cd"
+      "week": "a26c70ef3a257368"
     },
     "multi-absence/2": {
       "base_shortfall": 0,
@@ -583,7 +583,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0c0ff63bbbea2ec5"
+      "week": "0952e234efd2ce31"
     },
     "multi-absence/3": {
       "base_shortfall": 0,
@@ -596,7 +596,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "34cd9fa4ad31a1ed"
+      "week": "3cfdb993f155dae7"
     },
     "multi-absence/4": {
       "base_shortfall": 0,
@@ -609,7 +609,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1485529b39cd5d18"
+      "week": "6b0c5b98b37c81c2"
     },
     "multi-absence/5": {
       "base_shortfall": 0,
@@ -622,7 +622,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a5c9e5860f8f8fbe"
+      "week": "4ad66b08bb829f74"
     },
     "overloaded/0": {
       "base_shortfall": 5,
@@ -635,7 +635,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 1,
-      "week": "65da3b850003e01d"
+      "week": "f26115867cf6b8c0"
     },
     "overloaded/1": {
       "base_shortfall": 1,
@@ -648,7 +648,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "c9715ee77816ed69"
+      "week": "0fe790305de711db"
     },
     "overloaded/2": {
       "base_shortfall": 0,
@@ -661,7 +661,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "c7866b7cdf408147"
+      "week": "1a191a65a0688cb9"
     },
     "overloaded/3": {
       "base_shortfall": 0,
@@ -674,7 +674,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 2,
-      "week": "8e99d91ad02f6f3c"
+      "week": "15ac20ffef3c160e"
     },
     "overloaded/4": {
       "base_shortfall": 0,
@@ -687,7 +687,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "211ec00b46aa55f7"
+      "week": "4bdf876dca7de124"
     },
     "overloaded/5": {
       "base_shortfall": 0,
@@ -700,7 +700,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "c95f3addc34d62f5"
+      "week": "f7388d297fd8ba0d"
     },
     "scarce-skill/0": {
       "base_shortfall": 9,
@@ -713,7 +713,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 3,
-      "week": "87db50cb93496fbd"
+      "week": "5ad74c987655d12f"
     },
     "scarce-skill/1": {
       "base_shortfall": 8,
@@ -726,7 +726,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 3,
-      "week": "7a2a895a8d442a46"
+      "week": "15d78ef098d9fd4f"
     },
     "scarce-skill/2": {
       "base_shortfall": 7,
@@ -739,7 +739,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 3,
-      "week": "13af1b802e190bda"
+      "week": "b41756bb92c3782f"
     },
     "scarce-skill/3": {
       "base_shortfall": 5,
@@ -752,7 +752,7 @@
       "open_shifts": 21,
       "short_slots": 2,
       "tight_slots": 1,
-      "week": "681aaa392100a0de"
+      "week": "775741e7c694eba0"
     },
     "scarce-skill/4": {
       "base_shortfall": 7,
@@ -765,7 +765,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 1,
-      "week": "cb9290e1df3d6a4f"
+      "week": "a9f144be7a35c1ab"
     },
     "scarce-skill/5": {
       "base_shortfall": 4,
@@ -778,7 +778,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "7070f92c96078f42"
+      "week": "949035d761e635ab"
     },
     "small/0": {
       "base_shortfall": 0,
@@ -791,7 +791,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "133a6fd062bae6b2"
+      "week": "3afa9a37830ccb73"
     },
     "small/1": {
       "base_shortfall": 0,
@@ -804,7 +804,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a3cd371bb211ff67"
+      "week": "aa5b802b5e260c0d"
     },
     "small/2": {
       "base_shortfall": 0,
@@ -817,7 +817,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "e139ae554e215da7"
+      "week": "8a80b921063d5157"
     },
     "small/3": {
       "base_shortfall": 0,
@@ -830,7 +830,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1a9e80bc6c0ffc9b"
+      "week": "842411ed719ec67c"
     },
     "small/4": {
       "base_shortfall": 0,
@@ -843,7 +843,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "c4ea8004a26935ad"
+      "week": "1ea734f21ddb2b6c"
     },
     "small/5": {
       "base_shortfall": 0,
@@ -856,7 +856,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "db9f2cd670f20957"
+      "week": "ba03fd778bd99e71"
     },
     "thin-availability/0": {
       "base_shortfall": 0,
@@ -869,7 +869,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "f9f4c716d2f6e409"
+      "week": "4d95f982457305a8"
     },
     "thin-availability/1": {
       "base_shortfall": 2,
@@ -882,7 +882,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 0,
-      "week": "0881e673c46f4acd"
+      "week": "acd0803259be1877"
     },
     "thin-availability/2": {
       "base_shortfall": 0,
@@ -895,7 +895,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "6c0fdebfe3b48ab0"
+      "week": "c3e298b043fc5215"
     },
     "thin-availability/3": {
       "base_shortfall": 1,
@@ -908,7 +908,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 0,
-      "week": "7b6d3ab4177618b2"
+      "week": "7dbd6d2e888205e9"
     },
     "thin-availability/4": {
       "base_shortfall": 0,
@@ -921,7 +921,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "ff8ff5a42e9bf249"
+      "week": "65f7603850168bbb"
     },
     "thin-availability/5": {
       "base_shortfall": 1,
@@ -934,7 +934,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 2,
-      "week": "0d146f001b7c00a1"
+      "week": "b5ed13f60ef101de"
     },
     "tight/0": {
       "base_shortfall": 3,
@@ -947,7 +947,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 2,
-      "week": "4051d81c2cf5147c"
+      "week": "6c560c88fedcf28a"
     },
     "tight/1": {
       "base_shortfall": 0,
@@ -960,7 +960,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0be4e3f4872a9117"
+      "week": "5ee6a917486892ee"
     },
     "tight/2": {
       "base_shortfall": 0,
@@ -973,7 +973,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "92d8b97abb43678c"
+      "week": "56e2b62cf527d539"
     },
     "tight/3": {
       "base_shortfall": 0,
@@ -986,7 +986,7 @@
       "open_shifts": 21,
       "short_slots": 1,
       "tight_slots": 1,
-      "week": "4f54fa29aecb9e85"
+      "week": "e8294e241373bf37"
     },
     "tight/4": {
       "base_shortfall": 0,
@@ -999,7 +999,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "9815596e0ad5c5cc"
+      "week": "6420886966280f9f"
     },
     "tight/5": {
       "base_shortfall": 0,
@@ -1012,7 +1012,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "f5f5098562c1ee5b"
+      "week": "0cdc26667a003f0f"
     },
     "withdrawal/0": {
       "base_shortfall": 0,
@@ -1025,7 +1025,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 1,
-      "week": "927bd269b817ff33"
+      "week": "a1b08e08c0977aef"
     },
     "withdrawal/1": {
       "base_shortfall": 0,
@@ -1038,7 +1038,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "fa49e237eb91b7cd"
+      "week": "a26c70ef3a257368"
     },
     "withdrawal/2": {
       "base_shortfall": 0,
@@ -1051,7 +1051,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "0c0ff63bbbea2ec5"
+      "week": "0952e234efd2ce31"
     },
     "withdrawal/3": {
       "base_shortfall": 0,
@@ -1064,7 +1064,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "34cd9fa4ad31a1ed"
+      "week": "3cfdb993f155dae7"
     },
     "withdrawal/4": {
       "base_shortfall": 0,
@@ -1077,7 +1077,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "1485529b39cd5d18"
+      "week": "6b0c5b98b37c81c2"
     },
     "withdrawal/5": {
       "base_shortfall": 0,
@@ -1090,7 +1090,7 @@
       "open_shifts": 21,
       "short_slots": 0,
       "tight_slots": 0,
-      "week": "a5c9e5860f8f8fbe"
+      "week": "4ad66b08bb829f74"
     }
   },
   "generator_version": 1

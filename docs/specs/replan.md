@@ -315,4 +315,56 @@ what stops that mattering, which is the same bound for the same reason.
 
 A cold solve also needs a tie-breaker, because cost is indifferent to *who* works. A small
 peak-workload term serves: it is a tie-breaker for plausibility, explicitly **not** a fairness model.
-Fairness objectives are T5.
+The fairness model is the next section.
+
+## Fairness: rolling balance of unpopular shifts `[shipped]`
+
+`PLAN.md` scoped this as *"fairness objectives beyond disruption concentration"*, and the word
+**beyond** is doing the work. This repo already had two things called fairness and this is neither of
+them: `D-091`'s round-robin is fairness between *tenants in the queue*, and D4's concentration spreads
+*changes* across people. Both are about the replan. This one is about the roster — who ends up working
+the shifts nobody wants, over time (`D-108`).
+
+**Unpopularity is declared, not derived.** Which shifts are unpopular is a social fact about a tenant,
+not a property this system can compute: a late shift is a burden in one restaurant and the sought-after
+one in another. The profile names them, the same way it names everything else that is policy rather
+than law.
+
+**The balance is rolling, so it needs history the horizon does not contain.** One week cannot be fair
+on its own — somebody has to work Saturday. Each employee therefore carries the count they have already
+worked over a stated window, exactly as they already carry
+`consecutive_days_worked_before_horizon` for `R-CONSEC-DAYS`.
+
+```
+unpopular_e = unpopular_shifts_before_horizon_e + Σ_{d, s ∈ unpopular_shifts} x[e, d, s]
+Fairness    = fairness_weight × Σ_e g(unpopular_e)
+g(n)        = max_k ( k·n − k(k−1)/2 )       for k = 1 … fairness_tiers
+```
+
+`g` is D4's triangular escalation applied to a different quantity, and it is encoded the same way — one
+variable per employee, lower-bounded by every segment's line (`D-055`). Convex rather than a
+`max − min` range term for the reason D4 gives: a range term is the `tiers = 1` case and is blind to
+everything between the extremes, so it equalises the two ends and ignores everybody in the middle.
+
+Minimising a convex function of counts whose **total is fixed by coverage** is what produces balance:
+the cheapest way to spend a fixed number of unpopular shifts is to spread them.
+
+**The escalation flattens past `fairness_tiers`, and that is a real bound.** `g` is convex only up to
+the tier count; beyond it the marginal cost is constant, so every employee whose rolling total already
+exceeds `fairness_tiers` sits in the linear region where the term no longer distinguishes them. A
+window long enough to push everybody past it therefore switches fairness off while appearing to be
+configured. The window and the tier count have to be chosen together, and `validation.py` warns when
+the supplied priors already exceed the tiers.
+
+### Fairness makes understaffing attractive, and the bound has to grow
+
+An unstaffed unpopular shift is one nobody's count went up for, so fairness — like disruption before it
+(`D-057`) — pays for coverage failures. The domination bound extends rather than being re-derived:
+
+```
+shortfall_weight  >  max_{(d,s)} req[d, s] × ( max_change_weight + fairness_weight × fairness_tiers )
+```
+
+`fairness_tiers` is `g`'s steepest slope, so it is the most one additional unpopular assignment can
+cost. **Validated at load, not trusted**, on the same footing as the disruption half of the bound —
+a fairness weight that breaks it is a malformed request rather than an aggressive preference.

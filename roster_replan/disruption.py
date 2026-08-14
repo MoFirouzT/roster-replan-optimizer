@@ -159,6 +159,51 @@ def _concentration(
     return terms
 
 
+def fairness_terms(
+    model: cp_model.CpModel,
+    instance: Instance,
+    x: dict[tuple[int, int, int], cp_model.IntVar],
+) -> list:
+    """Rolling balance of unpopular shifts (`replan.md`, `D-108`).
+
+    The same convex trick as `_concentration`, on a different quantity: an employee's
+    unpopular count is what they worked before the horizon plus what this roster gives
+    them, and `g` escalates so the cheapest way to spend a fixed number of unpopular
+    shifts is to spread them.
+
+    Kept out of `objective_terms` rather than folded into it because fairness is not a
+    disruption metric — it is orthogonal to D0–D4 and a tenant can want either alone. The
+    caller adds both lists.
+    """
+    params = instance.fairness
+    if params is None or not params.active:
+        return []
+
+    terms = []
+    horizon_max = len(instance.open_shifts)
+    for employee, person in enumerate(instance.employees):
+        prior = person.unpopular_shifts_before_horizon
+        assigned = [
+            var
+            for (candidate, _, shift), var in x.items()
+            if candidate == employee and shift in params.unpopular_shifts
+        ]
+        if not assigned and not prior:
+            # Nothing to balance and nothing carried: `g(0) = 0`, so the variable would be
+            # pinned at zero and contribute nothing but build time.
+            continue
+
+        ceiling = prior + horizon_max
+        total = model.new_int_var(0, ceiling, f"unpopular_{employee}")
+        model.add(total == prior + sum(assigned))
+
+        penalty = model.new_int_var(0, params.tiers * ceiling, f"fair_{employee}")
+        for k in range(1, params.tiers + 1):
+            model.add(penalty >= k * total - k * (k - 1) // 2)
+        terms.append(params.weight * penalty)
+    return terms
+
+
 # --- Cost and the tie-breaker -------------------------------------------------------
 
 
