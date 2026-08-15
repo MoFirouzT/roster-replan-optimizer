@@ -99,6 +99,7 @@ COMPILED = "roster_replan/compiled.py"
 MILP = "benchmarks/milp.py"
 ANNEAL = "benchmarks/anneal.py"
 ANNEAL_STUDY = "benchmarks/anneal_study.py"
+WEIGHTS = "benchmarks/weights.py"
 EXPLAIN = "roster_replan/explain.py"
 PROSE = "roster_replan/prose.py"
 WHATIF = "roster_replan/whatif.py"
@@ -732,6 +733,27 @@ MUTANTS: tuple[Mutant, ...] = (
         '        illegal = [run for run, _ in pairs if run["hard"] > 0]',
         '        illegal = [run for run, _ in pairs if run["introduced"] > 0]',
         "tests/test_anneal.py",
+    ),
+    # --- Weight identifiability, D-129's evidence -------------------------------------
+    # The finding is a null -- no D2 weight moves a committed roster -- so the thing that has
+    # to be defended is the probe's ability to see a weight at all. Both mutants flatten
+    # `forced_choice` so it no longer presents a choice, which turns a real null into a
+    # vacuous one while every sweep still runs and still reports zero.
+    Mutant(
+        "weights-publish-the-whole-week-so-the-factor-is-uniform",
+        "weights",
+        WEIGHTS,
+        "        published_through=96.0,",
+        "        published_through=999.0,",
+        "tests/test_weights.py",
+    ),
+    Mutant(
+        "weights-give-the-spare-employee-budget-for-both-holes",
+        "weights",
+        WEIGHTS,
+        'name="B", absences=(), max_hours_this_week=8.0',
+        'name="B", absences=(), max_hours_this_week=38.0',
+        "tests/test_weights.py",
     ),
     # --- The shortfall explainer ------------------------------------------------------
     # The invariant is the asset here: an unexplained employee means the roster is wrong,

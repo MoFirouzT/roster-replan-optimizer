@@ -3400,3 +3400,63 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   widening this record to cover them would be doing it in the wrong place.
 - **Study.** [`docs/studies/penalty-search.md`](studies/penalty-search.md)
 - **Date.** 2026-08-15.
+
+## D-129 — Learning the soft weights is retired: the rosters carry no signal to learn from
+
+- **Decision.** **Weight recovery from (generated, published) roster pairs is retired, not
+  deferred**, on this instance distribution. The identifiability probe ships at
+  [`benchmarks/weights.py`](../benchmarks/weights.py) because the measurement is the result; no
+  estimator is built. What would reopen it is stated below, so the retirement is falsifiable.
+- **Alternatives.** Build the estimator anyway and report its accuracy. Start with the crude
+  per-term sign estimate and escalate to inverse optimization. Sweep the foreign rosters first.
+- **Reason.** An estimator scored against parameters the data cannot identify reports its own
+  prior and looks like a result, so identifiability was measured before anything was fitted.
+  **Not one of the five D2-active weights moves the roster on any of the fourteen committed
+  classes**, swept across three orders of magnitude, and forty profiles spanning D0–D4 produce
+  one or two distinct rosters per case.
+
+  The objective is **priced but not pivotal**. On `headline/0` the near-band multiplier moves
+  the objective from 20 to 1,280 and moves the roster not at all: five of twenty-one slots are
+  changeable on a committed replan, the rest pinned past, and coverage must be met. The weight
+  enters the objective and cannot reach the argmin.
+
+  **Two existing records already said this and were not read this way.** `disruption-metrics.md`
+  reports that D0/D1/D2 never disagree with each other (`D-085`, `D-106`, `D-120`); the sweep
+  reproduces that split exactly and supplies the mechanism, which is that the factors
+  distinguishing D1 and D2 from D0 cannot reach the argmin. And `D-083`'s solver-free greedy —
+  which has no objective at all — ties the optimum on **71 of 84** cases (`D-105`). A method
+  that cannot read a weight reaching the optimum 85% of the time *is* the statement that
+  weights do not choose the roster here.
+
+  **The null is about the distribution, and that is demonstrated rather than argued.**
+  `weights.forced_choice` builds two holes and one employee free to fill one, so the shortfall
+  term cancels and the disruption weights are all that is left to decide which hole stays open.
+  There the roster follows the weights across the boundary, which is what makes the 0/14 a fact
+  about the generator rather than about the probe — the same move `studies.identical_workforce`
+  makes for symmetry (`D-087`).
+- **Consequences.** **Where signal exists, recovery returns an interval on a ratio and never a
+  weight.** The vectors 1/10, 2/20, 5/50 and 10/100 produce identical rosters and recover the
+  identical interval, because scaling every weight leaves every argmin unchanged. More data
+  narrows the interval and never collapses it. Any future estimator reporting a point estimate
+  of a soft weight is reporting its prior, and that is a property of the objective rather than
+  a limit of the effort.
+
+  Two further non-identifiabilities are structural: `shortfall_weight` above the domination
+  bound (`D-057`) behaves identically at every value, so only *clearing the bound* is
+  observable; and `cost_weight` ships at 0 (`D-050`), so the cost term is absent rather than
+  unlearnable. **`D-050` therefore blocks two things, not one** — it was recorded as costing the
+  frontier its cost axis, and it also removes a term from anything that might learn one.
+
+  **What would reopen this.** A distribution where the objective picks the roster: longer
+  horizons, more changeable slots per replan, or genuinely competing repairs. The sharper
+  reopening is the one this project cannot do alone — the premise was that *published* rosters
+  encode preferences, and what is measured here is that on rosters **this model produces** the
+  weights leave no trace. `benchmarks.md`'s standing gap is exactly the gap in the way, and
+  `D-125`'s foreign rosters are the nearest available material and were not swept.
+
+  **The guardrail the plan asked for was never reached and is recorded anyway**: only the soft
+  objective was ever in scope. Hard and legal rules stay authored in `rules.md` and verified by
+  `checker.py`, and nothing inferred may become a legality claim. `D-128` measured what happens
+  when that line is crossed from the other direction.
+- **Study.** [`docs/studies/weight-recovery.md`](studies/weight-recovery.md)
+- **Date.** 2026-08-15.
