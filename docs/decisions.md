@@ -3386,5 +3386,17 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   Second, the summary initially led with violations the search *introduced* rather than violations the
   roster *carries*, which scored a search that returned the damaged incumbent as a clean run — inverting
   the headline, since leaving the damage in place is the cheapest escape of all. Both now carry mutants.
+
+  **A committed artifact nothing reads cannot go stale loudly, and that is general.** `manifest.json`
+  is read by `suite.py` and `timings.json` by `tests/test_timings.py`, so drift in either fails a test.
+  `results.json` and `metrics.json` are write-only evidence, and nothing would notice if the code that
+  produced them changed meaning underneath — which is exactly what the summariser defect above did,
+  caught by hand rather than by a layer. `tests/test_anneal.py` closes it for this study at no solver
+  cost: the stored summary must still regenerate from its own rows, and the claims
+  `penalty-search.md` leads with are asserted against the artifact that supposedly supports them. It
+  cannot re-solve, so a model change that moved the underlying numbers still needs a rerun; what it
+  catches is the cheaper and likelier drift. **The same gap remains open for `results.json` and
+  `metrics.json`** and is recorded here rather than fixed, because those artifacts belong to T2 and
+  widening this record to cover them would be doing it in the wrong place.
 - **Study.** [`docs/studies/penalty-search.md`](studies/penalty-search.md)
 - **Date.** 2026-08-15.

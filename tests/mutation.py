@@ -98,6 +98,7 @@ JOBS = "roster_replan/service/jobs.py"
 COMPILED = "roster_replan/compiled.py"
 MILP = "benchmarks/milp.py"
 ANNEAL = "benchmarks/anneal.py"
+ANNEAL_STUDY = "benchmarks/anneal_study.py"
 EXPLAIN = "roster_replan/explain.py"
 PROSE = "roster_replan/prose.py"
 WHATIF = "roster_replan/whatif.py"
@@ -716,6 +717,20 @@ MUTANTS: tuple[Mutant, ...] = (
         ANNEAL,
         "    return measured + hard_weight * hard, measured, hard",
         "    return measured, measured, hard",
+        "tests/test_anneal.py",
+    ),
+    # The summariser, which is a different kind of target: it cannot make the search wrong,
+    # only the write-up. This is the defect this study actually shipped -- leading with
+    # violations the search *introduced* rather than violations the roster *carries*, so a run
+    # that returned the damaged incumbent untouched scored as a clean one. It inverts the
+    # headline while every figure still computes, and the committed artifact cannot say which
+    # reading produced it.
+    Mutant(
+        "anneal-summary-counts-only-fresh-violations",
+        "anneal",
+        ANNEAL_STUDY,
+        '        illegal = [run for run, _ in pairs if run["hard"] > 0]',
+        '        illegal = [run for run, _ in pairs if run["introduced"] > 0]',
         "tests/test_anneal.py",
     ),
     # --- The shortfall explainer ------------------------------------------------------
