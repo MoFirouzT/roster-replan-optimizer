@@ -614,3 +614,32 @@ def test_same_seed_gives_the_same_roster(seed):
     second = solve(instance, seed=seed)
     assert first.roster == second.roster
     assert first.objective == second.objective
+
+
+def test_a_proved_optimum_says_whether_it_is_the_canonical_one():
+    """`canonical` is the difference between a roster that reproduces anywhere and one that
+    reproduces on this build, and a caller recording a solve for replay needs to know which
+    it has (`D-126`)."""
+    answer = solve(week())
+    assert answer.status == "OPTIMAL"
+    assert answer.canonical, "an ordinary proved optimum should reach the canonical face"
+
+
+def test_canonicalising_is_skipped_rather_than_overrunning_the_budget():
+    """Phase two is a real optimisation, not a formality, and it can exhaust a budget.
+
+    An earlier version asserted the opposite — *the phase-one solution satisfies every
+    constraint here* — which is true of feasibility and says nothing about proving a
+    criterion optimal over a face with millions of points. A foreign instance of 40
+    employees over four weeks raised that assertion within minutes of first contact
+    (`D-126`).
+
+    Asserted on the branch rather than by racing a clock, for `D-122`'s reason: a test that
+    needs a stopwatch to land inside a window is untested most of the time.
+    """
+    from roster_replan.model import _canonicalise
+
+    picked, canonical = _canonicalise(None, None, 0, None, budget=0.0)
+
+    assert picked is None, "with no budget left, phase one's roster stands"
+    assert not canonical, "and the caller is told it is not the canonical one"

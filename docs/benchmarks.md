@@ -59,6 +59,14 @@ benchmark and it is stated rather than buried: these numbers can show that a rep
 Only the captured corpus in [`specs/capture.md`](specs/capture.md) can carry that second claim, which
 is why it is scheduled rather than optional.
 
+**Partly answered from outside** (`D-125`, [`studies/foreign-incumbent.md`](studies/foreign-incumbent.md)).
+Published solutions from the nurse-rostering benchmark set are rosters produced by other people's
+solvers optimising an objective this project does not implement, and used as incumbents they
+reproduce the headline claim by **10× to 27×** where this set shows about 5×. That is not the captured
+corpus — they are nurse rosters from published research rather than Belgian horeca rosters from a
+vendor — but the sharpest form of the objection, that the incumbent is *always* this project's own
+output, no longer holds.
+
 ## The committed set
 
 Fourteen scenario classes, six seeds each — 84 cases, listed in `benchmarks/manifest.json`.

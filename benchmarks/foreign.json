@@ -1,0 +1,18 @@
+{
+  "_comment": "Fingerprints, not payloads (D-125). The source states no licence, so the data is fetched and verified rather than redistributed. Same pattern as manifest.json under D-073.",
+  "source": "https://www.schedulingbenchmarks.org/nrp/",
+  "citation": "T. Curtois and R. Qu, Nurse Rostering Benchmark Instances. Burke and Curtois, 'New approaches to nurse rostering benchmark instances', European Journal of Operational Research 237(1), 2014.",
+  "fetched": "2026-08-14",
+  "archives": {
+    "instances.zip": {
+      "url": "https://www.schedulingbenchmarks.org/nrp/data/instances1_24.zip",
+      "sha256": "43e0036d9111e352cfbc42d0f351a5a150e3d467b5366cc4176e9726515d01a7",
+      "bytes": 576649
+    },
+    "solutions.zip": {
+      "url": "https://www.schedulingbenchmarks.org/nrp/data/instances1_24solutions.zip",
+      "sha256": "0ef6ad52f6bc0143693406a6b5c9075cb0ab54556cb1be975e1c612197b265ed",
+      "bytes": 1522180
+    }
+  }
+}

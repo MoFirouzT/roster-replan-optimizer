@@ -168,15 +168,29 @@ def test_a_reused_model_does_not_carry_the_previous_objective(case, scenarios):
 def test_a_hint_does_not_survive_into_the_next_solve(case, scenarios):
     """A stale hint does not change the optimum, but it does change the search — so a
     cached solve would stop being reproducible from its seed, which `PLAN.md` requires end
-    to end."""
+    to end.
+
+    **Asserted on the model rather than on the answer** (`D-124`). Comparing the reused
+    roster against a fresh one was how this was checked, and canonicalising the optimum
+    (`D-119`) made that comparison blind: the answer no longer depends on the search path,
+    so a hint left behind changes nothing observable in it. The mutation harness found that
+    by surviving — this is the same defect, checked where it actually lives.
+    """
     scenario = scenarios[case]
     instance = scenario.instance
     cache = ModelCache()
 
     solve(instance, built=cache.get(instance), hint=scenario.incumbent)
-    reused = solve(instance, built=cache.get(instance))
-    fresh = solve(instance)
+    hinted = cache.get(instance)
 
+    assert not hinted.model.proto.solution_hint.vars, (
+        "a hint from the previous solve is still on the cached model, so this solve's "
+        "search depends on the last request rather than on its own seed"
+    )
+
+    # And the answer still has to agree, which is the weaker half rather than the point.
+    reused = solve(instance, built=hinted)
+    fresh = solve(instance)
     assert reused.objective == fresh.objective
     assert reused.roster == fresh.roster
 

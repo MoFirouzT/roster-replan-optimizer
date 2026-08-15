@@ -715,6 +715,13 @@ class Solution:
     # (`service.md`).
     bound: int = 0
 
+    # Whether this roster is the canonical point on the optimal face, or merely *an*
+    # optimum (`D-126`). False when the answer was not proved optimal at all, and when the
+    # canonicalising phase ran out of the caller's budget. It is the difference between a
+    # roster that reproduces on any machine and one that reproduces on this build, and a
+    # caller recording a solve for replay is the one who needs to know which they have.
+    canonical: bool = False
+
     @property
     def gap(self) -> float:
         """Relative optimality gap, 0.0 when proven optimal.
@@ -823,9 +830,14 @@ def solve(
     # `FEASIBLE` is a roster the search happened to reach, and pinning its value would
     # canonicalise the wrong set -- the caller is already told, by `status` and `gap`, that
     # this answer is not proven.
+    canonical = False
     if status == cp_model.OPTIMAL:
-        roster = _canonicalise(built, expression, objective, solver)
+        picked, canonical = _canonicalise(
+            built, expression, objective, solver, budget=time_limit - seconds
+        )
         seconds += solver.wall_time
+        if picked is not None:
+            roster = picked
 
     return Solution(
         roster=roster,
@@ -834,6 +846,7 @@ def solve(
         shortfall={k: solver.value(v) for k, v in built.shortfall.items()},
         search_seconds=seconds,
         bound=bound,
+        canonical=canonical,
     )
 
 
@@ -877,8 +890,14 @@ def _canonical_criterion(built: Built):
     )
 
 
-def _canonicalise(built: Built, expression, value: int, solver: cp_model.CpSolver) -> Roster:
+def _canonicalise(
+    built: Built, expression, value: int, solver: cp_model.CpSolver, *, budget: float
+) -> tuple[Roster | None, bool]:
     """Re-solve on the optimal face, minimising the canonical criterion.
+
+    Returns `(roster, canonical)`. A `None` roster means phase two produced nothing and the
+    caller keeps phase one's answer, which is still a proved optimum and simply not the
+    canonical one.
 
     **The pin is added and then taken back off**, which matters because `compiled.py`
     caches built models and CP-SAT has no way to remove a constraint. `reset` can clear
@@ -887,31 +906,41 @@ def _canonicalise(built: Built, expression, value: int, solver: cp_model.CpSolve
     nobody asked. Snapshotting the proto is the only removal CP-SAT offers, and it restores
     the objective at the same time, so the model is handed back exactly as phase one left
     it.
+
+    **Phase two is a real optimisation and can run out of budget** (`D-126`). An earlier
+    version asserted this unreachable — "the phase-one solution satisfies every constraint
+    here" — which is true of *feasibility* and says nothing about proving the criterion
+    optimal over a face with millions of points. A foreign instance of 40 employees over
+    four weeks found that within minutes of first contact.
     """
+    if budget <= 0:
+        return None, False
+
     snapshot = type(built.model.proto)()
     snapshot.copy_from(built.model.proto)
     try:
-        return _on_the_optimal_face(built, expression, value, solver)
+        return _on_the_optimal_face(built, expression, value, solver, budget=budget)
     finally:
         built.model.proto.copy_from(snapshot)
 
 
 def _on_the_optimal_face(
-    built: Built, expression, value: int, solver: cp_model.CpSolver
-) -> Roster:
+    built: Built, expression, value: int, solver: cp_model.CpSolver, *, budget: float
+) -> tuple[Roster | None, bool]:
     built.model.add(expression == value)
     built.model.minimize(_canonical_criterion(built))
+
+    # What is left of the caller's budget, not another whole one. Two phases each taking
+    # `time_limit` would double the deadline a caller set and the ladder reasons from.
+    solver.parameters.max_time_in_seconds = budget
     status = solver.solve(built.model)
-    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        # Unreachable by construction -- the phase-one solution satisfies every constraint
-        # here, including the pin. Raising rather than falling back, because a silent
-        # fallback would return a non-canonical roster that looks exactly like a canonical
-        # one, which is the failure this whole mechanism exists to remove.
-        raise AssertionError(
-            f"the optimal face is unsatisfiable ({solver.status_name(status)}), which "
-            f"cannot happen unless the pin or the criterion is wrong"
-        )
-    return frozenset(key for key, var in built.x.items() if solver.value(var))
+
+    if status != cp_model.OPTIMAL:
+        # Feasible-but-unproven is a *better* point on the optimal face than phase one
+        # found, and still not the canonical one. Returning it would be reproducible only
+        # by accident, so phase one's answer stands and the caller is told.
+        return None, False
+    return frozenset(key for key, var in built.x.items() if solver.value(var)), True
 
 
 # --- The differential reporting surface ---------------------------------------------

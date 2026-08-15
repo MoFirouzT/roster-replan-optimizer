@@ -224,3 +224,6 @@ benchmarks/results.json
 
 # Written by every mutation run; the verdict, not an input.
 tests/mutation-report.json
+
+# Foreign benchmark data: fetched, verified against benchmarks/foreign.json, never committed (D-125).
+benchmarks/.foreign/

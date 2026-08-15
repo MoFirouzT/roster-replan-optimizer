@@ -139,21 +139,43 @@ def test_the_baseline_is_the_instance_as_it_stands(seed):
     """Paired: the baseline must be the solve a caller would get without asking a
     hypothetical, at the seed they asked for.
 
-    Asserted on `changes_from_incumbent` and swept across seeds, because **disruption is the
-    wrong quantity to check this with**: the optimum is unique on this distribution, so a
-    baseline computed at the wrong seed scores identically and the mutation harness proved
-    the obvious test toothless. The *roster* does move with the seed where ties exist —
-    `large/0` yields two distinct optima across five seeds (`D-080`) — so a roster-level
-    property is what can see the difference.
+    **This test has now been strengthened twice, by the same harness, for the same reason.**
+    It first checked `disruption`, and the mutation harness proved that toothless because a
+    baseline at the wrong seed scores identically. It moved to `changes_from_incumbent`,
+    which worked only because the roster moved with the seed where ties existed —
+    `large/0` yielded two distinct optima across five seeds (`D-080`). `D-119` then removed
+    every tie on purpose, and with it the last observable difference a wrong seed makes.
+
+    So it stops inferring the seed from the answer and asserts it where it is used
+    (`D-124`). A roster is the same at every seed now, by design; what must still be true is
+    that the baseline is measured at the seed the caller asked for.
     """
     instance = suite.build("large/0").instance
-    comparison = whatif.compare(
-        instance,
-        (whatif.Change(kind=whatif.SET_WEEKLY_HOURS, weekly_hours=40.0),),
-        seed=seed,
-    )
-    direct = solve(instance, seed=seed, time_limit=30.0)
 
+    seen: list[int] = []
+    original = whatif._measure
+
+    def spy(measured, *, seed, time_limit):
+        seen.append(seed)
+        return original(measured, seed=seed, time_limit=time_limit)
+
+    whatif._measure = spy
+    try:
+        comparison = whatif.compare(
+            instance,
+            (whatif.Change(kind=whatif.SET_WEEKLY_HOURS, weekly_hours=40.0),),
+            seed=seed,
+        )
+    finally:
+        whatif._measure = original
+
+    assert seen, "no measurement was taken at all"
+    assert set(seen) == {seed}, (
+        f"a hypothetical asked at seed {seed} measured at {sorted(set(seen))}; baseline and "
+        f"variant must be solved under the same conditions or the comparison is not paired"
+    )
+
+    direct = solve(instance, seed=seed, time_limit=30.0)
     assert comparison.baseline.disruption == disruption_of(direct.roster, instance)
     assert comparison.baseline.changes_from_incumbent == len(
         direct.roster ^ (instance.incumbent or frozenset())

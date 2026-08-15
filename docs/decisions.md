@@ -2299,6 +2299,14 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   it. The conclusion is firmer; only the citation moved.
 - **Date.** 2026-08-14.
 
+### Amended by `D-127`
+
+`D-104`'s premise — every solve returns `OPTIMAL` in milliseconds, so there is no gap for LNS to
+close — holds for instances this generator can produce and not in general. Foreign instances reach
+7.71 seconds of search to prove optimality and, at 8 million variables, return no roster at all. The
+retirement stands, because those sizes are not the tenant this service is for; the reasoning is
+narrowed from *this never happens* to *this does not happen in the regime we serve*.
+
 ## D-105 — The coverage axis is sampled where the answer changes, not only at its ends
 
 - **Decision.** Two classes added — `busy` at 0.80 and `overloaded` at 0.95 — taking the committed
@@ -3167,4 +3175,153 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   justification, and `GENERATOR_VERSION` is deliberately not bumped — old results remain comparable,
   because no instance moved.
 - **Study.** [`docs/studies/horizon.md`](studies/horizon.md)
+- **Date.** 2026-08-14.
+
+## D-124 — Canonicalising the optimum blinded two test layers, and the harness is what noticed
+
+- **Decision.** `test_a_hint_does_not_survive_into_the_next_solve` and
+  `test_the_baseline_is_the_instance_as_it_stands` stop inferring a search-path defect from the
+  answer and assert it where it happens: the cached model carries no leftover hint, and every
+  measurement in a hypothetical is taken at the seed the caller asked for.
+- **Alternatives.** Accept the loss and delete the two mutants. Re-introduce tie-dependence somewhere
+  so the old proxies keep working.
+- **Reason.** The first full mutation run after `D-119` came back `survivors`, 95 of 97, on a clean
+  tree and a fully green suite of 766 tests. Both survivors were mutants that had been caught before,
+  and both break the **search path** rather than the answer: one leaves a stale hint on a cached
+  model, the other measures a hypothetical's baseline at the wrong seed.
+
+  Both tests detected those by observing that the *roster changed*. **`D-119` made the roster
+  independent of the search path on purpose**, so the detector stopped working — measured rather than
+  inferred: with canonicalisation disabled in a scratch copy both mutants are caught, and with it
+  enabled both survive.
+
+  That is a real cost of `D-119` and nobody predicted it, including the record that priced the change
+  at 61% of search time and `D-081`'s premise. **Reproducibility and observability were trading
+  against each other, and only one side of the trade was on the invoice.**
+
+  The what-if test makes the point twice over, because its own docstring already recorded this lesson
+  in an earlier form. It first asserted `disruption`, which the harness proved toothless; it moved to
+  a roster-level property that worked *because* `large/0` yielded two distinct optima across five
+  seeds. That tie was the detector, and `D-119` removed every tie in the project deliberately.
+- **Consequences.** Three tests in this repo have now been converted from *inferring a defect through
+  the answer* to *asserting it where it lives* — these two and the ladder's time-boxed rung
+  (`D-122`). The pattern is worth naming because it will recur: **a test that detects a search-path
+  defect by watching the output is only as good as the output's sensitivity to the search**, and this
+  project has just spent real effort removing exactly that sensitivity.
+
+  The mutation harness is the only layer that could have found this. The suite was green, CI was
+  green on two platforms, and 766 tests had no opinion. It is the fifth time the harness has found a
+  blind spot behind a fully green suite, and the first time the blind spot was **created by a
+  deliberate improvement** rather than missed when the layer was written.
+- **Date.** 2026-08-14.
+
+## D-125 — Foreign rosters are fetched and fingerprinted, never redistributed
+
+- **Decision.** `benchmarks/foreign.py` imports the nurse-rostering benchmark instances and their
+  published solutions from schedulingbenchmarks.org. `benchmarks/foreign.json` commits the URLs and a
+  SHA-256 per archive; the data is fetched on demand into a gitignored cache and verified against
+  those digests, and a mismatch deletes the file rather than proceeding.
+- **Alternatives.** Commit the instances, and rewrite `README.md`'s claim that all committed data is
+  synthetic. Commit nothing and skip the study. Vendor a derived, reduced form of the data.
+- **Reason.** The source **states no licence, no copyright and no terms of use**, which is not the
+  same as public domain — absent a grant, default copyright applies and redistribution is not ours to
+  do. Fetching for use is ordinary; republishing is not.
+
+  The fingerprint pattern is already this project's, which is why it fits without inventing anything:
+  `D-073` commits the benchmark set as seeds and hashes rather than 84 payloads, for a different
+  reason and with the same shape. A verified fetch is reproducible in the way that matters — the study
+  either runs against the bytes it was written against or refuses — and `README.md` keeps a sentence
+  that `finish.md`'s publication reasoning leans on.
+
+  **Vendoring a derived form was the tempting middle** and was rejected as the worst of both: it is
+  still their data, reduced enough to be hard to check and not enough to stop being theirs.
+- **Consequences.** The foreign study needs one command before it runs and says so. CI does not run
+  it — the data is absent there by design — so this is a study a reader reproduces deliberately,
+  which is the same footing as `benchmarks/nl_eval.py` and for a better reason: that one costs money,
+  this one costs someone else's bandwidth.
+
+  If the upstream archives change, the digests stop matching and the study refuses to run rather than
+  quietly measuring something else. That is the failure mode worth designing for, because a benchmark
+  that silently changes its inputs is `D-074`'s problem arriving from outside the repository.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-14.
+
+## D-126 — The canonicalising phase can run out of budget, and says so instead of raising
+
+- **Decision.** `_canonicalise` receives the **remaining** budget rather than a fresh one, and returns
+  `(roster, canonical)`. When phase two cannot prove its criterion optimal in the time left, phase
+  one's roster stands and `Solution.canonical` is `False`. The assertion that this could not happen is
+  gone.
+- **Alternatives.** Give phase two its own full budget and keep raising. Return the feasible-but-
+  unproven phase-two roster. Skip canonicalisation above some instance size.
+- **Reason.** `D-119` added the phase and asserted it unreachable: *the phase-one solution satisfies
+  every constraint here, including the pin*. That is true about **feasibility** and says nothing about
+  **optimality** — phase two minimises a criterion over a face that can hold millions of points, and
+  proving a minimum there is a real search. A foreign instance of 40 employees over four weeks raised
+  the assertion within minutes of the importer first working.
+
+  Two defects were behind it and only one was visible. The other is that phase two was handed a fresh
+  `max_time_in_seconds`, so a caller asking for 30 seconds could wait 60 — a budget contract the
+  service and the ladder both reason from, broken by a change whose record priced it in search time
+  and never mentioned the deadline.
+
+  **Returning the unproven phase-two roster was rejected as the worst option.** It is a better point
+  on the optimal face than phase one found and it is not the canonical one, so it would be
+  reproducible by accident — which is the failure `D-119` exists to remove, wearing a disguise.
+- **Consequences.** `Solution` carries `canonical`, and it is the difference between a roster that
+  reproduces on any machine and one that reproduces on this build. A caller recording a solve for
+  replay is the one who needs to know which they have, so it is on the answer rather than in a log.
+
+  The unqualified reproducibility claim in `README.md` is therefore true **with a stated boundary**:
+  every instance in the committed set canonicalises in milliseconds, and an instance large enough to
+  exhaust the budget returns an optimum that is not canonical and says so.
+
+  **The committed set could not have found this**, because every instance in it is small enough that
+  phase two finishes instantly. It is the argument for foreign data, made by foreign data, on its
+  first day.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-14.
+
+## D-127 — Where the model stops is a number now, and it bounds two earlier records
+
+- **Decision.** The scale limits are measured on foreign instances and recorded:
+  [`studies/foreign-incumbent.md`](studies/foreign-incumbent.md). `D-104`'s retirement of LNS and
+  `D-081`'s two-clock premise are both **bounded to the distribution they were measured on** rather
+  than left general.
+- **Alternatives.** Leave the scale question open, as `D-105` did when it swept the generator's own
+  range and found nothing hard. Generate larger synthetic instances instead.
+- **Reason.** `D-105` swept every knob the generator has — 105% demand, 40 employees, every pressure
+  at once — and found every solve returning `OPTIMAL` in 3 to 11 ms. The conclusion drawn was that
+  nothing here is hard. What that measured is that **the generator cannot produce a hard instance**,
+  which is a different claim and the one this project could not tell apart from the inside.
+
+  Foreign instances, built by other people for other purposes, do produce them. **Instance 8 takes
+  7.71 seconds of search to prove optimality**, against a committed-set maximum of 15.4 ms across all
+  2,268 runs — a factor of 500. Instance 23, at 8 million variables, returns `UNKNOWN`: no roster at
+  all inside its budget.
+
+  **`D-104` retired LNS because every solve returned `OPTIMAL` in milliseconds.** That premise is
+  false outside the generated distribution. The retirement is not reversed — LNS improves a solution
+  the solver cannot prove optimal *in the time available*, and the instances where that now happens
+  are 100 employees over a year, which is not the tenant this service is for. But the reasoning is
+  narrowed from "this never happens" to "this does not happen in the regime we serve", and those are
+  different sentences.
+- **Consequences.** **The binding constraint at every size is model construction, not search.**
+  Building the CP-SAT model in Python costs 9 seconds at 910k variables, 45 at 1.1M, 67 at 1.5M and
+  **527 seconds at 8M** — nearly nine minutes to construct a model the solver then fails to crack.
+  `D-081` separated the two clocks because build dominated at one week for twelve people; it still
+  dominates at 52 weeks for a hundred, by a wider margin. That makes `D-092` — memoising
+  `Instance.window`, found by profiling the builder rather than the solver — correctly aimed at both
+  ends of the scale rather than a small-instance curiosity.
+
+  The usable envelope is stated rather than implied: **up to about 40 employees over four weeks**, the
+  service proves optimality and canonicalises within a few seconds. Past roughly a million variables
+  the build alone leaves interactive latency behind. Nothing between those points is measured, because
+  these instances do not sample it, and the generator cannot reach it.
+
+  The largest instance — 150 employees over 52 weeks with 32 shift types — was **abandoned after about
+  forty minutes still building**, and that is recorded as what happened rather than as a limit. The run
+  does not know whether it would have finished eventually; it knows that instance 23's nine-minute
+  build was not the ceiling.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-14.
