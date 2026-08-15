@@ -97,6 +97,7 @@ LADDER = "roster_replan/ladder.py"
 JOBS = "roster_replan/service/jobs.py"
 COMPILED = "roster_replan/compiled.py"
 MILP = "benchmarks/milp.py"
+ANNEAL = "benchmarks/anneal.py"
 EXPLAIN = "roster_replan/explain.py"
 PROSE = "roster_replan/prose.py"
 WHATIF = "roster_replan/whatif.py"
@@ -683,6 +684,39 @@ MUTANTS: tuple[Mutant, ...] = (
         '    if instance.disruption is None or instance.disruption.metric not in ("D0", "D1", "D2"):',
         "    if False:",
         "tests/test_milp.py",
+    ),
+    # --- The penalty search, D-002's evidence -----------------------------------------
+    # This rival exists to show what pricing a hard rule does, so the defects worth carrying
+    # are the ones that quietly turn it back into a method that cannot. Both of these
+    # produce a study whose every number still computes and means nothing.
+    #
+    # The first one **survived the first version of `tests/test_anneal.py`**, and that is why
+    # `Result.accepted_illegal` exists: a gate refusing to make things worse still returns an
+    # illegal roster, because the incumbent arrives already damaged. Only the trajectory
+    # separates a priced rule from a prohibited one.
+    Mutant(
+        "anneal-gates-acceptance-on-feasibility",
+        "anneal",
+        ANNEAL,
+        "        if delta <= 0 or rng.random() < math.exp(-delta / max(temperature, 1e-9)):",
+        "        if cand_hard <= hard and (delta <= 0 or rng.random() < math.exp(-delta / max(temperature, 1e-9))):",
+        "tests/test_anneal.py",
+    ),
+    Mutant(
+        "anneal-lets-the-generator-rewrite-the-past",
+        "anneal",
+        ANNEAL,
+        "        if not instance.is_past(o.day, o.shift)\n    )",
+        "    )",
+        "tests/test_anneal.py",
+    ),
+    Mutant(
+        "anneal-drops-the-price-of-a-broken-rule",
+        "anneal",
+        ANNEAL,
+        "    return measured + hard_weight * hard, measured, hard",
+        "    return measured, measured, hard",
+        "tests/test_anneal.py",
     ),
     # --- The shortfall explainer ------------------------------------------------------
     # The invariant is the asset here: an unexplained employee means the roster is wrong,

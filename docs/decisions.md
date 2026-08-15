@@ -3325,3 +3325,66 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   build was not the ceiling.
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-14.
+
+## D-128 — Priced hard rules are measured, and the easy distribution gives the wrong answer
+
+- **Decision.** `D-002`'s refusal of penalised hard constraints and `D-003`'s justification of the
+  independent checker are **confirmed on measurement**, and both are scoped to the reason that
+  survived: a penalty formulation escapes an expensive hard rule through `R-COVER`'s soft floor, so
+  raising the price buys legality by refusing to staff. The rival lives at
+  [`benchmarks/anneal.py`](../benchmarks/anneal.py), solver-free under an import contract, and is
+  **not** registered in `methods.METHODS`.
+- **Alternatives.** Leave the claim as prose, as it had been through three records. Register the
+  search as a fifth method so it appears in the T2 table. Report the committed-set result alone.
+- **Reason.** Three records asserted that penalising a hard rule yields a *cheaply illegal* roster and
+  none had measured it. Measured, on 14 committed classes across five weight decades and three
+  budgets: at weight 1 **every case returns an illegal roster**, and **13 of 14 score better than the
+  proven optimum** on the shared D2 yardstick — a results table showing only the objective column
+  ranks the unsafe method first. The characteristic failure is quieter than the claim supposed: ten of
+  those fourteen introduced no new violation, they returned the damaged incumbent untouched, because
+  declining to repair is the cheapest way out of a priced rule.
+
+  **The committed set alone would have falsified the strong claim.** At weight 1,000,000 with 100,000
+  evaluations the search is 0/14 illegal and within 38.6 of the optimum, matching it on 11 of 14. A
+  study stopping there reports *a tuned penalty engine is safe and near-optimal*, which is true of that
+  distribution and transfers nowhere — the same distribution `D-105` swept without finding anything
+  hard and `D-127` showed cannot produce a hard instance.
+
+  **Instance 8 has no working setting.** Against an exact optimum of 210 proved in 5.74 s: below a
+  weight of 1,000,000 the search staffs the week and breaks rules (3 violations at best, all
+  `R-MAX-PERIOD`); at and above it the search stops breaking rules and leaves shifts unstaffed — 1 slot
+  at the best setting, 19 at the dearest. The best legal answer costs **104,540 against 210**, about
+  500× worse, after 220 seconds against 5.74.
+
+  The mechanism is the transferable part. `R-COVER`'s floor is the one deliberate soft exception
+  (`D-018`, priced in `D-047`), so a shortfall is expensive and never prohibited. A search that must
+  pay for legality finds the cheapest lawful way to be lawful, and that is to staff nothing. Nothing
+  instructed it to; it is what pricing legality means.
+- **Consequences.** **`D-003`'s independence has a number behind it now.** A formulation with no
+  hard-constraint guarantee returned an illegal roster in 100% of committed cases at low weight and in
+  9 of 15 configurations on instance 8, while outscoring the proven optimum in 13 of 14 committed
+  cases. Nothing inside such a search can report that, which is the checker's job stated as a
+  measurement rather than as a structural argument.
+
+  **The budget axis is evaluations, not seconds**, and that is a limitation stated rather than
+  hidden. Each move costs a full `check` and `score`, so wall-clock against CP-SAT would measure this
+  implementation. An incremental evaluator was refused rather than skipped: one fast enough to compete
+  must encode which rules are per-employee and which per-slot, which is rule structure outside
+  `checker.py` — the shared-assumption failure `D-111` and `D-123` both record.
+
+  **`D-127`'s instance 23 is not the counter-example it appears to be.** Its failure is 527 seconds of
+  model construction, not search, so a metaheuristic "succeeding" where the exact model returns nothing
+  would be measuring Python object building against CP-SAT. The anytime case for a metaheuristic is not
+  made anywhere in this repo's regime.
+
+  **Two defects in this study's own harness were found before it produced a number**, and both are
+  recorded because each would have yielded a study whose every figure computed and meant nothing.
+  First, a mutant installing a **feasibility gate on acceptance survived the first test suite**: the
+  gate refuses moves that raise the violation count, but the incumbent arrives already damaged, so the
+  answer is illegal either way and every assertion about it still passes. Only the trajectory separates
+  a priced rule from a prohibited one, so `Result.accepted_illegal` exists and is what the test asserts.
+  Second, the summary initially led with violations the search *introduced* rather than violations the
+  roster *carries*, which scored a search that returned the damaged incumbent as a clean run — inverting
+  the headline, since leaving the damage in place is the cheapest escape of all. Both now carry mutants.
+- **Study.** [`docs/studies/penalty-search.md`](studies/penalty-search.md)
+- **Date.** 2026-08-15.

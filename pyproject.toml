@@ -167,6 +167,20 @@ source_modules = [
 ]
 forbidden_modules = ["roster_replan.nl", "anthropic"]
 
+# The same claim the greedy contract makes, for the same reason, about a different rival.
+# A penalty-based search exists here to be compared against the exact model, and a rival
+# that can reach the model is not a rival. It is also the module whose whole point is that
+# it has no hard-constraint guarantee, so it must not be able to borrow one.
+[[tool.importlinter.contracts]]
+name = "The penalty search is solver-free"
+type = "forbidden"
+source_modules = ["benchmarks.anneal"]
+forbidden_modules = [
+    "roster_replan.model",
+    "roster_replan.disruption",
+    "ortools",
+]
+
 [[tool.importlinter.contracts]]
 name = "The shared schema depends on nothing"
 type = "forbidden"
