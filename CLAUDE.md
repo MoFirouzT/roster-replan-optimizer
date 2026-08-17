@@ -109,6 +109,12 @@ exit status, so a run that leaked a mutated file into the working tree read as a
 `jq .verdict tests/mutation-report.json` is the first question, and there are four answers: `clean`,
 `unverifiable`, `survivors`, `leaked`.
 
+**A `survivors` verdict is now worth one check before believing it** (`D-139`). A mutant whose defect
+an editor wrote away inside the test window used to score as a survivor — pytest found nothing wrong
+because nothing was wrong — which reads as a hole in a test layer and is a hole in the harness. The
+run now voids such a mutant instead. If a survivor still appears, apply it by hand and confirm it
+fails before writing a test for ground that may already be covered.
+
 `leaked` means the run is void, not passing-with-a-caveat, because every mutant after the leak may
 have been caught by the leftover defect. If it does leak, `git checkout --` the named paths —
 format-on-save is the usual culprit and is worth turning off for the duration.

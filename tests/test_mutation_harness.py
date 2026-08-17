@@ -173,3 +173,52 @@ def test_a_summary_taken_outside_a_run_admits_it_has_no_clock():
 
     assert report["started_at"] is None
     assert report["duration_seconds"] is None
+
+
+# --- A defect that was gone before the tests ran (`D-139`) ---------------------------
+
+
+def test_a_reverted_mutation_is_not_reported_as_a_survivor():
+    """The fourth hardening, and the first where the harness reported a *finding* it did not
+    have rather than withholding one it did.
+
+    A full run came back `survivors: [model-days-off-judges-the-horizon-edge]`. Applying that
+    mutation by hand raised `KeyError: -1` and failed twelve tests, and re-running the layer
+    alone caught it. The defect had been reverted inside the test window, so pytest passed
+    because there was nothing wrong — which scores as a survivor and reads as a hole in a
+    test layer.
+    """
+    results = [
+        {
+            "name": "reverted", "layer": "model", "path": "roster_replan/model.py",
+            "catcher": "tests/test_ground_truth.py", "caught": False, "failed": [],
+            "note": mutation.REVERTED, "voided": True,
+        }
+    ]
+    report = mutation.summarise(
+        results, leaked=[], skipped=[], full=False, late=["roster_replan/model.py"]
+    )
+
+    assert report["survivors"] == []
+    assert report["verdict"] == "unverifiable"
+    assert report["trustworthy"] is False
+    assert "roster_replan/model.py" in report["unvouched_for"]
+
+
+def test_a_genuine_survivor_still_outranks_an_unvouched_tree():
+    """The other direction, and the one that matters more: the fix must not turn a real hole
+    into a shrug. A survivor with no `voided` flag is a survivor whatever else the run
+    could not vouch for."""
+    results = [
+        {
+            "name": "real", "layer": "model", "path": "roster_replan/model.py",
+            "catcher": "tests/test_ground_truth.py", "caught": False, "failed": [],
+            "note": "", "voided": False,
+        }
+    ]
+    report = mutation.summarise(
+        results, leaked=[], skipped=["roster_replan/model.py"], full=False
+    )
+
+    assert report["survivors"] == ["real"]
+    assert report["verdict"] == "survivors"

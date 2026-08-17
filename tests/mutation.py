@@ -117,6 +117,10 @@ NL = "roster_replan/nl.py"
 NL_EVAL = "benchmarks/nl_eval.py"
 FOREIGN = "benchmarks/foreign.py"
 
+# A mutant whose defect was gone by the time the tests ran. Not a survivor and not a
+# catch: nothing was tested, and the run cannot vouch for the file (`D-139`).
+REVERTED = "the mutation was reverted before the tests ran, so nothing was tested"
+
 MUTANTS: tuple[Mutant, ...] = (
     # --- Rule thresholds ------------------------------------------------------------
     # `D-066`: a fixture set proves a rule exists; only a fixture at the boundary proves
@@ -597,8 +601,8 @@ MUTANTS: tuple[Mutant, ...] = (
         "service-round-trip-drops-the-unpopular-prior",
         "service",
         CONTRACTS,
-        "                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
-        "                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
+        "                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,\n                max_weekends=e.max_weekends,\n                min_consecutive_days_off=e.min_consecutive_days_off,\n                min_consecutive_days_worked=e.min_consecutive_days_worked,\n                max_shifts_per_type=(\n                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)\n                ),\n                min_hours_this_period=e.min_hours_this_period,\n                max_consecutive_days=e.max_consecutive_days,\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
+        "                max_weekends=e.max_weekends,\n                min_consecutive_days_off=e.min_consecutive_days_off,\n                min_consecutive_days_worked=e.min_consecutive_days_worked,\n                max_shifts_per_type=(\n                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)\n                ),\n                min_hours_this_period=e.min_hours_this_period,\n                max_consecutive_days=e.max_consecutive_days,\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
         "tests/test_service.py",
     ),
     Mutant(
@@ -1124,16 +1128,16 @@ MUTANTS: tuple[Mutant, ...] = (
         "checker-days-off-judges-the-horizon-edge",
         "weekends",
         CHECKER,
-        "                if start > 0 and day < instance.days and length < minimum:",
-        "                if length < minimum:",
+        "                if start > 0 and day < instance.days and length < minimum:\n                    person = instance.employees[employee]\n                    out.append(\n                        Violation(\n                            rule=\"R-MIN-DAYS-OFF\",",
+        "                if length < minimum:\n                    person = instance.employees[employee]\n                    out.append(\n                        Violation(\n                            rule=\"R-MIN-DAYS-OFF\",",
         "tests/test_optional_rules.py",
     ),
     Mutant(
         "checker-days-off-rule-is-inert",
         "weekends",
         CHECKER,
-        "        if minimum is None or minimum < 2:\n            continue\n\n        worked = {day for day, _ in shifts}",
-        "        if minimum is None or minimum < 3:\n            continue\n\n        worked = {day for day, _ in shifts}",
+        "        minimum = instance.employees[employee].min_consecutive_days_off\n        if minimum is None or minimum < 2:",
+        "        minimum = instance.employees[employee].min_consecutive_days_off\n        if minimum is None or minimum < 3:",
         "tests/test_optional_rules.py",
     ),
     # --- The rest of D-134's constraint set (`D-136`) --------------------------------------
@@ -1386,13 +1390,20 @@ def summarise(
     - a **late write**, where an editor reinstated the mutated text after its own restore
       verified, so some mutant ran against source nobody chose.
 
-    Neither is a finding, so neither outranks a survivor -- a mutant that survived, survived.
+    **A third condition was added after that sentence was falsified** (`D-139`). "A mutant
+    that survived, survived" is not true if the defect was gone before the tests ran: an
+    editor that reinstates the original inside the test window leaves pytest with nothing to
+    find, and the mutant is scored a survivor. `run` now checks the mutation is still in the
+    file when the tests finish, and a `voided` result is neither caught nor survived -- it
+    denies the run its guarantee for that path, exactly as a late write does.
+
+    Neither of the first two is a finding, so neither outranks a survivor.
     Both deny the run its guarantee, so the verdict is `unverifiable` where it would have
     been `clean`, and `trustworthy` is false either way. This is written from the run that
     prompted it: `clean`, `trustworthy: true`, `leaked: []`, and a mutated `checker.py` in
     the tree, with the reason stated three fields lower in the same object.
     """
-    survivors = [r["name"] for r in results if not r["caught"]]
+    survivors = [r["name"] for r in results if not r["caught"] and not r.get("voided")]
     unvouched = sorted(set(skipped) | set(late))
     if leaked:
         verdict, exit_code = "leaked", 2
@@ -1488,8 +1499,17 @@ def run(mutant: Mutant, *, full: bool, originals: dict | None = None) -> tuple[b
              "no:cacheprovider"],
             cwd=ROOT, capture_output=True, text=True, timeout=1800,
         )
+        # **Was the defect still there when the tests ran?** (`D-139`) A late write lands in
+        # this window as easily as in the one after the restore, and there it is worse: the
+        # editor reinstates the *original*, pytest passes because there is nothing wrong,
+        # and the mutant is scored a survivor. That reads as a hole in a test layer and is
+        # a hole in this harness, which is the one failure mode it exists to not have.
+        reverted = mutant.new not in path.read_text()
     finally:
         _restore(path, original)
+
+    if reverted:
+        return False, [], REVERTED
 
     failed = _failed_tests(result.stdout)
     note = ""
@@ -1574,7 +1594,9 @@ def main() -> int:
             late.extend(d for d in drifted if d not in late)
             print(f"          ! late write to {', '.join(drifted)}, restored before this mutant")
         caught, failed, note = run(mutant, full=args.full, originals=originals)
-        status = "CAUGHT" if caught else "SURVIVED"
+        if note == REVERTED and mutant.path not in late:
+            late.append(mutant.path)
+        status = "CAUGHT" if caught else "VOID" if note == REVERTED else "SURVIVED"
         print(f"{status:9s} {mutant.name}")
         if note:
             print(f"          ! {note}")
@@ -1591,6 +1613,7 @@ def main() -> int:
                 "caught": caught,
                 "failed": failed,
                 "note": note,
+                "voided": note == REVERTED,
             }
         )
 

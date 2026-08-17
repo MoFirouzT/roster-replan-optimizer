@@ -130,6 +130,14 @@ class EmployeeIn(Strict):
     max_weekends: int | None = None
     min_consecutive_days_off: int | None = None
 
+    # The rest of the same family (`D-136`). Absent means the caller is not asking for the
+    # rule -- `D-138` is the record of these arriving late, encoded in both readings and
+    # reachable from neither the wire nor a profile until then.
+    min_consecutive_days_worked: int | None = None
+    max_shifts_per_type: dict[int, int] | None = None
+    min_hours_this_period: float | None = None
+    max_consecutive_days: int | None = None
+
     flexi_eligible: list[int] | None = None
     dimona_ok: list[int] | None = None
     hourly_rate: float | None = None
@@ -150,6 +158,8 @@ class RuleParamsIn(Strict):
     # Which positions in a week `R-MAX-WEEKENDS` counts. Empty switches it off, and it is
     # asked for rather than derived because this domain has no calendar (`D-135`).
     weekend_days: list[int] = Field(default_factory=list)
+    # `R-SUCCESSION`'s pairs, as two-element lists: JSON has no tuples and no sets.
+    forbidden_successions: list[list[int]] = Field(default_factory=list)
 
     derogation_basis: dict[str, str] = Field(default_factory=dict)
 
@@ -252,6 +262,12 @@ def to_domain(payload: InstanceIn) -> Instance:
                 unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,
                 max_weekends=e.max_weekends,
                 min_consecutive_days_off=e.min_consecutive_days_off,
+                min_consecutive_days_worked=e.min_consecutive_days_worked,
+                max_shifts_per_type=(
+                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)
+                ),
+                min_hours_this_period=e.min_hours_this_period,
+                max_consecutive_days=e.max_consecutive_days,
                 flexi_eligible=(
                     None if e.flexi_eligible is None else frozenset(e.flexi_eligible)
                 ),
@@ -284,6 +300,9 @@ def to_domain(payload: InstanceIn) -> Instance:
             min_period_hours=payload.params.min_period_hours,
             max_consecutive_days=payload.params.max_consecutive_days,
             weekend_days=frozenset(payload.params.weekend_days),
+            forbidden_successions=frozenset(
+                (pair[0], pair[1]) for pair in payload.params.forbidden_successions
+            ),
             derogation_basis=dict(payload.params.derogation_basis),
         ),
         now=payload.now,
@@ -369,6 +388,12 @@ def from_domain(instance: Instance) -> InstanceIn:
                 unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,
                 max_weekends=e.max_weekends,
                 min_consecutive_days_off=e.min_consecutive_days_off,
+                min_consecutive_days_worked=e.min_consecutive_days_worked,
+                max_shifts_per_type=(
+                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)
+                ),
+                min_hours_this_period=e.min_hours_this_period,
+                max_consecutive_days=e.max_consecutive_days,
                 flexi_eligible=(
                     None if e.flexi_eligible is None else sorted(e.flexi_eligible)
                 ),
@@ -401,6 +426,9 @@ def from_domain(instance: Instance) -> InstanceIn:
             min_period_hours=instance.params.min_period_hours,
             max_consecutive_days=instance.params.max_consecutive_days,
             weekend_days=sorted(instance.params.weekend_days),
+            forbidden_successions=[
+                list(pair) for pair in sorted(instance.params.forbidden_successions)
+            ],
             derogation_basis=dict(instance.params.derogation_basis),
         ),
         now=instance.now,

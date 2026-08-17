@@ -3928,3 +3928,80 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   stays as reported: a number with a bias of known direction and unknown size.
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-17.
+
+## D-138 — The reachability defect repeated, and the harness caught it by refusing to start
+
+- **Decision.** The five wave-2 rule parameters join the wire contract alongside wave 1's two:
+  `min_consecutive_days_worked`, `max_shifts_per_type`, `min_hours_this_period`, per-employee
+  `max_consecutive_days`, and `RuleParams.forbidden_successions`. A round-trip test builds an instance
+  using **all seven** rather than reaching for a committed scenario.
+- **Alternatives.** *Notice it later*, which is what would have happened. *Add a schema-completeness
+  test* that walks `domain` fields and asserts each has a wire counterpart — the general fix, and a
+  bigger change than this one.
+- **Reason.** **`D-131` recorded exactly this defect and it happened again seven rules later.** Wave 1
+  wired its two parameters through; wave 2 encoded five more in both readings, added them to
+  `domain.py`, and stopped there. `Strict` forbids unknown fields, so every one of them was rejected
+  at the boundary — encoded, tested, specified, and unreachable by any caller.
+
+  **The existing round-trip test could not see it, for the reason `D-131` already gave.** It runs over
+  committed cases and none of them sets these fields, so the identity held over the fields the set
+  happens to use. Writing that down in `D-131` did not prevent the recurrence, which is worth being
+  honest about: a recorded lesson is not a control.
+
+  **What did catch it was the mutation harness refusing to start.** Three mutants could not find their
+  anchors, and the first was `service-round-trip-drops-the-unpopular-prior` — stale precisely because
+  the fields around it had changed while the ones it guarded had not been added. The harness's
+  self-protection found a product defect while protecting itself from a stale catalogue, which is not
+  what it was built for and is the second time this run's machinery has been the thing that noticed.
+- **Consequences.** Two of the three stale anchors were **ambiguous rather than missing**, and for a
+  reason `D-136` chose on purpose: `_min_block` mirrors `_min_days_off` line for line, because one
+  predicate serving two rules would break both readings at once. That duplication makes single-line
+  anchors match twice. Both are re-anchored on the rule name, which is the one thing the two
+  do not share — a small ongoing cost of the independence rule, paid here for the first time.
+
+  **The general fix is not made here.** A test that walks every `domain` field and asserts a wire
+  counterpart would catch the next instance of this without depending on anybody remembering. It is
+  the right control and it is a different change; this record names it rather than pretending the
+  round-trip test now covers the class.
+- **Date.** 2026-08-17.
+
+## D-139 — The harness reported a hole it did not have, and that is a fourth hardening
+
+- **Decision.** `run` checks the mutation is **still in the file when the tests finish**. A mutant
+  whose defect was reverted inside the test window is `voided` — neither caught nor survived — and its
+  path joins `unvouched_for`, so the verdict is `unverifiable` rather than `survivors`. A genuine
+  survivor still outranks everything but a leak.
+- **Alternatives.** *Treat it as a survivor and re-run by hand*, which is what happened this time and
+  costs a full run plus the investigation. *Re-read the file before the tests as well*, which narrows
+  the window and does not close it. *Turn format-on-save off and call it solved*, which `CLAUDE.md`
+  has advised for three hardenings and has now been beaten a fourth time.
+- **Reason.** **The first three hardenings were the harness withholding a failure; this one is the
+  harness inventing one.** `D-112` was `clean` with a mutated file in the tree. This was
+  `survivors: [model-days-off-judges-the-horizon-edge]` on a mutant that is caught decisively —
+  applied by hand it raises `KeyError: -1` and fails twelve tests, and re-running its layer alone
+  returned `clean` on all six. The defect had been written away inside the test window, so pytest
+  found nothing wrong because nothing was wrong.
+
+  That reads as **a hole in a test layer**, which is the most expensive wrong answer this harness can
+  give: it points at the layer, not at itself, and the natural response is to go and write a test for
+  ground that is already covered.
+
+  **It falsified a sentence in `summarise`'s own docstring.** *"Neither is a finding, so neither
+  outranks a survivor — a mutant that survived, survived."* That is not true when the mutation was
+  gone before the tests ran, and the ordering it justifies is what let an untrustworthy tree produce
+  the stronger claim. The docstring is corrected in place rather than quietly rewritten, because it is
+  the reasoning the verdict rests on.
+- **Consequences.** stdout gains a `VOID` status beside `CAUGHT` and `SURVIVED`, and the report gains
+  a `voided` field per mutant. Two tests hold the pair that matters: a reverted mutant is not a
+  survivor, and a genuine survivor is still a survivor on a tree the run cannot vouch for. The second
+  is the one worth having — a fix that turned real holes into shrugs would be worse than the defect.
+
+  **This is the fourth time the harness has been confidently wrong**, and the pattern named in
+  `finish.md` holds: every one of them was the harness asserting something false rather than failing
+  to run. Three withheld a failure and one invented it, and the invented one took a full run, a
+  by-hand reproduction and a layer re-run to disbelieve.
+
+  The window is now bounded but not closed: a write landing *between* the check and the tests' own
+  reads is still possible. Turning format-on-save off remains the actual fix, and this makes its
+  absence detectable rather than misleading.
+- **Date.** 2026-08-17.

@@ -126,6 +126,42 @@ def test_the_round_trip_carries_the_cross_week_fields():
     assert contracts.to_domain(contracts.InstanceIn.model_validate_json(blob)) == instance
 
 
+def test_the_round_trip_carries_every_optional_rule_parameter():
+    """`D-138`. Seven constraint families were encoded in both readings and reachable through
+    neither the wire nor a profile, which is `D-131`'s defect repeating one tier later.
+
+    The committed cases set none of these, so the existing identity test held over the fields
+    the set happens to use — the same blind spot `D-131` recorded, and the reason this test
+    builds an instance that uses all of them rather than reaching for a scenario.
+    """
+    instance = identical_workforce(3, required=1)
+    instance = dataclasses.replace(
+        instance,
+        params=dataclasses.replace(
+            instance.params,
+            weekend_days=frozenset({5, 6}),
+            forbidden_successions=frozenset({(1, 0)}),
+        ),
+        employees=tuple(
+            dataclasses.replace(
+                person,
+                max_weekends=2,
+                min_consecutive_days_off=2,
+                min_consecutive_days_worked=2,
+                max_shifts_per_type={0: 3, 1: 0},
+                min_hours_this_period=8.0,
+                max_consecutive_days=4,
+            )
+            for person in instance.employees
+        ),
+    )
+
+    assert contracts.to_domain(contracts.from_domain(instance)) == instance
+
+    blob = contracts.from_domain(instance).model_dump_json()
+    assert contracts.to_domain(contracts.InstanceIn.model_validate_json(blob)) == instance
+
+
 def test_an_unknown_field_is_rejected_rather_than_ignored():
     """A misspelled field should be an error, not a silent default."""
     with pytest.raises(Exception):
