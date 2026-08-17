@@ -12,10 +12,17 @@ on an authorization this project does not control. This is the half that is not 
 
 **Answer. The claim reproduces on foreign incumbents, and by a wider margin than on the committed
 set.** Against a cold cost re-solve on published rosters from the nurse-rostering benchmark set,
-the disruption objective cuts changed assignments by **10× to 27×** where the committed set showed
-about 5×. Two things came with it that the synthetic set could not have shown: **7 of 13 published
+the disruption objective cuts changed assignments by **5× to 37×** where the committed set showed
+about 5×. Two things came with it that the synthetic set could not have shown: **10 of 13 published
 rosters have a past this model calls illegal**, and a defect in the canonical optimum that appeared
 within minutes of first contact.
+
+> **Re-measured on named incumbents** (`D-133`). This study originally reported 10× to 27× over five
+> instances, on whichever published solution `glob` happened to return — which was a **non-best**
+> solution on 8 of the 13 and depended on directory order, so the incumbent was a property of the
+> machine. `load` now takes the best published solution by their own objective. Three instances have
+> a clean past instead of five, the direction of the claim is unchanged, and its bottom end is
+> weaker: one instance repairs at 4.6× where the old sample's weakest was 10×.
 
     uv run python -m benchmarks.foreign --fetch
     uv run python -m benchmarks.foreign --study
@@ -55,7 +62,14 @@ overlap, and a night shift starting at 22:00 the evening before spills six hours
 convention `rules.md` fixes, colliding with a naive translation. Days off are now dropped rather than
 approximated.
 
-With both corrected, **55 genuine hard violations across 6,361 assignments — 0.86%**.
+With both corrected, **70 genuine hard violations across 6,363 assignments — 1.10%** on the best
+published solution of each instance.
+
+That figure was 55 across 6,361 when the incumbent was whichever `glob` returned (`D-133`). Almost
+the same number of assignments, 27% more violations — but **there is no consistent direction**
+between a better and a worse published roster: the same count over each instance's *worst* published
+solution is 73, and per instance it moves both ways. What the old number measured was a particular
+arbitrary sample, and what replaces it is a named one.
 
 ## What is left is Belgium being stricter
 
@@ -86,30 +100,33 @@ unchanged — the foreign scenario is a `generator.Scenario`, so it flows throug
 | instance | staff | weeks | cold re-solve | warm replan | changed assignments |
 | --- | --- | --- | --- | --- | --- |
 | 2 | 14 | 2 | 980 | **80** | 74 → **2** |
-| 3 | 20 | 2 | 1,800 | **140** | 114 → **8** |
+| 4 | 10 | 4 | 1,820 | **380** | 146 → **32** |
 | 6 | 18 | 4 | 2,860 | **280** | 220 → **22** |
-| 8 | 30 | 4 | 4,770 | **210** | 375 → **15** |
-| 10 | 40 | 4 | 7,560 | **280** | 606 → **22** |
 
-**Between 10× and 27× fewer changed assignments**, against about 5× on the committed set. The margin
-is wider because the instances are larger — a cold re-solve of a four-week roster for 40 people
-reshuffles 606 assignments to absorb one absence, where a week for twelve reshuffles twelve. The
-direction of the effect is the same and its size is a property of the instance.
+**Between 4.6× and 37× fewer changed assignments**, against about 5× on the committed set. The margin
+is wider on the larger instances because a cold re-solve of a four-week roster reshuffles hundreds of
+assignments to absorb one absence, where a week for twelve reshuffles twelve. The direction of the
+effect is the same on every case and its size is a property of the instance.
+
+**The spread is much wider than the old sample suggested**, and that is the substance of `D-133`'s
+re-measurement rather than a detail of it. Instance 4 repairs at 4.6× — below the committed set's
+average, and below anything the previous five-instance table contained. A claim quoted as a range is
+only as good as the sample the range came from, and this one's sample was chosen by directory order.
 
 **This is the headline claim on rosters this project did not produce**, which is the thing every
 number in `benchmarks.md` could not say.
 
-## Seven of thirteen have an illegal past
+## Ten of thirteen have an illegal past
 
 `R-PIN-PAST` fixes everything before `now`, so a hard violation in that region makes the replan
 infeasible by construction — "the past itself is illegal", distinct from "no legal future exists".
 It has a ladder rung and a differential test, and until now **no natural instance anywhere in this
-project**. Foreign data supplies seven of them.
+project**. Foreign data supplies ten of them.
 
 | | instances |
 | --- | --- |
-| past clean, replan measured | 2, 3, 6, 8, 10 |
-| past already illegal | 1, 4, 5, 7, 9, 11, 12, 13 |
+| past clean, replan measured | 2, 4, 6 |
+| past already illegal | 1, 3, 5, 7, 8, 9, 10, 11, 12, 13 |
 
 That is not a mapping artifact — it is what a published roster looks like when a stricter rule set
 arrives after it was written, and any deployment importing historical rosters will meet it on day one.
@@ -177,16 +194,93 @@ service proves optimality and canonicalises inside a few seconds. Past roughly a
 build alone leaves interactive latency behind, and at eight million the search finds nothing. Nothing
 between those points has been measured, because these instances do not sample it.
 
+## Their objective, reproduced to the digit
+
+The archives state each published solution's objective value **in its file name** —
+`Instance1.Solution.607.roster`. That makes it an external number: fixed before this project existed,
+and not one this project can quietly adjust to make an implementation look right.
+
+`foreign.score_their_objective` implements their objective and reproduces **all 26 published values
+across all 13 instances, exactly** (`D-133`). Their whole objective is:
+
+```
+Σ_slots  under_weight × max(0, required − assigned)  +  over_weight × max(0, assigned − required)
+  + Σ_on_requests   weight  where the shift was not assigned
+  + Σ_off_requests  weight  where it was
+```
+
+**The brevity is the finding.** Twenty-six exact matches with no weekend term, no consecutive-days
+term and no sequence term is proof that those are constraints in their formulation rather than
+objective components — the same conclusion `D-132` drew from reading which elements carry a `weight`
+attribute, now settled arithmetically. A missing term would have to show up as a shortfall on at
+least one of the 26, and none does.
+
+This is the strongest external check any component in this repo has. Every other correctness claim
+here rests on two readings this project wrote agreeing with each other; this one rests on numbers
+somebody else published.
+
+## Their constraints, and what this model does without them
+
+Their objective can now score any roster, including this project's. Running that comparison today
+would flatter this side, and `foreign.their_violations` measures by how much rather than leaving it
+as a caution (`D-134`).
+
+It is **one reading, in `benchmarks/`, with no rule IDs** — a rule this product enforces costs two
+independent readings, and the question in front of these is not how to encode them but whether they
+matter here. It carries the same external check the objective does: their published rosters satisfy
+their own constraints, so a correct reading reports nothing on all 26, and it does.
+
+*(That check earned its place immediately. A minimum block length applied at the horizon's edge
+failed every one of the 26, because a stretch touching either end may continue outside the window.
+Read as 26 wrong rosters it is absurd; read as one rule applied too strictly it is the boundary
+latitude `R-WEEKLY-REST` already gets. A maximum needs none and gets none.)*
+
+Cold generation under this project's objective, on the three instances with a clean past, checked
+against their constraints:
+
+| constraint | survey item | breaches |
+| --- | --- | --- |
+| `MinConsecutiveDaysOff` | E7 — days off in blocks | 154 |
+| `MinConsecutiveShifts` | E1 — block length | 67 |
+| `Succession` | E8 — quick returns | 38 |
+| `MaxWeekends` | E4 — weekend load | 34 |
+| `MaxShifts` per type | — | 18 |
+| `MaxConsecutiveShifts` | — | 3 |
+| `MinTotalMinutes` | E3 — hours floor | 0 |
+
+**Every constraint but one is broken, and the two the preference survey ranks highest are the worst.**
+Counted per person rather than per breach, the weekend result is the one to quote:
+
+| instance | staff | over their weekend cap | their cap | worst here | worst theirs |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 14 | 7 of 14 | 1 | 2 | 1 |
+| 4 | 10 | **10 of 10** | 2 | 4 | 2 |
+| 6 | 18 | 17 of 18 | 2 | 4 | 2 |
+
+On instance 4 **every employee works every weekend of the month** — four out of four, against a cap of
+two that their own solver met exactly. Nothing here is a defect: the rosters are optimal for the
+objective this project states, and that objective is silent on all of it. This model has no opinion
+about weekends, block lengths or shift successions, and this is what having no opinion produces.
+
+That makes this the strongest evidence [`../preferences.md`](../preferences.md) has. The survey
+argued from first principles that the objective says nothing about structure across weeks; this is
+the same claim with a number on it, produced by somebody else's constraint set rather than by
+introspection, and it ranks the survey's items by how badly each is currently ignored rather than by
+how plausible each sounded.
+
 ## What this does not establish
 
-**Nothing about solution quality.** Their published objective values are not comparable with
-anything here, and no claim in this study depends on them. The rosters are used as incumbents and
-for nothing else.
+**Not yet a quality comparison.** A roster breaking 154 rest-block constraints can buy cover and
+request satisfaction with a schedule their solver was never permitted to return, so an objective
+value set beside theirs today would measure the freedom rather than the optimiser. The comparison
+needs those constraints encoded first, in both readings — which is now a decision resting on the
+table above rather than on caution.
 
-That limit is now one step narrower than it was (`D-132`). Their instances are **imported in full**
-— every section and every column — so their objective and their constraints exist here as data;
-none of it is encoded or scored, which is what still separates this from a quality comparison. The
-import also corrected the sentence this paragraph used to carry, which described their objective as
+That limit is now two steps narrower than it was. Their instances are **imported in full** (`D-132`)
+— every section and every column — and their objective is **implemented and checked** (`D-133`). What
+still separates this from a quality comparison is that their *constraints* are not encoded, which is
+the next section. The import also corrected the sentence this paragraph used to carry, which
+described their objective as
 "a weighted sum of soft preferences — shift-on and shift-off requests, weekend counts, minimum
 consecutive days off". **Only the first of those is in their objective.** Weekend counts and
 consecutive days off carry no weight in the `.ros` form and are hard constraints; their objective is
@@ -206,5 +300,7 @@ rosters from a vendor. `capture.md` still owns the corpus question. What has cha
 incumbent is no longer *always* this project's own output, which was the sharpest form of the
 objection.
 
-**Five comparisons.** The instances with a clean past are the ones that could be measured, and there
-are five of them.
+**Three comparisons.** The instances with a clean past are the ones that could be measured, and on
+named incumbents there are three of them rather than five (`D-133`). A range quoted from three cases
+is a range with three points in it, and the honest reading of 4.6× to 37× is that the effect is
+large and its size is not characterised.

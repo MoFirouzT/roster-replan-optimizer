@@ -1114,6 +1114,60 @@ MUTANTS: tuple[Mutant, ...] = (
         "        for entry in parts[1].split(\"|\")[:1]:",
         "tests/test_foreign.py",
     ),
+    # Their objective, which is checked against 26 numbers this project did not choose. Each
+    # of these is a term implemented backwards or omitted, and each would still produce a
+    # plausible total on some roster (`D-133`).
+    Mutant(
+        "foreign-objective-ignores-overstaffing",
+        "foreign",
+        FOREIGN,
+        "        penalty += unencoded.over_weight[slot] * max(0, have - open_shift.required)",
+        "        penalty += 0",
+        "tests/test_foreign.py",
+    ),
+    Mutant(
+        "foreign-objective-reverses-the-request-lists",
+        "foreign",
+        FOREIGN,
+        "    for request in unencoded.on_requests:\n        if (request.employee, request.day, request.shift) not in roster:",
+        "    for request in unencoded.on_requests:\n        if (request.employee, request.day, request.shift) in roster:",
+        "tests/test_foreign.py",
+    ),
+    Mutant(
+        "foreign-incumbent-is-whichever-solution-was-found",
+        "foreign",
+        FOREIGN,
+        "    return tuple(sorted(found, key=lambda s: s.objective))",
+        "    return tuple(found)",
+        "tests/test_foreign.py",
+    ),
+    # Their constraints, checked before any of them is encoded (`D-134`). The boundary one is
+    # the mutant that matters: the latitude a minimum needs at the horizon edge is exactly what
+    # a maximum must not get, and applying it to both is the plausible mistake.
+    Mutant(
+        "foreign-max-run-gets-the-boundary-latitude-too",
+        "foreign",
+        FOREIGN,
+        "            if len(run) > limit.max_consecutive_shifts:",
+        "            if interior(run) and len(run) > limit.max_consecutive_shifts:",
+        "tests/test_foreign.py",
+    ),
+    Mutant(
+        "foreign-weekends-counted-per-day-not-per-week",
+        "foreign",
+        FOREIGN,
+        "            day // DAYS_PER_WEEK for day in days if day % DAYS_PER_WEEK in WEEKEND_DAYS",
+        "            day for day in days if day % DAYS_PER_WEEK in WEEKEND_DAYS",
+        "tests/test_foreign.py",
+    ),
+    Mutant(
+        "foreign-succession-ignores-direction",
+        "foreign",
+        FOREIGN,
+        "            if following is not None and following in unencoded.cannot_follow.get(shift, ()):",
+        "            if following is not None and shift in unencoded.cannot_follow.get(following, ()):",
+        "tests/test_foreign.py",
+    ),
     Mutant(
         "foreign-invents-an-empty-succession-rule",
         "foreign",

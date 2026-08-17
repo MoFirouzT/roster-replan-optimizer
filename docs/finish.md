@@ -388,8 +388,9 @@ each other and only one side was priced.**
 declaration called it the largest single gap in the evidence. Half of it is now closed (`D-125`,
 [`studies/foreign-incumbent.md`](studies/foreign-incumbent.md)). Published solutions from the
 nurse-rostering benchmark set are rosters built by other people's solvers for an objective this
-project does not implement, and used as incumbents they reproduce the headline claim by **10× to
-27×** where the committed set shows about 5×.
+project does not implement, and used as incumbents they reproduce the headline claim by **4.6× to
+37×** where the committed set shows about 5× (`D-133` re-measured this on named incumbents; it read
+10× to 27× on a sample the filesystem chose).
 
 Three things came back that a synthetic set could not have produced.
 
@@ -397,10 +398,10 @@ Three things came back that a synthetic set could not have produced.
 conventions misapplied.** A weekly rate derived from their horizon total forbids exactly the uneven
 spending a pool permits — `D-123`'s finding arriving from outside, hours after it was recorded — and
 translating days off into intervals flagged every night shift the evening before one, which is the
-start-day attribution convention `rules.md` fixes. Corrected: 55 hard violations across 6,361
+start-day attribution convention `rules.md` fixes. Corrected: 70 hard violations across 6,363
 assignments, all of them Belgium being stricter than the rules those rosters were built for.
 
-**Seven of thirteen published rosters have a past this model calls illegal.** `R-PIN-PAST` pins it,
+**Ten of thirteen published rosters have a past this model calls illegal.** `R-PIN-PAST` pins it,
 so the replan is correctly infeasible — the "the past itself is illegal" case, which had a ladder
 rung, a test, and no natural instance anywhere in this project until now.
 
@@ -428,20 +429,24 @@ proved optimal and canonical within seconds.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 848, of which 28 skip without fetched benchmark data |
-| Mutants, each naming the layer that must catch it | 59 | 111 |
+| Tests | 567 | 873, of which 43 skip without fetched benchmark data |
+| Mutants, each naming the layer that must catch it | 59 | 117 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 132, none open |
+| Decision records | 94, 2 open | 134, none open |
 | Studies, including nulls | 8 | 13 |
-| Python | ~12,000 lines | ~22,000 lines |
+| Python | ~12,000 lines | ~23,000 lines |
 
-The mutation harness has been run in full three times since the declaration: 95 mutants all caught on
-a clean tree, `verdict: clean` and `trustworthy: true`; then 103 of 103 caught but `unverifiable` for
-a late write, closed by re-running the one affected layer (`D-130`); and most recently **108 of 108
-caught, `clean` and `trustworthy`, in 574 seconds** on the tree `D-131` was committed to. `D-132`'s
-three are proven at their own layer and were added after that run, which is the weaker result and is
-what the next full run settles. The first clean run was the first whose verdict meant what it says,
-because the harness had to be hardened a third time
+The mutation harness has been run in full four times since the declaration: 95 mutants all caught on a
+clean tree, `verdict: clean` and `trustworthy: true`; 103 of 103 caught but `unverifiable` for a late
+write, closed by re-running the one affected layer (`D-130`); 108 of 108 `clean` on the tree `D-131`
+was committed to; and most recently **111 of 111 caught in 573 seconds**, `unverifiable` again for a
+late write to `disruption.py` and closed the same way — the three layers whose mutants touch that file
+re-run alone, all `clean`. Two of the four full runs have been spoiled by an editor writing under
+them, which is `D-130`'s remedy earning its place rather than a new finding. The nine `foreign` mutants were added after that run and are proven at
+their own layer, including with the benchmark archives moved aside — the check that matters for a
+layer whose data is fetched rather than committed. The first
+clean run was
+the first whose verdict meant what it says, because the harness had to be hardened a third time
 first (`D-112`): it had been reporting `clean` while a mutated file sat in the working tree, since its
 clean-tree check skips files that were already modified and `trustworthy` was derived from that check
 alone.

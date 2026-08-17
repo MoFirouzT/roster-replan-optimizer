@@ -327,6 +327,168 @@ def _requests(
     )
 
 
+@dataclasses.dataclass(frozen=True, slots=True)
+class Solution:
+    """One published roster, and the objective value its publisher claims for it.
+
+    **The value is in the file name** — `Instance1.Solution.607.roster` — which is the only
+    place the archives state it. That makes it an external number this project did not choose
+    and cannot quietly adjust, which is what `score_their_objective` is checked against.
+    """
+
+    number: int
+    objective: int
+    path: pathlib.Path
+
+
+def solutions(number: int) -> tuple[Solution, ...]:
+    """Every published solution for an instance, best objective first.
+
+    Eleven of the thirteen ship more than one, and `load` used to take whichever the glob
+    yielded. For an incumbent that was harmless — any published roster is equally foreign. For
+    a comparison it is not: a baseline has to be named, so this orders them and `load` takes
+    the best (`D-133`).
+    """
+    found = []
+    for path in (_solution_dir() / "Solutions" / "XML").glob(f"Instance{number}.Solution.*.roster"):
+        found.append(Solution(number=number, objective=int(path.stem.split(".")[-1]), path=path))
+    return tuple(sorted(found, key=lambda s: s.objective))
+
+
+def _published_roster(path: pathlib.Path, order: dict[str, int], index: dict[str, int]):
+    roster = set()
+    for employee in ET.parse(path).getroot().findall("Employee"):
+        position = order[employee.get("ID")]
+        for assign in employee.findall("Assign"):
+            sid = assign.find("Shift").text.strip()
+            if sid in index:
+                roster.add((position, int(assign.find("Day").text), index[sid]))
+    return frozenset(roster)
+
+
+def score_their_objective(roster, instance: Instance, unencoded: Unencoded) -> int:
+    """Their objective, on any roster. The whole of it (`D-133`).
+
+    ```
+    Σ_slots under × max(0, required − assigned) + over × max(0, assigned − required)
+      + Σ_on_requests  weight  where the shift was not assigned
+      + Σ_off_requests weight  where it was
+    ```
+
+    That is the entire function, and the brevity is the finding rather than a simplification.
+    `foreign.py` used to describe their objective as *"a weighted sum of soft preferences —
+    shift-on and shift-off requests, weekend counts, minimum consecutive days off"*; the
+    weekend and consecutive-day terms are **constraints** in their formulation, and this
+    reproduces all 26 published values without them (`D-132`, `D-133`).
+
+    Their weights, their scale, their arithmetic. Nothing here is converted into this
+    project's disruption points, because a number that has been rescaled cannot be compared
+    with the one on the tin.
+    """
+    assigned: dict[tuple[int, int], int] = {}
+    for _, day, shift in roster:
+        assigned[day, shift] = assigned.get((day, shift), 0) + 1
+
+    penalty = 0
+    for open_shift in instance.open_shifts:
+        slot = (open_shift.day, open_shift.shift)
+        have = assigned.get(slot, 0)
+        penalty += unencoded.under_weight[slot] * max(0, open_shift.required - have)
+        penalty += unencoded.over_weight[slot] * max(0, have - open_shift.required)
+
+    for request in unencoded.on_requests:
+        if (request.employee, request.day, request.shift) not in roster:
+            penalty += request.weight
+    for request in unencoded.off_requests:
+        if (request.employee, request.day, request.shift) in roster:
+            penalty += request.weight
+    return penalty
+
+
+def their_violations(roster, instance: Instance, unencoded: Unencoded) -> list[str]:
+    """Their **constraints**, checked against a roster. One reading, and deliberately so.
+
+    This is not a second `checker.py`. `rules.md`'s independence rule governs rules this
+    product enforces, and none of these is one — they are somebody else's operational limits,
+    read here to answer a single question before any of them is encoded: **would they bind on
+    a roster this project produces?** Encoding seven rules in two readings to discover they
+    change nothing would be the expensive way to learn it.
+
+    It carries the same external check the objective does. Their published rosters satisfy
+    their own constraints, so a correct implementation reports **nothing** on all 26 of them,
+    and a wrong one is caught by data it did not choose (`D-134`).
+
+    Returned as rule-name strings rather than `Violation` objects, because these have no rule
+    IDs — giving them one would put them in `rules.md`'s registry, which is the decision this
+    measurement exists to inform rather than to pre-empt.
+    """
+    by_employee: dict[int, dict[int, int]] = {}
+    for employee, day, shift in roster:
+        by_employee.setdefault(employee, {})[day] = shift
+
+    found = []
+    for employee, limit in enumerate(unencoded.limits):
+        days = by_employee.get(employee, {})
+        worked = sorted(days)
+
+        counts: dict[int, int] = {}
+        for shift in days.values():
+            counts[shift] = counts.get(shift, 0) + 1
+        for label, cap in limit.max_shifts.items():
+            index = next(
+                (i for i, s in enumerate(instance.shift_types) if s.label == label), None
+            )
+            if index is not None and counts.get(index, 0) > cap:
+                found.append("MaxShifts")
+
+        minutes = sum(instance.shift_types[shift].work_hours * 60 for shift in days.values())
+        if minutes < limit.min_total_minutes:
+            found.append("MinTotalMinutes")
+
+        # A stretch touching either end of the horizon may be the tail of a longer one
+        # outside it, so a *minimum* length is judged on interior stretches only. Their own
+        # solvers are given that latitude and their published rosters need it: without it
+        # every one of the 26 reports a short working block, which is this rule being read
+        # too strictly rather than 26 rosters being wrong. A *maximum* needs no such care —
+        # a run that is too long inside the horizon is too long whatever surrounds it.
+        def interior(run: list[int]) -> bool:
+            return run[0] > 0 and run[-1] < instance.days - 1
+
+        for run in _runs(worked):
+            if len(run) > limit.max_consecutive_shifts:
+                found.append("MaxConsecutiveShifts")
+            if interior(run) and len(run) < limit.min_consecutive_shifts:
+                found.append("MinConsecutiveShifts")
+
+        for run in _runs([day for day in range(instance.days) if day not in days]):
+            if interior(run) and len(run) < limit.min_consecutive_days_off:
+                found.append("MinConsecutiveDaysOff")
+
+        weekends = {
+            day // DAYS_PER_WEEK for day in days if day % DAYS_PER_WEEK in WEEKEND_DAYS
+        }
+        if len(weekends) > limit.max_weekends:
+            found.append("MaxWeekends")
+
+        for day, shift in days.items():
+            following = days.get(day + 1)
+            if following is not None and following in unencoded.cannot_follow.get(shift, ()):
+                found.append("Succession")
+
+    return found
+
+
+def _runs(days: list[int]) -> list[list[int]]:
+    """Consecutive stretches in a sorted list of day numbers."""
+    runs: list[list[int]] = []
+    for day in days:
+        if runs and day == runs[-1][-1] + 1:
+            runs[-1].append(day)
+        else:
+            runs.append([day])
+    return runs
+
+
 def _cover(rows: list[str], index: dict[str, int]) -> tuple[dict, dict, dict]:
     """`SECTION_COVER`: the requirement, and the two weights their objective charges.
 
@@ -425,14 +587,7 @@ def load(number: int) -> tuple[Instance, frozenset, Unencoded]:
         disruption=shipped_d2(),
     )
 
-    roster = set()
-    solution = next((_solution_dir() / "Solutions" / "XML").glob(f"{name}.Solution.*.roster"))
-    for employee in ET.parse(solution).getroot().findall("Employee"):
-        position = order[employee.get("ID")]
-        for assign in employee.findall("Assign"):
-            sid = assign.find("Shift").text.strip()
-            if sid in index:
-                roster.add((position, int(assign.find("Day").text), index[sid]))
+    roster = _published_roster(solutions(number)[0].path, order, index)
 
     unencoded = Unencoded(
         limits=_limits(section["SECTION_STAFF"]),

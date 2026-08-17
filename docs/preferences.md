@@ -313,6 +313,25 @@ They are also the only class for which a longer horizon buys something — see t
 No time reasoning at all. E10 is the cheapest item in this whole document and probably the first one a
 real tenant would ask for.
 
+### How badly each is ignored today, measured
+
+This document argued from first principles that the objective is silent about structure across weeks.
+That silence is now measured (`D-134`). Cold generation under this project's objective, checked
+against the nurse-rostering benchmark's own constraints on three real instances, breaks **every one
+of the seven** — and the two items ranked highest here are the two broken most:
+
+| survey item | their constraint | breaches |
+| --- | --- | --- |
+| E7 — days off in blocks | `MinConsecutiveDaysOff` | 154 |
+| E1 — block length | `MinConsecutiveShifts` | 67 |
+| E8 — quick returns | `Succession` | 38 |
+| E4 — weekend load | `MaxWeekends` | 34 |
+| E3 — hours floor | `MinTotalMinutes` | 0 |
+
+The ranking is worth more than the totals. It was produced by somebody else's constraint set rather
+than by the judgement that wrote this catalogue, and it puts E7 and E1 — neither of which this
+document nominated as the place to start — ahead of E4, which it did.
+
 ### The word *preference* is this document's assumption, and it is contradicted from outside
 
 Everything above is sorted as something to be **priced**. That is a choice, and importing the

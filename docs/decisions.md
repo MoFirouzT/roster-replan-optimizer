@@ -3641,3 +3641,99 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   incomparable with anything here.
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-17.
+
+## D-133 — Their objective is scored, it reproduces every published value, and the incumbent it exposed was machine-dependent
+
+- **Decision.** `foreign.score_their_objective` implements the nurse-rostering benchmark's own
+  objective and is checked against the value each archive states in its solution's file name. All
+  **26 published values across 13 instances reproduce exactly**. Which published solution `load`
+  returns is now named — `foreign.solutions(n)` orders them by objective and `load` takes the best —
+  where it used to be whichever `glob` yielded first.
+- **Alternatives.** *Score their objective without checking it against their values*, which is the
+  same code with none of the evidence. *Convert their weights onto this project's scale*, so the two
+  objectives read in one unit. *Leave `load`'s pick alone*, since any published roster is equally
+  foreign when it is only being used as an incumbent.
+- **Reason.** **The check is the point, not the scorer.** Implementing somebody else's objective from
+  their file format is guesswork until a number confirms it, and their archives state one: the value
+  is encoded in the solution file's name — `Instance1.Solution.607.roster` — so it is external, fixed,
+  and not something this project can quietly adjust. Twenty-six exact matches is the strongest
+  external check any component here has, and it was available for the cost of reading a file name.
+
+  **It also settles `D-132`'s finding numerically.** That record argued their objective excludes
+  weekend counts and consecutive days off because the `.ros` form gives those no weight. Reproducing
+  every published value without those terms proves it: a missing term would show up as a shortfall on
+  at least one of the 26, and none does. Their whole objective is two request lists and per-slot cover
+  deviation.
+
+  **Their weights are left on their scale**, and that is what makes the comparison honest. A number
+  rescaled into disruption points cannot be set beside the one on the tin.
+
+  **The incumbent was being chosen by the filesystem.** `next(glob(...))` returned a **non-best**
+  solution on 8 of the 13 instances, and glob order is directory order rather than sorted — so which
+  roster the foreign study replanned was a property of the machine it ran on. That is `D-118`'s defect
+  in a second place: an answer decided by something outside the specification, with nothing in the
+  suite able to see it, found this time by asking a different question of the same data rather than by
+  a CI runner disagreeing.
+- **Consequences.** **The study's replan table is re-measured**, because 8 of 13 incumbents changed.
+  The claim it carries is unaffected in direction and the numbers move.
+
+  `load`'s signature is unchanged and its third member still carries everything; `solutions()` is
+  additive. Anything wanting the old behaviour wants `solutions(n)` and an explicit index, which is
+  the point — a baseline that is not named is a baseline nobody can reproduce.
+
+  Scoring this project's own rosters under their objective is now one call and is **not done here**.
+  That is the comparison the tier plan calls 6d, and it needs their constraints encoded first, or the
+  comparison comes back flattering: a roster that ignores `MinConsecutiveDaysOff` can buy request
+  satisfaction with a schedule their solver was never allowed to produce.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.
+
+## D-134 — Their constraints are read before they are encoded, and they bind hard
+
+- **Decision.** Their seven per-employee constraints are implemented as `foreign.their_violations`
+  — **one reading, in `benchmarks/`, with no rule IDs** — to answer whether they would bind on a
+  roster this project produces before any of them is encoded. They do, on every case tried. Encoding
+  them in the model and the checker is therefore worth doing, and is not done here.
+- **Alternatives.** *Encode them first*, in both readings with rule IDs and mutants, and find out
+  afterwards whether they change anything. *Skip the question* and run the quality comparison now,
+  scoring this project's rosters under their objective. *Add them to `checker.py`*, which is where a
+  rule this product enforces belongs.
+- **Reason.** **A rule costs two independent readings, and a measurement costs one.** `rules.md`'s
+  independence rule exists so that a rule this product enforces cannot be wrong in both places at
+  once. None of these is such a rule yet — they are somebody else's operational limits, and the
+  question in front of them is not *how do we encode this* but *does it matter here*. Answering that
+  with a single reading in `benchmarks/` is what the repo does with every other lever it has retired
+  or kept: `D-087`, `D-093` and `D-104` all measured before committing.
+
+  **The measurement is checkable against data this project did not choose.** Their published rosters
+  satisfy their own constraints, so a correct reading reports nothing on all 26. This caught a real
+  misreading on its first run: a minimum block length applied at the horizon's edge failed **every
+  one of the 26**, because a stretch touching either end may continue outside the window. Read as
+  "26 rosters are wrong" that is absurd; read as "this rule is being applied too strictly" it is a
+  boundary convention, and the same latitude `rules.md` already gives `R-WEEKLY-REST` at a horizon
+  edge. A maximum needs no such care, and does not get it.
+
+  **The result is not close.** Cold generation under this project's objective, on the three instances
+  with a clean past, breaks **every one of the seven constraints**, and the two the preference survey
+  ranks highest are the worst: 154 short rest blocks and 34 weekend-limit breaches across three
+  instances. Counted per person: on instance 4 **all ten employees work all four weekends**, against a
+  cap of two their own solver met exactly, and on instance 6 seventeen of eighteen do. This model has
+  no opinion about weekends, block lengths or shift successions, and a real yardstick shows exactly
+  what that produces.
+- **Consequences.** **The quality comparison (`6d`) stays blocked, now on evidence rather than on
+  caution.** `D-133` said running it today would flatter this side; this measures by how much. A
+  roster breaking 154 rest-block constraints can buy request satisfaction and cover with a schedule
+  their solver was never permitted to return, so any objective value compared against theirs would be
+  measuring the freedom, not the optimiser.
+
+  **It is also the strongest evidence `docs/preferences.md` has.** That survey argued from first
+  principles that the objective says nothing about structure across weeks. This is the same claim with
+  a number on it, produced by somebody else's constraint set rather than by introspection — and it
+  ranks the survey's items by how badly each is currently ignored rather than by how plausible each
+  sounded.
+
+  `their_violations` returns rule-name strings rather than `Violation` objects, deliberately. Giving
+  them IDs would put them in `rules.md`'s registry, and the registry is a statement about what this
+  product enforces.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.
