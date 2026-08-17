@@ -3578,3 +3578,66 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   What this does **not** do is exercise fairness on the committed set, which `D-108` already recorded
   as impossible there. The service-level test uses `identical_workforce` for that reason.
 - **Date.** 2026-08-17.
+
+## D-132 — Their whole instance is imported, and their split of hard from soft is not ours
+
+- **Decision.** `benchmarks/foreign.py` parses every section and every column of the
+  nurse-rostering instance format. What this model has no field for is carried on a new
+  `Unencoded` object rather than discarded: per-employee limits (`MaxShifts` per shift type,
+  `MinTotalMinutes`, `MaxConsecutiveShifts`, `MinConsecutiveShifts`, `MinConsecutiveDaysOff`,
+  `MaxWeekends`), both request lists with their weights, per-slot under- and over-cover
+  weights, the "cannot follow" relation between shift types, and their own stated rest rule.
+  Nothing is encoded and nothing is scored — that is the next step, deliberately separated.
+- **Alternatives.** *Import and encode in one go*, which is the obvious shape and mixes a
+  reversible parse with rules that need two independent readings and a mutant each. *Import
+  only the objective terms*, leaving their constraints unread, which would have hidden the
+  finding below. *Keep dropping it*, which is the state this replaces and which made
+  `foreign.py`'s own docstring false in one direction: it said none of their objective was
+  imported, and gave that as the reason no quality claim could be made.
+- **Reason.** **The parse is the half that decides nothing.** Reading a parameter is cheap and
+  reversible; encoding one is a rule in the model, the same rule in the checker, a differential
+  case and a mutant. Splitting them means the data can be looked at before anything is
+  committed to, and looking at it moved a belief.
+
+  **Their split of hard from soft is not the one this project would have guessed.** Every
+  per-employee limit above carries **no weight and is hard** in their formulation; their
+  objective is narrow — two request lists and cover deviation. The `.ros` form settles it
+  rather than leaving it to inference: a limit with no `weight` attribute is a constraint, and
+  only requests and cover carry one. So the items this repo has been calling *preferences*
+  since `docs/preferences.md` — weekend counts, consecutive days off, shift sequences — are
+  constraints where they come from. Which of the two a tenant wants is exactly the question
+  `rules.md` settles by asking what the service should return when the only otherwise-legal
+  roster violates the rule, and it is now a question with two real answers in evidence rather
+  than one.
+
+  **Their rest rule is stricter than the one imposed on them, and that converts an absence into
+  a check.** The `.txt` form states no rest gap, which is why this importer applies Belgian
+  parameters and why `D-125` said the source has no rest rule at all. The `.ros` form does
+  state one — `MinRestTime` 840 minutes, 14 hours, on all thirteen — against the 11 imposed
+  here. `R-REST-GAP` therefore *cannot* fire on a published roster, and across the set it never
+  does. Read as an absence that says nothing; read against their 14 hours it is evidence the
+  importer's clock is right, because a mistranslated start time would put shifts closer
+  together than either rule allows and the column would stop being empty.
+- **Consequences.** `load`'s third member is an `Unencoded` rather than a dict of dropped days
+  off. It is a superset — `days_off` keeps its shape and its name — so `instance, roster, _ =
+  load(n)` reads exactly as before and every existing caller is untouched.
+
+  **The parse is tested in CI, which took a small refactor to make possible.** `D-125` fetches
+  the data and never redistributes it, so a test needing a fetched copy cannot run on a clean
+  checkout. The two inline parses in `load` are extracted as `_cover` and `_successions`, and
+  `tests/test_foreign.py` exercises every column against a **synthetic sample written in their
+  format** — so six tests and three mutants run everywhere, and the assertions that genuinely
+  need their data skip with a reason rather than being absent. Without that split the mutants
+  would report survivors on every machine that has not fetched the archives, which is the
+  harness being confidently wrong in the way `D-112` was about.
+
+  `main()` prints what was imported, so the module's promise to *"report what was imported"* is
+  now true. None of the columns is zero, and the per-employee variation is visible: `MaxWeekends`
+  ranges 1–3 within a single workforce, which is a per-employee limit this model has no place
+  to put.
+
+  What is still not established is unchanged and worth repeating: **nothing about solution
+  quality**. Their objective is imported and not scored, so their published values remain
+  incomparable with anything here.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.

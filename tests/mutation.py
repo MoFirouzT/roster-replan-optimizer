@@ -115,6 +115,7 @@ CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
 NL = "roster_replan/nl.py"
 NL_EVAL = "benchmarks/nl_eval.py"
+FOREIGN = "benchmarks/foreign.py"
 
 MUTANTS: tuple[Mutant, ...] = (
     # --- Rule thresholds ------------------------------------------------------------
@@ -1090,6 +1091,36 @@ MUTANTS: tuple[Mutant, ...] = (
         "        last = max(ends) - end_of_week * 24.0 if ends else None",
         "        last = None",
         "tests/test_studies.py",
+    ),
+    # --- The foreign importer -----------------------------------------------------------
+    # Every one of these is a silent misreading of somebody else's data: the parse succeeds,
+    # the numbers look plausible, and what they mean is wrong. These three are mutated in the
+    # half of the parse that needs no fetched copy (`D-132`), so they are caught on any
+    # machine — the benchmark data is never redistributed, and a mutant nobody can run is a
+    # mutant that reports a survivor on every clean checkout.
+    Mutant(
+        "foreign-cover-weights-are-swapped",
+        "foreign",
+        FOREIGN,
+        "        under[slot] = int(under_weight)\n        over[slot] = int(over_weight)",
+        "        under[slot] = int(over_weight)\n        over[slot] = int(under_weight)",
+        "tests/test_foreign.py",
+    ),
+    Mutant(
+        "foreign-max-shifts-read-as-a-total",
+        "foreign",
+        FOREIGN,
+        "        for entry in parts[1].split(\"|\"):",
+        "        for entry in parts[1].split(\"|\")[:1]:",
+        "tests/test_foreign.py",
+    ),
+    Mutant(
+        "foreign-invents-an-empty-succession-rule",
+        "foreign",
+        FOREIGN,
+        "        if forbidden:\n            blocked[index[sid]] = forbidden",
+        "        blocked[index[sid]] = forbidden",
+        "tests/test_foreign.py",
     ),
     Mutant(
         "studies-patterns-skip-the-legality-check",

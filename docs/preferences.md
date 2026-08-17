@@ -313,6 +313,21 @@ They are also the only class for which a longer horizon buys something — see t
 No time reasoning at all. E10 is the cheapest item in this whole document and probably the first one a
 real tenant would ask for.
 
+### The word *preference* is this document's assumption, and it is contradicted from outside
+
+Everything above is sorted as something to be **priced**. That is a choice, and importing the
+nurse-rostering instances in full shows it is not the only defensible one (`D-132`). In their
+formulation, `MaxWeekends` (E4), `MinConsecutiveDaysOff` (E7), `MinConsecutiveShifts` (E1's
+block-length half) and the forbidden shift successions (E8) are **hard constraints carrying no
+weight**. Their objective is two request lists (E10) and per-slot cover deviation, and nothing else.
+
+So four items this survey calls preferences are rules where those rosters come from. `rules.md`
+already owns the test that decides which they are here — *when the only otherwise-legal roster
+violates this, should the service return nothing and an explanation, or the best compromise, priced?*
+— and the answer is per tenant rather than per item. What changes is that the question now has two
+real answers in evidence instead of one assumption, and any of these built as a soft term should say
+why it is soft rather than inheriting this document's framing.
+
 ## Two reference rosters, not one
 
 The distinction Class B turns on, and it is worth stating precisely because the arithmetic is

@@ -428,20 +428,21 @@ proved optimal and canonical within seconds.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 814 |
-| Mutants, each naming the layer that must catch it | 59 | 108 |
+| Tests | 567 | 848, of which 28 skip without fetched benchmark data |
+| Mutants, each naming the layer that must catch it | 59 | 111 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 131, none open |
+| Decision records | 94, 2 open | 132, none open |
 | Studies, including nulls | 8 | 13 |
-| Python | ~12,000 lines | ~21,500 lines |
+| Python | ~12,000 lines | ~22,000 lines |
 
-The mutation harness has been run in full twice since the declaration: **95 mutants all caught on a
-clean tree**, `verdict: clean` and `trustworthy: true`, and then 103 of 103 caught but `unverifiable`
-for a late write, closed by re-running the one affected layer (`D-130`). The five mutants added since
-are proven layer by layer rather than in a full run (`D-131`), which is the weaker result and says so.
-The first clean run was the first whose verdict meant what it says, because the harness had to be
-hardened a third time first (`D-112`): it had been reporting `clean` while a mutated file sat in the
-working tree, since its
+The mutation harness has been run in full three times since the declaration: 95 mutants all caught on
+a clean tree, `verdict: clean` and `trustworthy: true`; then 103 of 103 caught but `unverifiable` for
+a late write, closed by re-running the one affected layer (`D-130`); and most recently **108 of 108
+caught, `clean` and `trustworthy`, in 574 seconds** on the tree `D-131` was committed to. `D-132`'s
+three are proven at their own layer and were added after that run, which is the weaker result and is
+what the next full run settles. The first clean run was the first whose verdict meant what it says,
+because the harness had to be hardened a third time
+first (`D-112`): it had been reporting `clean` while a mutated file sat in the working tree, since its
 clean-tree check skips files that were already modified and `trustworthy` was derived from that check
 alone.
 

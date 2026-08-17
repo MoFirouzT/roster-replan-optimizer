@@ -69,6 +69,14 @@ None of these is a defect in their rosters. They are lawful under the rules they
 this is what it looks like when a roster meets a jurisdiction it was not written for — which is the
 situation a real deployment is in.
 
+Two of those rows are no longer read off the rosters alone (`D-132`). *"They price it softly"* is now
+their own number: the imported cover weights are **100 for one position short and 1 for one over**, on
+every slot of every instance, so overstaffing is the cheapest thing their objective can buy and
+`D-018`'s hard ceiling is what turns it into a violation. And the rule that is **not** in the table is
+the informative one — `R-REST-GAP` fires nowhere, because their own `MinRestTime` of 14 hours is
+stricter than the 11 imposed on them. An empty column that is explained is worth more than a full one
+that is not.
+
 ## The claim, on foreign incumbents
 
 A single absence is injected mid-horizon on a rostered employee, and the four-method comparison runs
@@ -171,10 +179,27 @@ between those points has been measured, because these instances do not sample it
 
 ## What this does not establish
 
-**Nothing about solution quality.** Their objective is a weighted sum of soft preferences — shift-on
-and shift-off requests, weekend counts, minimum consecutive days off — and none of it is imported.
-Their published objective values are not comparable with anything here, and no claim in this study
-depends on them. The rosters are used as incumbents and for nothing else.
+**Nothing about solution quality.** Their published objective values are not comparable with
+anything here, and no claim in this study depends on them. The rosters are used as incumbents and
+for nothing else.
+
+That limit is now one step narrower than it was (`D-132`). Their instances are **imported in full**
+— every section and every column — so their objective and their constraints exist here as data;
+none of it is encoded or scored, which is what still separates this from a quality comparison. The
+import also corrected the sentence this paragraph used to carry, which described their objective as
+"a weighted sum of soft preferences — shift-on and shift-off requests, weekend counts, minimum
+consecutive days off". **Only the first of those is in their objective.** Weekend counts and
+consecutive days off carry no weight in the `.ros` form and are hard constraints; their objective is
+the two request lists plus per-slot under- and over-cover weights. The distinction matters for
+anything built on top: the items [`../preferences.md`](../preferences.md) catalogues as preferences
+are rules where these rosters come from.
+
+**Their rest rule is stricter than the one imposed on them**, which turns an empty column into
+evidence. The `.txt` form states no rest gap — the reason this importer applies Belgian parameters —
+but the `.ros` form states `MinRestTime` 840 minutes, 14 hours, on all thirteen instances against the
+11 imposed here. `R-REST-GAP` cannot fire on a published roster and never does. A mistranslated start
+time would put shifts closer together than either rule allows, so the empty column is a check on the
+importer's clock rather than an absence of one.
 
 **Not a replacement for capture.** These are nurse rosters from published research, not Belgian horeca
 rosters from a vendor. `capture.md` still owns the corpus question. What has changed is that the
