@@ -45,6 +45,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from ..domain import (
     Disruption,
     Employee,
+    Fairness,
     Instance,
     Interval,
     NoticeBand,
@@ -110,8 +111,20 @@ class EmployeeIn(Strict):
     # The wire format preserves that distinction instead of substituting a zero.
     max_hours_this_week: float | None = None
     max_daily_hours: float | None = None
+
+    # `R-MAX-PERIOD`. Optional in a way the two above are not: a one-week horizon cannot
+    # tell it apart from the weekly budget, so a caller with nothing to add says nothing.
+    max_hours_this_period: float | None = None
+
     consecutive_days_worked_before_horizon: int = 0
     last_shift_end_before_horizon: float | None = None
+
+    # History the horizon does not contain, for the fairness term. Zero is the right
+    # default here where it is the wrong one for a budget: a caller who says nothing is
+    # saying this person has worked no unpopular shift in the window, which is a claim a
+    # caller can make. A budget nobody stated is not.
+    unpopular_shifts_before_horizon: int = 0
+
     flexi_eligible: list[int] | None = None
     dimona_ok: list[int] | None = None
     hourly_rate: float | None = None
@@ -147,6 +160,22 @@ class DisruptionIn(Strict):
     peak_weight: int
 
 
+class FairnessIn(Strict):
+    """The rolling balance of unpopular shifts, on the wire (`D-108`).
+
+    Separate from `DisruptionIn` for the reason `domain.Fairness` is separate from
+    `Disruption`: a tenant can want either without the other, and one object holding both
+    cannot express that.
+
+    `unpopular_shifts` are indices into `shift_types`, so the two travel together or the
+    indices mean nothing.
+    """
+
+    weight: int
+    unpopular_shifts: list[int]
+    tiers: int
+
+
 class InstanceIn(Strict):
     days: int = Field(gt=0)
     shift_types: list[ShiftTypeIn]
@@ -158,6 +187,7 @@ class InstanceIn(Strict):
     incumbent: list[list[int]] | None = None
     published_through: float | None = None
     disruption: DisruptionIn | None = None
+    fairness: FairnessIn | None = None
 
 
 class ReplanRequest(Strict):
@@ -204,10 +234,12 @@ def to_domain(payload: InstanceIn) -> Instance:
                 unavailability=tuple(Interval(i.start, i.end) for i in e.unavailability),
                 max_hours_this_week=e.max_hours_this_week,
                 max_daily_hours=e.max_daily_hours,
+                max_hours_this_period=e.max_hours_this_period,
                 consecutive_days_worked_before_horizon=(
                     e.consecutive_days_worked_before_horizon
                 ),
                 last_shift_end_before_horizon=e.last_shift_end_before_horizon,
+                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,
                 flexi_eligible=(
                     None if e.flexi_eligible is None else frozenset(e.flexi_eligible)
                 ),
@@ -249,6 +281,15 @@ def to_domain(payload: InstanceIn) -> Instance:
         ),
         published_through=payload.published_through,
         disruption=None if payload.disruption is None else _disruption(payload.disruption),
+        fairness=(
+            None
+            if payload.fairness is None
+            else Fairness(
+                weight=payload.fairness.weight,
+                unpopular_shifts=frozenset(payload.fairness.unpopular_shifts),
+                tiers=payload.fairness.tiers,
+            )
+        ),
     )
 
 
@@ -307,10 +348,12 @@ def from_domain(instance: Instance) -> InstanceIn:
                 ],
                 max_hours_this_week=e.max_hours_this_week,
                 max_daily_hours=e.max_daily_hours,
+                max_hours_this_period=e.max_hours_this_period,
                 consecutive_days_worked_before_horizon=(
                     e.consecutive_days_worked_before_horizon
                 ),
                 last_shift_end_before_horizon=e.last_shift_end_before_horizon,
+                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,
                 flexi_eligible=(
                     None if e.flexi_eligible is None else sorted(e.flexi_eligible)
                 ),
@@ -378,6 +421,17 @@ def from_domain(instance: Instance) -> InstanceIn:
                 mix_shortfall_weight=instance.disruption.mix_shortfall_weight,
                 cost_weight=instance.disruption.cost_weight,
                 peak_weight=instance.disruption.peak_weight,
+            )
+        ),
+        fairness=(
+            None
+            if instance.fairness is None
+            else FairnessIn(
+                weight=instance.fairness.weight,
+                # Sorted for the reason `incumbent` is: a body that depends on set
+                # iteration order is not comparable between runs.
+                unpopular_shifts=sorted(instance.fairness.unpopular_shifts),
+                tiers=instance.fairness.tiers,
             )
         ),
     )

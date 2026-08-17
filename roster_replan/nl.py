@@ -238,6 +238,12 @@ def to_profile(stated: StatedPolicy, *, version: str, base: Profile | None = Non
         # enabling one promises enforcement that does not happen (`D-099`) -- a model must
         # not be able to turn one on by describing it.
         enabled_optional_rules=base.enabled_optional_rules if base else frozenset(),
+        # Carried, and never set from a parse either, for a different reason (`D-131`).
+        # Which shifts nobody wants is a social fact about a tenant, and a model asked to
+        # infer it from prose would be deriving exactly what `D-108` says cannot be derived.
+        # But a silence must not *delete* it: `config.md`'s round trip is only lossless if
+        # every field the profile carries survives a parse that does not mention it.
+        fairness=base.fairness if base else None,
     )
 
 

@@ -140,9 +140,13 @@ has no such case in it because the generator does not produce one.
 **Anything but cold generation.** These are generated months solved from empty. A replan over four
 weeks would pin the past and price deviation, which changes the search but not the coupling argument.
 
-**Anything but cold generation.** These are generated months solved from empty. A replan over four
-weeks would pin the past and prices deviation, which changes the search but not the coupling
-argument.
-
 **Three seeds, one scenario class, one tenant size.** Enough to show identical coverage six times
 over; not a distribution.
+
+**Anything the objective cannot see.** Coverage is what these two arms are compared on, and the
+objective they are compared under has no term spanning weeks — so this study measures that a longer
+horizon buys no *coverage* under the shipped objective, which is narrower than "buys nothing". Every
+cross-week preference in [`../preferences.md`](../preferences.md) is exactly such a term, and the
+fairness term that does span weeks could not have shown up here either: `D-108` records that the
+committed set cannot exercise it, because its evenings need a scarce skill. Reopening the question
+means adding a term that needs two weeks and re-measuring, not re-timing this solve.

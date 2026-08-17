@@ -582,6 +582,24 @@ MUTANTS: tuple[Mutant, ...] = (
         "                unavailability=[],",
         "tests/test_service.py",
     ),
+    # A wire format that cannot carry a field is the shape `D-131` closed: the objective's
+    # only memory, silently absent, on a payload that still parses and still solves.
+    Mutant(
+        "service-round-trip-drops-fairness",
+        "service",
+        CONTRACTS,
+        "        fairness=(\n            None\n            if payload.fairness is None",
+        "        fairness=(\n            None\n            if True",
+        "tests/test_service.py",
+    ),
+    Mutant(
+        "service-round-trip-drops-the-unpopular-prior",
+        "service",
+        CONTRACTS,
+        "                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
+        "                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
+        "tests/test_service.py",
+    ),
     Mutant(
         "service-infinite-band-becomes-a-number",
         "service",
@@ -893,6 +911,24 @@ MUTANTS: tuple[Mutant, ...] = (
         "    if False:",
         "tests/test_profile.py",
     ),
+    # The failure `D-131` was: policy the spec says the profile declares, which the profile
+    # silently dropped on its way to the week. Nothing failed, and fairness was simply off.
+    Mutant(
+        "profile-drops-the-fairness-declaration",
+        "profile",
+        PROFILE,
+        "            disruption=self.disruption,\n            fairness=self.fairness,",
+        "            disruption=self.disruption,",
+        "tests/test_profile.py",
+    ),
+    Mutant(
+        "profile-misses-priors-past-the-tiers",
+        "profile",
+        PROFILE,
+        "        if person.unpopular_shifts_before_horizon >= fair.tiers",
+        "        if False",
+        "tests/test_profile.py",
+    ),
     # --- Minimal cores ------------------------------------------------------------------
     # A core that is smaller but no longer explains anything is the failure here, and it
     # looks like success: fewer rules, cleaner output, wrong.
@@ -1031,6 +1067,14 @@ MUTANTS: tuple[Mutant, ...] = (
     ),
     # A `.env` that overrides an exported key bills the wrong account, and looks like
     # nothing at all -- the run succeeds, against credentials the caller did not choose.
+    Mutant(
+        "nl-silence-deletes-the-fairness-declaration",
+        "nl",
+        NL,
+        "        fairness=base.fairness if base else None,",
+        "        fairness=None,",
+        "tests/test_nl.py",
+    ),
     Mutant(
         "nl-eval-env-file-overrides-the-shell",
         "nl",

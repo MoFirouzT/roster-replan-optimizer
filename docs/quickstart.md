@@ -2,7 +2,7 @@
 
 ```bash
 uv sync
-uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
+uv run python -m roster_replan.demo scenarios/saturday_sick_call.json --weekday-of-day-zero 0
 ```
 
 This prints:

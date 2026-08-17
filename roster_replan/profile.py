@@ -34,7 +34,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 
-from .domain import DAYS_PER_WEEK, Disruption, Instance, RuleParams, ShiftType
+from .domain import DAYS_PER_WEEK, Disruption, Fairness, Instance, RuleParams, ShiftType
 from .explain import explain
 from .model import solve
 from .validation import InputDefect, validate_instance
@@ -65,6 +65,20 @@ class Profile:
     disruption: Disruption
     enabled_optional_rules: frozenset[str] = field(default_factory=frozenset)
 
+    # Which shifts nobody wants, and what balancing them is worth. Here rather than on the
+    # request because it is policy: `replan.md` has said since `D-108` that unpopularity is
+    # *declared* by the tenant and cannot be derived from the clock, and the profile is
+    # where this project keeps everything that is policy rather than law.
+    #
+    # `None` means the tenant has not declared any, which is different from declaring an
+    # empty set at zero weight only in intent -- both leave the term inert, and `remarks`
+    # says so when the intent looks like the first and the parameters like the second.
+    #
+    # The indices in `unpopular_shifts` point into `shift_types`, which is why both live on
+    # this object: a profile that carried the set without the catalogue would be a set of
+    # numbers whose meaning depends on whichever week it was applied to.
+    fairness: Fairness | None = None
+
     def applied_to(self, instance: Instance) -> Instance:
         """The instance as this profile would have it solved."""
         return replace(
@@ -72,6 +86,7 @@ class Profile:
             shift_types=self.shift_types,
             params=self.params,
             disruption=self.disruption,
+            fairness=self.fairness,
         )
 
 
@@ -226,11 +241,17 @@ def contradictions(profile: Profile) -> list[InputDefect]:
 # --- Stage 3b: subsumption ----------------------------------------------------------
 
 
-def remarks(profile: Profile, *, days: int = 7) -> list[Remark]:
+def remarks(
+    profile: Profile, *, days: int = 7, sample: Instance | None = None
+) -> list[Remark]:
     """Rules that are valid and cannot bind. Reported, not rejected.
 
     The tenant believes a protection is in force. It is not, and nothing will ever fail to
     tell them so — which is exactly why it is worth saying at configuration time.
+
+    `sample` is optional because most of these are statements about parameters alone. Two
+    are not: the fairness escalation flattens against the *priors a workforce carries*, so
+    it cannot be judged without one.
     """
     found: list[Remark] = []
     params = profile.params
@@ -281,7 +302,72 @@ def remarks(profile: Profile, *, days: int = 7) -> list[Remark]:
             )
         )
 
+    found += _fairness_remarks(profile, sample)
     return found
+
+
+# --- Fairness, which has two ways to be configured and inert -------------------------
+# `replan.md` states both and this is where they are caught. The first is the ordinary
+# inertness this stage exists for: `Fairness.active` needs a weight, a tier count and a
+# shift, and any one of them missing switches the term off while the object looks set.
+#
+# The second is subtler and is the one worth saying out loud (`D-108`). `g` is convex only
+# up to `tiers`; past that its marginal cost is constant, so every employee whose rolling
+# total already exceeds the tier count sits in a linear region where the term cannot tell
+# them apart. **A window long enough to push the whole workforce past it switches fairness
+# off while appearing to be configured** — which is a remark and not a defect, because the
+# request is lawful and the tenant may have meant the window.
+
+
+def _fairness_remarks(profile: Profile, sample: Instance | None) -> list[Remark]:
+    fair = profile.fairness
+    if fair is None:
+        return []
+
+    if not fair.active:
+        missing = [
+            name
+            for name, value in (
+                ("weight", fair.weight),
+                ("tiers", fair.tiers),
+                ("unpopular_shifts", fair.unpopular_shifts),
+            )
+            if not value
+        ]
+        return [
+            Remark(
+                field="fairness",
+                message=(
+                    f"fairness is declared but inert: {', '.join(missing)} "
+                    f"{'is' if len(missing) == 1 else 'are'} empty, so no shift is balanced"
+                ),
+            )
+        ]
+
+    if sample is None or not sample.employees:
+        return []
+
+    flat = [
+        person.name
+        for person in sample.employees
+        if person.unpopular_shifts_before_horizon >= fair.tiers
+    ]
+    if not flat:
+        return []
+
+    everyone = len(flat) == len(sample.employees)
+    who = "every employee" if everyone else f"{len(flat)} of {len(sample.employees)} employees"
+    blind = "cannot distinguish anybody" if everyone else "cannot tell them apart"
+    return [
+        Remark(
+            field="fairness.tiers",
+            message=(
+                f"{who} already carries {fair.tiers} or more unpopular shifts, so the "
+                f"escalation is flat for them and fairness {blind} — raise tiers or "
+                f"shorten the window they are counted over"
+            ),
+        )
+    ]
 
 
 # --- Stage 4: feasibility probe -----------------------------------------------------
@@ -340,7 +426,7 @@ def review(
     explanation is *the profile*, reported as though it were about the week.
     """
     defects = contradictions(profile)
-    notes = remarks(profile)
+    notes = remarks(profile, sample=sample)
     if defects or sample is None:
         return defects, notes, None
     return defects, notes, probe(profile, sample, seed=seed)

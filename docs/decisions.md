@@ -3507,3 +3507,74 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   gitignored, so the figure is local to whoever ran it and the prose is the only copy that travels.
   A second machine's number is a new measurement, not a contradiction.
 - **Date.** 2026-08-17.
+
+## D-131 — The one cross-week term shipped without a way to reach it
+
+- **Decision.** `Fairness` and `Employee.unpopular_shifts_before_horizon` join the wire contract,
+  `max_hours_this_period` joins it alongside them, and `Profile` gains the `fairness` field the specs
+  already said it had — carried onto the week by `applied_to`, on the same footing as `disruption`.
+  The limit `replan.md` claimed `validation.py` warned about is implemented where the repo's other
+  valid-but-inert findings live, `profile.remarks`, which gains an optional `sample` because this one
+  cannot be judged from parameters alone. Two sections duplicated into
+  [`finish.md`](finish.md)'s declaration are removed, and a paragraph duplicated in
+  [`studies/horizon.md`](studies/horizon.md) with it.
+- **Alternatives.** *Correct the specs instead*, saying fairness is configured by building an
+  `Instance` in Python — cheap, honest, and it leaves T5's objective unreachable by the product.
+  *Put the priors check in `validation.py`*, as the spec said, which would reject a lawful request.
+  *Leave the duplicated sections*, on the grounds that `finish.md` is a record and records are not
+  edited.
+- **Reason.** **A term the service cannot express is not shipped.** `D-108` records fairness as
+  built, tested and measured, and it is all three — at `solve`, in both readings, against the
+  domination bound. What no test asked is whether a caller could switch it on. None could:
+  `EmployeeIn` carried no prior, `InstanceIn` carried no `Fairness`, and `Strict` forbids unknown
+  fields, so a caller who sent either was rejected with a schema error. `Profile` had no field for the
+  declaration that `replan.md` and `D-108` both attribute to the profile. The one cross-week term in
+  the objective and the one cross-week hard rule (`R-MAX-PERIOD`, `D-123`) were both callable only
+  from Python.
+
+  **The round-trip test could not see it.** `test_the_wire_round_trip_is_the_identity` runs over
+  committed cases, and no case in the set sets fairness or a period budget — so the identity held over
+  the fields the set happens to use. That is the same shape as `D-108`'s own note that the committed
+  set cannot exercise the term, arriving one layer out: an instance distribution that does not contain
+  a field cannot test whether the boundary carries it.
+
+  **The priors warning was a claim about code that did not exist.** `replan.md` said `validation.py`
+  warns when the supplied priors already exceed the tiers. It does not, and it should not: every
+  finding that module produces rejects a request, and a fairness window longer than the tier count is
+  lawful. `profile.remarks` is the channel for a rule that is valid and cannot bind — *"the tenant
+  believes a protection is in force that is not"* — which is exactly this. The check needs a
+  workforce, so `remarks` takes an optional sample and `review` passes the one it already has.
+
+  **The duplicated sections were not part of the record they sat in.** `finish.md` opens by saying
+  everything under *The declaration* is as written on 2026-08-13, *including the sentences later work
+  made false*. Both duplicated sections describe work dated 2026-08-14 or later and appear verbatim in
+  the postscript where they belong. Removing the copies restores the property the file claims for
+  itself rather than editing a record — the opposite of the rule this file runs on, which is why it is
+  done here and named.
+- **Consequences.** The three new payload fields are additive and default to absent or zero, so every
+  existing caller and every committed scenario is unaffected: `from_domain(to_domain(x)) == x` still
+  holds and no fingerprint moves.
+
+  `Profile.applied_to` now overwrites `instance.fairness`, including with `None`. That is deliberate
+  and matches `disruption`: policy is the profile's, so an instance cannot smuggle a term past a
+  profile that declares none. A test asserts both directions.
+
+  Five mutants hold the new claims, one per reading of them — the wire dropping `Fairness`, the wire
+  dropping the prior, `applied_to` dropping the declaration, `remarks` missing priors past the tiers,
+  and the one below. All five are caught by the layer named to catch them, and the reachability test
+  catches the first through the objective rather than through the roster: on an interchangeable
+  workforce a balanced roster proves nothing, while a solver optimising a term the scorer cannot see
+  disagrees with it.
+
+  **Putting the field on `Profile` exposed a third defect, in the NL layer.** `nl.to_profile` builds a
+  `Profile` by construction rather than by amendment, so a parse that says nothing about fairness would
+  have **deleted a tenant's declaration** — the amendment failure `D-101`'s round trip exists to
+  prevent, arriving through a field added after it was written. It is carried from the base and never
+  set from a parse, for a reason `enabled_optional_rules` does not share: a model asked to infer which
+  shifts nobody wants would be deriving precisely what `D-108` says cannot be derived. Any future field
+  on `Profile` inherits this obligation, and `nl-silence-deletes-the-fairness-declaration` is the
+  mutant that states it.
+
+  What this does **not** do is exercise fairness on the committed set, which `D-108` already recorded
+  as impossible there. The service-level test uses `identical_workforce` for that reason.
+- **Date.** 2026-08-17.

@@ -29,7 +29,7 @@ import pytest
 
 from benchmarks import suite
 from roster_replan import profile as P
-from roster_replan.domain import ShiftType
+from roster_replan.domain import Fairness, ShiftType
 
 
 @pytest.fixture(scope="module")
@@ -146,6 +146,53 @@ def test_an_inert_rule_is_not_a_defect(shipped):
     assert P.remarks(inert)
 
 
+def test_a_declared_but_inert_fairness_term_is_reported(shipped):
+    """Three ways to switch fairness off while the object looks configured (`D-108`), and a
+    tenant who set two of the three should be told which one is missing."""
+    for fairness, missing in (
+        (Fairness(weight=0, unpopular_shifts=frozenset({1}), tiers=4), "weight"),
+        (Fairness(weight=20, unpopular_shifts=frozenset(), tiers=4), "unpopular_shifts"),
+        (Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=0), "tiers"),
+    ):
+        notes = P.remarks(dataclasses.replace(shipped, fairness=fairness))
+        assert any(n.field == "fairness" and missing in n.message for n in notes), missing
+
+
+def test_a_declared_fairness_term_that_works_draws_no_remark(shipped):
+    """The other direction, so the remark above is not merely always true."""
+    working = Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=4)
+    notes = P.remarks(dataclasses.replace(shipped, fairness=working))
+    assert not any(n.field == "fairness" for n in notes)
+
+
+def test_priors_past_the_tiers_are_reported_as_flat(shipped, sample):
+    """`replan.md`'s stated limit, now checked rather than asserted (`D-131`).
+
+    `g` is convex only up to `tiers`; past that its marginal cost is constant, so a window
+    long enough to push the workforce past it switches fairness off while appearing to be
+    configured. This needs a workforce and not just a profile, which is why `remarks` takes
+    an optional sample.
+    """
+    profile = dataclasses.replace(
+        shipped, fairness=Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=3)
+    )
+    loaded = dataclasses.replace(
+        sample,
+        employees=tuple(
+            dataclasses.replace(person, unpopular_shifts_before_horizon=5)
+            for person in sample.employees
+        ),
+    )
+
+    notes = P.remarks(profile, sample=loaded)
+    assert any(n.field == "fairness.tiers" and "every employee" in n.message for n in notes)
+
+    # A workforce that has not spent its window past the tiers draws nothing, and neither
+    # does the same profile with no sample to judge it against.
+    assert not any(n.field == "fairness.tiers" for n in P.remarks(profile, sample=sample))
+    assert not any(n.field == "fairness.tiers" for n in P.remarks(profile))
+
+
 def test_a_switched_off_cost_weight_is_reported(shipped):
     """`cost_weight` ships at 0 (`D-050`), which is deliberate and worth saying out loud:
     a tenant reading their profile should know cost is not being traded at all."""
@@ -193,6 +240,23 @@ def test_a_profile_applied_to_a_week_replaces_only_policy(shipped, sample):
     assert applied.incumbent == sample.incumbent
     assert applied.params == shipped.params
     assert applied.disruption == shipped.disruption
+
+
+def test_a_profile_carries_its_fairness_declaration_onto_the_week(shipped, sample):
+    """`replan.md` has said since `D-108` that the profile names the unpopular shifts. It
+    could not: `Profile` had no field for them, so the term was reachable only by building an
+    `Instance` by hand (`D-131`).
+
+    The set is indices into `shift_types`, which is why it belongs beside the catalogue and
+    not on the request.
+    """
+    fairness = Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=4)
+    applied = dataclasses.replace(shipped, fairness=fairness).applied_to(sample)
+
+    assert applied.fairness == fairness
+    # And a profile declaring none says so, on the same footing as `disruption`: policy is
+    # the profile's, so an instance cannot smuggle a term past it.
+    assert shipped.applied_to(dataclasses.replace(sample, fairness=fairness)).fairness is None
 
 
 def test_review_runs_without_a_sample(shipped):

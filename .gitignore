@@ -227,3 +227,6 @@ tests/mutation-report.json
 
 # Foreign benchmark data: fetched, verified against benchmarks/foreign.json, never committed (D-125).
 benchmarks/.foreign/
+
+# macOS
+.DS_Store

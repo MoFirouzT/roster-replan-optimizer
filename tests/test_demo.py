@@ -4,7 +4,7 @@ The README promises exactly one runnable command, and before this existed it nam
 and a directory that were not there. A command in a README is a claim like any other, so it
 is tested like one.
 
-The second test is the more valuable of the two. `scenarios/horeca/saturday_sick_call.json`
+The second test is the more valuable of the two. `scenarios/saturday_sick_call.json`
 is a payload frozen at a point in time, and the generator that produced it is still under
 development — so it can drift into describing a week the project no longer generates, with
 nothing to notice. That is the failure `D-074` built the benchmark manifest to catch, in a
@@ -22,7 +22,7 @@ from benchmarks import suite
 from roster_replan.demo import main
 from roster_replan.service.contracts import ReplanRequest, from_domain, to_domain
 
-SCENARIO = pathlib.Path(__file__).resolve().parent.parent / "scenarios" / "horeca" / (
+SCENARIO = pathlib.Path(__file__).resolve().parent.parent / "scenarios" / (
     "saturday_sick_call.json"
 )
 

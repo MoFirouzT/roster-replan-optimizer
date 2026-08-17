@@ -11,9 +11,14 @@ Per-tenant policy — what "optimal" means here, which rules apply, which parame
 document, never code. Across thousands of small tenants, configuration work is the constraint that
 does not scale; a code change per tenant is not a product.
 
-`profile.Profile` carries the shift catalogue, the rule parameters, the objective weights, and which
+`profile.Profile` carries the shift catalogue, the rule parameters, the objective weights, the fairness
+declaration — which shifts nobody wants, which is policy and cannot be derived (`D-108`) — and which
 profile-gated rules are enabled. `version` travels with every solve, alongside the input and the seed,
 which is what `PLAN.md`'s replay requirement actually needs.
+
+The fairness declaration sits beside the shift catalogue because it is a set of indices into it
+(`D-131`). Separated, it would be a set of numbers whose meaning depends on whichever week it was
+applied to.
 
 **Enabling an optional rule is currently a defect, not a courtesy.** All five profile-gated rules are
 declared in `rules.md` and none is encoded in the model. Accepting one would promise enforcement that

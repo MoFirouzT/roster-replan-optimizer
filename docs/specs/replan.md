@@ -345,8 +345,9 @@ the shifts nobody wants, over time (`D-108`).
 
 **Unpopularity is declared, not derived.** Which shifts are unpopular is a social fact about a tenant,
 not a property this system can compute: a late shift is a burden in one restaurant and the sought-after
-one in another. The profile names them, the same way it names everything else that is policy rather
-than law.
+one in another. The profile names them — `Profile.fairness`, carried onto the week by `applied_to`,
+the same way it names everything else that is policy rather than law — and the request carries the
+per-employee history the balance is struck over (`D-131`).
 
 **The balance is rolling, so it needs history the horizon does not contain.** One week cannot be fair
 on its own — somebody has to work Saturday. Each employee therefore carries the count they have already
@@ -371,8 +372,11 @@ the cheapest way to spend a fixed number of unpopular shifts is to spread them.
 the tier count; beyond it the marginal cost is constant, so every employee whose rolling total already
 exceeds `fairness_tiers` sits in the linear region where the term no longer distinguishes them. A
 window long enough to push everybody past it therefore switches fairness off while appearing to be
-configured. The window and the tier count have to be chosen together, and `validation.py` warns when
-the supplied priors already exceed the tiers.
+configured. The window and the tier count have to be chosen together, and `profile.remarks` says so
+when the supplied priors already reach the tiers — a **remark rather than a defect**, because the
+request is lawful and the tenant may have meant the window (`D-131`). It is reported at configuration
+time by the stage that exists for rules which are valid and cannot bind, not by `validation.py`, whose
+findings reject a request.
 
 ### Fairness makes understaffing attractive, and the bound has to grow
 

@@ -129,74 +129,6 @@ Prose-level truth is a reading task and was done by reading. What can be mechani
 - **no decision ID is used twice** — `D-089` was assigned twice during T3 and only a human noticed;
 - every relative link between documents resolves — which failed on its first run.
 
-### The optimum was degenerate, and that falsified a claim
-
-The objective is **flat across many rosters**. On the committed set, four solver seeds return the
-same objective value every time and a *different roster* on 24 of the 84 replans and on all 84 cold
-weeks. So which optimum came back was decided by the search, and therefore by the ortools binary
-rather than by anything in the specification — which made `README.md`'s promise that a roster
-reproduces from its input, seed and profile version **false** (`D-118`).
-
-Nothing in the suite could see it. Every objective value, every benchmark number and every test
-stayed green, because none of them looked at *which* optimum. **CI found it, by being the first
-machine that had never run this code**, and it took two wrong inferences and a local reproduction
-before the cause was established rather than guessed.
-
-The fix is a second phase on every proved optimum: pin the optimal value, minimise a canonical
-criterion over the optimal face, so nothing about what is optimal changes and the roster becomes a
-function of the model (`D-119`). Degeneracy went to zero on both counts, and CI proves it on a
-different build from the one every committed artifact was recorded with (`D-121`).
-
-**Its price is on the invoice, and one line of it was found later.** It costs 61% of search time and
-`D-081`'s premise — build no longer outruns search at one week, so every performance conclusion here
-is scoped rather than general. Then the first full mutation run afterwards came back with
-**survivors**: two mutants that had been caught for months now pass, because both break the *search
-path* and both tests detected that by watching the answer change. `D-119` made the answer independent
-of the search path on purpose (`D-124`). **Reproducibility and observability were trading against
-each other and only one side was priced.**
-
-### What a roster from outside this project does to it
-
-`benchmarks.md` has said since T2 that the incumbent is solved by the system under test, and this
-declaration called it the largest single gap in the evidence. Half of it is now closed (`D-125`,
-[`studies/foreign-incumbent.md`](studies/foreign-incumbent.md)). Published solutions from the
-nurse-rostering benchmark set are rosters built by other people's solvers for an objective this
-project does not implement, and used as incumbents they reproduce the headline claim by **10× to
-27×** where the committed set shows about 5×.
-
-Three things came back that a synthetic set could not have produced.
-
-**The importer was wrong twice before it was right, and both errors were this project's own
-conventions misapplied.** A weekly rate derived from their horizon total forbids exactly the uneven
-spending a pool permits — `D-123`'s finding arriving from outside, hours after it was recorded — and
-translating days off into intervals flagged every night shift the evening before one, which is the
-start-day attribution convention `rules.md` fixes. Corrected: 55 hard violations across 6,361
-assignments, all of them Belgium being stricter than the rules those rosters were built for.
-
-**Seven of thirteen published rosters have a past this model calls illegal.** `R-PIN-PAST` pins it,
-so the replan is correctly infeasible — the "the past itself is illegal" case, which had a ladder
-rung, a test, and no natural instance anywhere in this project until now.
-
-**It found a defect in a fix made the same day.** `D-119`'s canonicalising phase asserted it could
-not fail; a 40-employee four-week instance raised that assertion on first contact, and behind it was
-a second defect nobody had noticed — phase two was handed a fresh time budget rather than the
-remainder, so a 30-second request could take 60 (`D-126`). The committed set could not have found
-either, because every instance in it canonicalises in milliseconds.
-
-**And it found where the model stops** (`D-127`). Every performance number here is measured on 8-25
-employees over one week, and `D-105` swept the generator's whole range without finding anything hard —
-which measured that *the generator cannot produce a hard instance*, a different claim. Foreign
-instances do: **7.71 seconds of search to prove optimality**, against a committed-set maximum of 15.4
-ms across 2,268 runs, and at 8 million variables no roster at all. `D-104` retired LNS because every
-solve returned `OPTIMAL` in milliseconds; that reasoning is now narrowed from *this never happens* to
-*this does not happen in the regime we serve*.
-
-The binding constraint at every size turns out to be **model construction rather than search** — 527
-seconds to build the 8-million-variable model the solver then fails to crack. `D-081` separated the
-two clocks because build dominated at one week for twelve people, and it still dominates at 52 weeks
-for a hundred. The usable envelope is now a number: **up to about 40 employees over four weeks**,
-proved optimal and canonical within seconds.
-
 ### The state of the repo
 
 | | |
@@ -496,17 +428,20 @@ proved optimal and canonical within seconds.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 768 |
-| Mutants, each naming the layer that must catch it | 59 | 97 |
-| Import-linter contracts | 8 | 10 |
-| Decision records | 94, 2 open | 126, none open |
+| Tests | 567 | 814 |
+| Mutants, each naming the layer that must catch it | 59 | 108 |
+| Import-linter contracts | 8 | 11 |
+| Decision records | 94, 2 open | 131, none open |
 | Studies, including nulls | 8 | 13 |
-| Python | ~12,000 lines | ~19,600 lines |
+| Python | ~12,000 lines | ~21,500 lines |
 
-The mutation harness has been run in full since every layer above landed: **95 mutants, all caught by
-the layer named to catch them**, on a clean tree, `verdict: clean` and `trustworthy: true`. That is
-the first run whose verdict means what it says, because the harness had to be hardened a third time
-first (`D-112`): it had been reporting `clean` while a mutated file sat in the working tree, since its
+The mutation harness has been run in full twice since the declaration: **95 mutants all caught on a
+clean tree**, `verdict: clean` and `trustworthy: true`, and then 103 of 103 caught but `unverifiable`
+for a late write, closed by re-running the one affected layer (`D-130`). The five mutants added since
+are proven layer by layer rather than in a full run (`D-131`), which is the weaker result and says so.
+The first clean run was the first whose verdict meant what it says, because the harness had to be
+hardened a third time first (`D-112`): it had been reporting `clean` while a mutated file sat in the
+working tree, since its
 clean-tree check skips files that were already modified and `trustworthy` was derived from that check
 alone.
 

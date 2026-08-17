@@ -1,6 +1,6 @@
 """One scenario, end to end, printed for a human.
 
-    uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json
+    uv run python -m roster_replan.demo scenarios/saturday_sick_call.json
 
 T0's gate was *something solves, and the output is inspectable by eye*, and nothing since
 has been inspectable by eye — the suite asserts, the benchmarks tabulate, and the service

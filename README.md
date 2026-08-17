@@ -23,13 +23,12 @@ The benchmarks measure the two effects separately and confirm the split.
 
 - **Replan:**
   repair a roster around absences, demand changes and late availability withdrawals, minimising weighted deviation from what people were already told.
-- **Assign:**
-  fill planner-created open shifts from an eligible workforce.
-- **Verify independently:**
+  With no incumbent supplied, the same solve fills a planner's open shifts from scratch; this is generation, not a second feature.
+- **Verify every roster against the rules:**
   every returned solution is re-checked against every rule by a plain function with no solver involved.
   Solutions that fail the checker are never returned.
 - **Explain a short shift:**
-  name the rule that blocked every person who could have filled it, in planner language —
+  name the rule that blocked every person who could have filled it, in planner language:
   *6 of the 12 staff do not hold a skill the shift requires; 5 would not get the minimum rest*.
   This is the common case: with a soft coverage floor a shift comes back **priced** rather than refused.
 - **Explain infeasibility:**
@@ -37,20 +36,18 @@ The benchmarks measure the two effects separately and confirm the split.
 - **Answer a hypothetical:**
   *what if I hire one more flexi-jobber?* — re-solve under the change and report the difference.
   Unlawful hypotheticals are refused rather than answered.
-- **Validate a profile before it is saved:**
+- **Validate a policy before it can produce a roster:**
   structural checks, contradictions between a tenant's own rules, rules that cannot bind, and a feasibility probe.
-  Fully deterministic.
 - **Configure in natural language:**
-  describe a tenant's policy in plain English; the parse emits a typed profile, and the deterministic layers above decide whether it may be saved.
-  The model is confined by a **narrow schema rather than by instruction** — it has nowhere to write an objective weight or to switch on a rule the solver does not enforce.
-  It is the one stage that needs a language model, behind an optional dependency and an injected client: everything downstream works with no model available, and that is an import contract, not a promise.
+  describe a tenant's policy in plain English;
+  the parse emits a typed profile, which the validation bullet above then accepts or rejects.
+  The model is confined by a **narrow schema rather than by instruction**:
+  it has nowhere to write an objective weight or to switch on a rule the solver does not enforce.
 
-Belgian labour law is encoded as **data, not code**:
-rest gaps, weekly hour ceilings, flexi-job eligibility, same-day Dimona filing, student quotas, horeca minimum shift length.
-Rules carry stable IDs used identically in the specs, the model, the checker, the violation objects and the explainer.
-Full registry: [`docs/specs/rules.md`](docs/specs/rules.md).
-
-Per-tenant policy lives in a profile document from day one, because across thousands of small tenants the configuration work, not the solve time, is the thing that does not scale.
+> Belgian labour law is encoded as **data, not code**:
+> rest gaps, weekly hour ceilings, flexi-job eligibility, same-day Dimona filing, student quotas, horeca minimum shift length.
+> Rules carry stable IDs, for example `R-REST-GAP` for the minimum-rest rule, used identically in the specs, the model, the checker, the violation objects and the explainer.
+> Full registry: [`docs/specs/rules.md`](docs/specs/rules.md).
 
 ---
 
@@ -60,7 +57,8 @@ Per-tenant policy lives in a profile document from day one, because across thous
 it prints, then [`benchmarks.md`](docs/benchmarks.md) for what was measured and against what,
 [`studies/README.md`](docs/studies/README.md) for the eight levers and the five that lost,
 [`specs/validation.md`](docs/specs/validation.md) for how a legality claim is made true rather than
-assumed, and [`finish.md`](docs/finish.md) for what did not ship.
+assumed, [`specs/rules.md`](docs/specs/rules.md) for the full rule registry, and
+[`finish.md`](docs/finish.md) for what did not ship.
 
 **If you only read one thing, make it a place the project was wrong.** The optimum was
 [degenerate](docs/decisions.md) and nobody noticed until a CI runner disagreed with a laptop; the
@@ -84,7 +82,7 @@ See it on one case (this is one scenario, not the 84-case set below; full reprod
 
 ```bash
 uv sync
-uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
+uv run python -m roster_replan.demo scenarios/saturday_sick_call.json --weekday-of-day-zero 0
 ```
 
 Measured on the committed set in `benchmarks/manifest.json` (seeded generator, 84 cases across
@@ -174,6 +172,11 @@ Test layers, invariants and the harness design: [`docs/specs/validation.md`](doc
   It produces only artifacts a deterministic layer can reject:
   candidate configs (validated, then feasibility-probed) and prose renderings of conflicts
   the solver already proved.
+- **Policy is a document, not code.**
+  A tenant's rules live in a profile from day one. Across thousands of small tenants the bottleneck
+  is configuration work, not solve time; the one large instance this project tried tells the
+  opposite story ([`foreign-incumbent.md`](docs/studies/foreign-incumbent.md), ~8M variables, 527 s
+  to build).
 - **Fallback ladder**:
   exact → time-boxed with reported gap → greedy repair → last known good.
   The service never returns nothing.
@@ -214,10 +217,11 @@ benchmarks/
 docs/
   specs/                    rules.md · model.md · replan.md · validation.md · config.md · service.md · capture.md
   decisions.md              what was chosen, what was rejected, why
+  preferences.md            what employees and employers want past one week — a survey, nothing implemented
   studies/                  analyses, nulls, rejected alternatives + index
   benchmarks.md             results and method
   quickstart.md             demo output, suite commands, the one script that costs money
-scenarios/horeca/           demo data — domain specificity lives here, not in the code
+scenarios/                  demo data — domain specificity lives here, not in the code
 ```
 
 ---

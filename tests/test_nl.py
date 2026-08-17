@@ -28,7 +28,7 @@ import pytest
 
 from benchmarks import suite
 from roster_replan import nl
-from roster_replan.domain import shipped_d2
+from roster_replan.domain import Fairness, shipped_d2
 from roster_replan.profile import Profile
 
 
@@ -183,6 +183,9 @@ def test_silence_carries_the_previous_policy_forward(base):
             min_period_hours=4.0,
             max_consecutive_days=5,
         ),
+        # Policy no parse may set and none may delete either (`D-131`). A model must not
+        # infer which shifts nobody wants, and a silence about them is not a withdrawal.
+        fairness=Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=4),
     )
     candidate = nl.to_profile(
         nl.StatedPolicy(max_consecutive_days=4), version="horeca-2026.2", base=strict
@@ -194,6 +197,7 @@ def test_silence_carries_the_previous_policy_forward(base):
     assert candidate.params.min_period_hours == 4.0
     assert candidate.shift_types == base.shift_types
     assert candidate.disruption == base.disruption
+    assert candidate.fairness == strict.fairness
 
 
 def test_silence_with_no_base_takes_the_statutory_figures():

@@ -21,11 +21,14 @@ actually degraded rather than only against a clean one.
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 
 import httpx
 import pytest
 
 from benchmarks import suite
+from roster_replan.domain import Fairness
+from roster_replan.scoring import score
 from roster_replan.service import contracts, jobs
 from benchmarks.studies import identical_workforce
 from roster_replan.service.app import create_app
@@ -89,6 +92,38 @@ def test_an_unbounded_notice_band_is_null_on_the_wire(scenario):
 
     bands = json.loads(contracts.from_domain(scenario.instance).model_dump_json())
     assert bands["disruption"]["notice_bands"][-1]["within_hours"] is None
+
+
+def test_the_round_trip_carries_the_cross_week_fields():
+    """The two fields whose whole purpose is to reach past the horizon.
+
+    `Fairness` and `unpopular_shifts_before_horizon` are the objective's only memory, and
+    `max_hours_this_period` is `R-MAX-PERIOD`'s. All three existed in `domain.py` and in
+    neither direction of this file, so the term and the rule they serve were reachable from
+    Python and not over the wire — which for a service is not shipped (`D-131`).
+
+    The identity is the assertion the whole file is built on: a field the wire cannot carry
+    is a field a persisted payload no longer replays.
+    """
+    instance = identical_workforce(4, required=1)
+    instance = dataclasses.replace(
+        instance,
+        fairness=Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=8),
+        employees=tuple(
+            dataclasses.replace(
+                person,
+                unpopular_shifts_before_horizon=index,
+                max_hours_this_period=120.0,
+            )
+            for index, person in enumerate(instance.employees)
+        ),
+    )
+
+    assert contracts.to_domain(contracts.from_domain(instance)) == instance
+
+    # And through the serialiser, because that is the form a caller actually sends.
+    blob = contracts.from_domain(instance).model_dump_json()
+    assert contracts.to_domain(contracts.InstanceIn.model_validate_json(blob)) == instance
 
 
 def test_an_unknown_field_is_rejected_rather_than_ignored():
@@ -402,3 +437,32 @@ async def test_generation_goes_through_the_replan_endpoint(client):
     assert job["state"] == jobs.SUCCEEDED
     assert job["answer"]["rung"] == "exact"
     assert len(job["answer"]["roster"]) == sum(o.required for o in cold.open_shifts)
+
+
+@pytest.mark.anyio
+async def test_a_declared_fairness_term_reaches_the_solver(client):
+    """Reachability, asserted on the objective rather than on the roster (`D-131`).
+
+    A balance assertion would be the obvious test and is the weaker one: on an
+    interchangeable workforce a roster can come back balanced for reasons that have nothing
+    to do with this term. The objective cannot. `solve` minimises the fairness term and
+    `scoring.score` measures it independently, so if the wire format dropped the field the
+    two would stop agreeing — the solver would optimise a smaller objective than the scorer
+    reads on the roster it returned.
+    """
+    cold = dataclasses.replace(
+        identical_workforce(6, required=1),
+        fairness=Fairness(weight=20, unpopular_shifts=frozenset({1}), tiers=8),
+    )
+    body = contracts.ReplanRequest(
+        tenant="acme", instance=contracts.from_domain(cold), seed=7
+    ).model_dump()
+
+    job = await _drain(client, (await client.post("/v1/replans", json=body)).json()["id"])
+    assert job["state"] == jobs.SUCCEEDED
+
+    roster = frozenset(tuple(entry) for entry in job["answer"]["roster"])
+    assert job["answer"]["objective"] == score(roster, cold).total
+    # And the term is not merely present but priced: with a weight on it the objective
+    # cannot be the bare tie-breaker a cold solve would otherwise return.
+    assert score(roster, cold).fairness > 0
