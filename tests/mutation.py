@@ -5,10 +5,16 @@
     uv run python -m tests.mutation -k rest-gap
 
 Every run writes its verdict to `tests/mutation-report.json` as well as to stdout, and the
-report is the copy to trust. A full run takes tens of minutes, and reading its result through
-a pipe has twice destroyed it: `tail` truncates the per-mutant lines and reports *its own*
-exit status, so a run that leaked a mutated file into the working tree read as a clean pass.
+report is the copy to trust. Reading its result through a pipe has twice destroyed it: `tail`
+truncates the per-mutant lines and reports *its own* exit status, so a run that leaked a
+mutated file into the working tree read as a clean pass.
 `jq .verdict tests/mutation-report.json` answers the only question that matters first.
+
+**A full run is about 10 minutes** -- 9m27s for all 103 mutants on 2026-08-17, in the default
+catcher-only mode. `--full` is a different and much longer question. That number is in the
+report as `duration_seconds`, because until it was there every estimate in circulation was a
+guess: this file said "tens of minutes", and a guess of 100 went unchallenged for want of a
+single recorded figure.
 
 Four verdicts, in the order they outrank each other (`D-112`):
 
@@ -39,8 +45,8 @@ perfectly about a different answer -- invisible to stage (b), by construction, a
 only by the committed numbers in the golden record. That is `D-067` stated as a test rather
 than as prose.
 
-**Not part of the normal suite.** It rewrites source files and takes minutes, so it is run
-deliberately -- when a test layer is added, or when one is about to be trusted.
+**Not part of the normal suite.** It rewrites source files, so it is run deliberately -- when
+a test layer is added, or when one is about to be trusted.
 """
 
 from __future__ import annotations
@@ -1097,14 +1103,16 @@ def summarise(
     skipped: list[str],
     full: bool,
     late: list[str] = (),
+    started_at: str | None = None,
+    duration_seconds: float | None = None,
 ) -> dict:
     """The run's verdict, as data. Pure, so the part that can be wrong is testable.
 
-    **The verdict does not live in stdout.** A run takes tens of minutes and its result was
-    twice read through a pipe that swallowed it: `tail` truncated the per-mutant lines *and*
-    reported its own exit status, so a run that leaked a mutated file into the working tree
-    read as a clean pass. The report is written before any of the return paths, so a
-    truncated terminal, a killed pager or a lost scrollback costs nothing.
+    **The verdict does not live in stdout.** A run's result was twice read through a pipe
+    that swallowed it: `tail` truncated the per-mutant lines *and* reported its own exit
+    status, so a run that leaked a mutated file into the working tree read as a clean pass.
+    The report is written before any of the return paths, so a truncated terminal, a killed
+    pager or a lost scrollback costs nothing.
 
     **A leak outranks survivors**, matching what the exit codes have always said. A run that
     left a mutation behind cannot be trusted about anything that ran after it: the following
@@ -1142,7 +1150,13 @@ def summarise(
         "verdict": verdict,
         "exit_code": exit_code,
         "trustworthy": not leaked and not unvouched,
+        # How long the run took, so the cost of one is a measurement rather than folklore.
+        # Both are `None` when `summarise` is called outside a run, as its own tests do.
+        # `duration_seconds` comes from a monotonic clock: the wall-clock stamps bracket the
+        # same interval, but subtracting them measures the system clock as much as the run.
+        "started_at": started_at,
         "finished_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "duration_seconds": duration_seconds,
         "selected": len(results),
         "caught": sum(1 for r in results if r["caught"]),
         "survivors": survivors,
@@ -1288,6 +1302,8 @@ def main() -> int:
         return 2
 
     print(f"{len(chosen)} mutants; each expects its own layer to object.\n")
+    started_at = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+    started = time.monotonic()
     results = []
     originals: dict[str, str] = {}
     late: list[str] = []
@@ -1336,10 +1352,13 @@ def main() -> int:
         skipped=sorted(already),
         full=args.full,
         late=late,
+        started_at=started_at,
+        duration_seconds=round(time.monotonic() - started, 1),
     )
     # Written before every return below, so the verdict survives a truncated terminal, a
     # closed pager, or a pipe that reports its own exit status instead of this one.
     write_report(report, args.report)
+    print(f"{len(chosen)} mutants in {report['duration_seconds']:.0f}s")
     print(f"verdict `{report['verdict']}` written to {args.report}\n")
 
     if report["leaked"]:

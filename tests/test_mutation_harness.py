@@ -1,7 +1,7 @@
 """The harness's own verdict, which nothing else checks.
 
 `tests/mutation.py` is the claim behind the test count, and until now it was the one piece of
-this repo with no test of its own — understandable, since running it takes tens of minutes,
+this repo with no test of its own — understandable, since running it takes about ten minutes,
 and unfortunate, because its *verdict* is a few lines of pure logic that decide whether a
 long run is believed.
 
@@ -147,3 +147,29 @@ def test_the_report_round_trips_through_the_file(tmp_path):
 
     assert json.loads(path.read_text()) == report
     assert report["catcher_only"] is False, "--full ran the whole suite per mutant"
+
+
+def test_the_report_records_what_the_run_cost():
+    """How long a run takes was folklore until this field existed: the docstrings said "tens
+    of minutes", a session put it at ~100, and the measured answer for 103 mutants was 9.
+    Nobody could check any of them, because the only durable record kept no clock."""
+    report = mutation.summarise(
+        [_result("a")],
+        leaked=[],
+        skipped=[],
+        full=False,
+        started_at="2026-08-17T06:36:31+00:00",
+        duration_seconds=559.4,
+    )
+
+    assert report["started_at"] == "2026-08-17T06:36:31+00:00"
+    assert report["duration_seconds"] == 559.4
+
+
+def test_a_summary_taken_outside_a_run_admits_it_has_no_clock():
+    """`None` rather than 0.0. A run that took no measurable time and a summary that was
+    never timed are different things, and only one of them should read as fast."""
+    report = mutation.summarise([_result("a")], leaked=[], skipped=[], full=False)
+
+    assert report["started_at"] is None
+    assert report["duration_seconds"] is None
