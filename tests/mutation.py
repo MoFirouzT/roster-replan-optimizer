@@ -1345,6 +1345,9 @@ def _restore(path: pathlib.Path, original: str, *, attempts: int = 5) -> None:
     """
     for attempt in range(attempts):
         path.write_text(original)
+        # The restore is a size-neutral write too, and the next mutant reads this file
+        # through the same cache (`D-141`).
+        _invalidate(path)
         time.sleep(0.2 * (attempt + 1))
         if path.read_text() == original:
             return
@@ -1477,8 +1480,31 @@ def _dirty(paths: list[str]) -> set[str]:
     return {line[3:].strip() for line in result.stdout.splitlines() if line.strip()}
 
 
-def run(mutant: Mutant, *, full: bool, originals: dict | None = None) -> tuple[bool, list[str], str]:
-    """Apply, test, restore. Returns (caught, failing tests, note).
+def _invalidate(path: pathlib.Path) -> None:
+    """Drop the cached bytecode for a file this harness just rewrote (`D-141`).
+
+    CPython validates a `.pyc` against the source's **size and mtime in whole seconds**. A
+    mutation that changes neither -- swapping two identifiers, `>=` for `<=`, a range's
+    bounds -- written inside the same second as the cached copy is invisible to that check,
+    so the interpreter runs the *original* code and the mutant survives having never been
+    tested.
+
+    Fourteen of this catalogue's mutants are size-neutral, and the three that surfaced as
+    intermittent survivors were all of them. Deleting the `.pyc` is the only fix that does
+    not depend on timing: touching the mtime forward would work until two writes land in one
+    second again, which is exactly the condition that produced this.
+    """
+    cache = path.parent / "__pycache__"
+    if not cache.is_dir():
+        return
+    for stale in cache.glob(f"{path.stem}.*.pyc"):
+        stale.unlink(missing_ok=True)
+
+
+def run(
+    mutant: Mutant, *, full: bool, originals: dict | None = None
+) -> tuple[bool, list[str], str, str]:
+    """Apply, test, restore. Returns (caught, failing tests, note, evidence).
 
     `originals` collects each touched file's pre-run text so `main` can sweep at the end.
     `_restore` verifies, and has still been beaten twice by an editor writing back the
@@ -1489,9 +1515,15 @@ def run(mutant: Mutant, *, full: bool, originals: dict | None = None) -> tuple[b
     if originals is not None:
         originals.setdefault(mutant.path, original)
     if original.count(mutant.old) != 1:
-        return False, [], f"anchor matched {original.count(mutant.old)} times, so nothing was tested"
+        return (
+            False,
+            [],
+            f"anchor matched {original.count(mutant.old)} times, so nothing was tested",
+            "",
+        )
 
     path.write_text(original.replace(mutant.old, mutant.new, 1))
+    _invalidate(path)
     try:
         target = "tests" if full else mutant.catcher
         result = subprocess.run(
@@ -1509,13 +1541,20 @@ def run(mutant: Mutant, *, full: bool, originals: dict | None = None) -> tuple[b
         _restore(path, original)
 
     if reverted:
-        return False, [], REVERTED
+        return False, [], REVERTED, ""
 
     failed = _failed_tests(result.stdout)
     note = ""
     if not failed and result.returncode != 0:
         note = "the target failed without a test failure -- a collection or import error"
-    return bool(failed), failed, note
+
+    # **A survivor keeps its evidence** (`D-140`). Two mutants have survived one run and been
+    # caught in the next, deterministic in isolation and intermittent inside a full run, and
+    # each investigation had to reconstruct what the catcher saw. The output is only kept for
+    # a survivor, because that is the only case where anybody needs it and keeping all 132
+    # would make the report unreadable.
+    evidence = "" if failed else f"exit {result.returncode}\n{result.stdout[-2000:]}"
+    return bool(failed), failed, note, evidence
 
 
 def main() -> int:
@@ -1593,7 +1632,7 @@ def main() -> int:
         if drifted:
             late.extend(d for d in drifted if d not in late)
             print(f"          ! late write to {', '.join(drifted)}, restored before this mutant")
-        caught, failed, note = run(mutant, full=args.full, originals=originals)
+        caught, failed, note, evidence = run(mutant, full=args.full, originals=originals)
         if note == REVERTED and mutant.path not in late:
             late.append(mutant.path)
         status = "CAUGHT" if caught else "VOID" if note == REVERTED else "SURVIVED"
@@ -1614,6 +1653,8 @@ def main() -> int:
                 "failed": failed,
                 "note": note,
                 "voided": note == REVERTED,
+                # Only a survivor carries this; see `run`.
+                "evidence": evidence,
             }
         )
 

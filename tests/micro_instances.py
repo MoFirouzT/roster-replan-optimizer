@@ -641,16 +641,23 @@ def _one_shift_type_is_capped() -> Instance:
 
 
 def _hours_have_a_floor() -> Instance:
-    """A floor of 15 hours against 7.5-hour shifts: two shifts or none is legal, one is not.
+    """A floor of 7.5 hours against three 7.5-hour shifts, all of which want staffing.
 
     The only rule in the registry a roster breaks by doing too little, so this is the only
     micro-instance where adding an assignment can *fix* a violation.
+
+    **The floor must sit below the roster the rest of the model wants** (`D-140`). The first
+    version set it at exactly the hours on offer, which is satisfied by the full roster and
+    by nothing else — so a reading that enforced `≤` instead of `≥` returned the same
+    optimum and the mutant survived two full runs. Here coverage wants all three shifts and
+    the floor asks for one, so a ceiling misread forbids the optimum and is visible.
     """
     return instance(
-        employees=[person("Ana", min_hours_this_period=15.0)],
+        employees=[person("Ana", min_hours_this_period=7.5)],
         open_shifts=(
             OpenShift(day=0, shift=MORNING, required=1),
-            OpenShift(day=3, shift=MORNING, required=1),
+            OpenShift(day=2, shift=MORNING, required=1),
+            OpenShift(day=4, shift=MORNING, required=1),
         ),
     )
 

@@ -4005,3 +4005,81 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   reads is still possible. Turning format-on-save off remains the actual fix, and this makes its
   absence detectable rather than misleading.
 - **Date.** 2026-08-17.
+
+## D-140 — A rule whose test could not have failed, and the two runs that proved it
+
+- **Decision.** The `R-MIN-HOURS` micro-instance sets a floor of 7.5 hours against three 7.5-hour
+  shifts, where it used to set 15 against exactly 15. `run` records the catcher's output for any
+  mutant it scores as a survivor, so the next one is diagnosable from the report rather than by
+  reconstruction.
+- **Alternatives.** *Read the survivor as harness flakiness*, which two of the three survivors in
+  these runs genuinely were and this one was not. *Add a second instance* rather than fixing the
+  first, leaving a test that cannot fail in place beside one that can.
+- **Reason.** **The floor was set at exactly the hours on offer, so it could not be told from a
+  ceiling.** Fifteen hours of open shifts and a 15-hour minimum: the only roster satisfying `≥ 15` is
+  the full one, and `≤ 15` accepts that roster too. A reading that enforced the wrong comparison
+  returned the same optimum, so `model-hours-floor-is-a-ceiling` survived — correctly, because
+  nothing was testing the direction.
+
+  This is `D-066`'s finding in a new rule: *a fixture set proves a rule exists; only a fixture at the
+  boundary proves it is enforced at the right number*. The boundary for a floor is a roster the rest
+  of the model wants to exceed, and the fixed instance has one — coverage wants three shifts and the
+  floor asks for one, so a ceiling misread forbids the optimum and is visible in both readings.
+
+  **It took two trustworthy runs to see, and neither would have been trustworthy a day earlier.**
+  `D-139` stopped the harness inventing a survivor; closing the editor stopped an auto-saved buffer
+  reverting mutations mid-run. Only with both did a survivor appear in consecutive runs and stay
+  there, which is what separated it from the two that come and go.
+- **Consequences.** **Two mutants remain intermittent and are recorded as open rather than explained.**
+  `model-days-off-judges-the-horizon-edge` and `model-succession-ignores-direction` each survived one
+  of the two runs and not the other. Applied by hand they fail 12 and 9 tests; run through the harness
+  alone, one of them was caught six times out of six. They are deterministic in isolation and
+  intermittent inside a 132-mutant run, both target `model.py` with `tests/test_ground_truth.py` as
+  catcher, and that is the whole of what is known.
+
+  Capturing the catcher's output on a survivor is the cheapest thing that makes the next occurrence
+  readable: it is the difference between a fourth investigation and a first reading. It is not a fix,
+  and this record does not claim one.
+
+  **A correction belongs here.** The flakiness was attributed to `files.autoSave` writing stale
+  buffers back. That was real — `unvouched_for` and `leaked` are empty now where they were not — and
+  it was not the whole cause, because the survivor set still moves between two runs on a quiet tree.
+- **Date.** 2026-08-17.
+
+## D-141 — Fourteen mutants were never tested, because CPython could not see the edit
+
+- **Decision.** The harness deletes the cached bytecode for any file it rewrites, after the mutation
+  and after the restore. A `_invalidate` helper does it; nothing else changes.
+- **Alternatives.** *Touch the mtime forward after writing*, which works until two writes land in one
+  second again — the exact condition that caused this. *Run each catcher with a fresh
+  `PYTHONPYCACHEPREFIX`*, which is correct and recompiles the world once per mutant. *Keep treating
+  the intermittent survivors as flakiness*, which is what three investigations did.
+- **Reason.** **CPython validates a `.pyc` against the source's size and its mtime in whole seconds.**
+  A mutation that changes neither is invisible to that check, so the interpreter loads the cached
+  bytecode and runs the **original** code. The mutant then survives without ever having been tested,
+  and the report says so in the language of a hole in a test layer.
+
+  Proved rather than inferred: with the mutation on disk and the mtime left alone, a probe imports and
+  runs clean; with the same bytes and the mtime bumped two seconds, it raises the `KeyError` the
+  mutation causes. Identical file content, opposite results.
+
+  **Fourteen of the 132 mutants are size-neutral** — swapping two identifiers, `>=` for `<=`, a
+  range's bounds — and every survivor across four full runs was one of them. That is what made this
+  look like flakiness: whether a mutant was really tested depended on whether its write happened to
+  land in the same second as the cached copy, which varies with load and with what ran before it.
+
+  **This is worse than the four hardenings before it.** Those made the verdict untrustworthy in ways
+  the report could state. This one made a *`clean` verdict partly hollow*: for size-neutral mutants,
+  "caught" meant caught whenever the timing happened to expose the edit, and nothing anywhere said
+  which. Every earlier `clean` on this catalogue should be read with that caveat.
+- **Consequences.** The three mutants that had been coming and going — `model-days-off-judges-the-
+  horizon-edge`, `model-succession-ignores-direction`, `model-hours-floor-is-a-ceiling` — are caught
+  on every run now, and the third of them was a genuine hole in a micro-instance that `D-140` fixed
+  independently. **Two causes wore the same costume**, which is why it took two trustworthy runs plus
+  a proof to separate them.
+
+  The earlier attributions in this session were wrong in a way worth leaving on the record. `D-139`
+  blamed a late write reverting the mutation, which is real and is a different mechanism. Closing
+  VS Code was reported as the cure for the flakiness; it fixed `unvouched_for` and `leaked`, and the
+  survivor set still moved afterwards — which is what finally ruled the editor out and pointed here.
+- **Date.** 2026-08-17.
