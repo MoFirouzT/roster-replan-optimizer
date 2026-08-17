@@ -3460,3 +3460,50 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   when that line is crossed from the other direction.
 - **Study.** [`docs/studies/weight-recovery.md`](studies/weight-recovery.md)
 - **Date.** 2026-08-15.
+
+## D-130 — The mutation report records what a run cost, and a late write costs one layer
+
+- **Decision.** Every run writes `started_at` and `duration_seconds` into
+  `tests/mutation-report.json`. The remedy for `unverifiable` is to re-run **only the layer whose
+  paths are named in `unvouched_for`**, with `--report` pointed somewhere else. `D-112` stands
+  unchanged — it defines what the verdict means; this record defines what the report carries and
+  what a reader does about it.
+- **Alternatives.** *Leave the runtime to prose*, which is the state this record replaces. *Time
+  each mutant*, which answers a question nobody has asked yet. *Subtract `finished_at` from
+  `started_at`* rather than carrying a duration. *Keep telling readers to commit and re-run*, which
+  is correct and roughly ten times the cost of what is needed.
+- **Reason.** How long a run takes was folklore, and every copy of it was wrong. This module's
+  docstring and `CLAUDE.md` both said "tens of minutes"; a working session put it near a hundred and
+  nothing in the repo could contradict that, because **the one durable record kept no clock**. The
+  measurement is 9m27s for all 103 mutants in the default catcher-only mode, twice within eight
+  seconds.
+
+  The gap matters more than the number. `CLAUDE.md` tells a reader to run the harness when a layer
+  is added or is about to be trusted, and an hour-long job gets scheduled around while a ten-minute
+  one gets run. A wrong cost estimate quietly discourages the exact use the harness exists for.
+
+  Subtracting the wall-clock stamps was rejected because it measures the system clock as much as the
+  run — a laptop that sleeps or resyncs mid-run would report a duration nobody can distinguish from
+  a real one. `duration_seconds` comes from `time.monotonic()`. The two stamps bracket the same
+  interval and are kept for reading, not for arithmetic.
+
+  The fields are `None`, not `0.0`, when `summarise` is called outside a run, as its own tests do. A
+  summary that was never timed and a run that took no measurable time are different claims, and only
+  one of them should read as fast.
+
+  **The layer-sized remedy is what the run of 2026-08-17 taught.** It came back `unverifiable` with
+  103 of 103 caught, for a late write to `roster_replan/service/jobs.py`. Three mutants touch that
+  path. Re-running `service` alone returned `clean` in seconds and settled all three, and a full
+  re-run would have re-proved a hundred mutants nobody doubted. Sending that re-run to a different
+  report is not a detail: a five-mutant report written over the hundred-mutant one is how a previous
+  session's record was lost, and the file it lands in is the copy `CLAUDE.md` tells readers to trust.
+- **Consequences.** `summarise` takes `started_at` and `duration_seconds` as optional keyword
+  arguments, so its existing tests keep calling it unchanged and a report built outside a run says
+  so. Two tests pin the fields — one that a timed run carries them, one that an untimed summary
+  admits it has none. stdout gains a `N mutants in Ns` line above the verdict.
+
+  `CLAUDE.md` and the module docstring carry the measured figure and say to quote the report rather
+  than the sentence once the two disagree. That instruction has a limit worth naming: the report is
+  gitignored, so the figure is local to whoever ran it and the prose is the only copy that travels.
+  A second machine's number is a new measurement, not a contradiction.
+- **Date.** 2026-08-17.

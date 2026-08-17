@@ -5,39 +5,17 @@
 **Minimum-disruption shift-roster replanning under labour constraints.**
 
 Someone calls in sick at 09:00 on Saturday.
-The conventional answer is to re-solve the week from scratch, which returns a roster that is optimal, legal, and unrecognisable;
+The conventional answer is to re-solve the week from scratch, which returns a roster that is optimal, legal, and heavily reshuffled;
 people whose shifts were never in question are moved so the solver can shave a marginal cost.
 
 This service answers it differently:
 **reproduce the roster with minimum disruption to everyone else.**
-Past shifts are pinned, published shifts are penalised for changing, and the solve is warm-started from the roster it is repairing.
-The penalty is what carries the result; the warm start is a small speedup, and the benchmarks say so in those terms.
+Past shifts are pinned, and published shifts are penalised for changing; that penalty is what produces the low-disruption result.
+The solve is also warm-started from the roster it is repairing, purely for speed.
+The benchmarks measure the two effects separately and confirm the split.
 
 > Generation is not a separate feature.
-> It is the cold-start case of replanning — a replan from an empty roster.
-
-**The number.** On the 72 of 84 committed cases that were fully staffable before the disruption, the
-disruption objective cuts the score from 307 to 65 against a cold re-solve, and the people moved from
-12.4 to 2.4.
-
-```bash
-uv sync
-uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
-uv run pytest -q
-```
-
-**Ten minutes, in reading order.** The demo above and what it prints, then
-[`benchmarks.md`](docs/benchmarks.md) for what was measured and against what,
-[`studies/README.md`](docs/studies/README.md) for the eight levers and the five that lost,
-[`specs/validation.md`](docs/specs/validation.md) for how a legality claim is made true rather than
-assumed, and [`finish.md`](docs/finish.md) for what did not ship.
-
-**If you only read one thing, make it a place the project was wrong.** The optimum was
-[degenerate](#the-same-input-gives-the-same-roster-and-that-had-to-be-earned) and nobody noticed
-until a CI runner disagreed with a laptop; the [horizon rejection](docs/studies/horizon.md) in the
-spec was upheld on evidence that contradicted both reasons it gave; and the
-[mutation harness](docs/decisions.md) reported `clean` three times while a defect sat in the working
-tree.
+> It is the cold-start case of replanning; a replan from an empty roster.
 
 ---
 
@@ -76,7 +54,38 @@ Per-tenant policy lives in a profile document from day one, because across thous
 
 ---
 
-## Headline results
+## Reading guide
+
+**Ten minutes, in reading order.** [`docs/quickstart.md`](docs/quickstart.md) for a demo run and what
+it prints, then [`benchmarks.md`](docs/benchmarks.md) for what was measured and against what,
+[`studies/README.md`](docs/studies/README.md) for the eight levers and the five that lost,
+[`specs/validation.md`](docs/specs/validation.md) for how a legality claim is made true rather than
+assumed, and [`finish.md`](docs/finish.md) for what did not ship.
+
+**If you only read one thing, make it a place the project was wrong.** The optimum was
+[degenerate](docs/decisions.md) and nobody noticed until a CI runner disagreed with a laptop; the
+[horizon rejection](docs/studies/horizon.md) in the spec was upheld on evidence that contradicted
+both reasons it gave; and the [mutation harness](docs/decisions.md) reported `clean` three times
+while a defect sat in the working tree.
+
+---
+
+## Results
+
+**The disruption metric.** On the 72 of 84 cases where every shift could still be covered before the
+disruption hit, swapping a cost objective for a disruption objective, against an otherwise identical
+cold re-solve, cuts the disruption score (a weighted count of changed shifts) from 307 to 65. The
+average number of people whose shifts moved falls from 12.4 to 2.4. Full definition of the score and
+the method behind these numbers: [`docs/specs/replan.md`](docs/specs/replan.md) and
+[`docs/benchmarks.md`](docs/benchmarks.md).
+
+See it on one case (this is one scenario, not the 84-case set below; full reproduction is in
+[`docs/quickstart.md`](docs/quickstart.md)):
+
+```bash
+uv sync
+uv run python -m roster_replan.demo scenarios/horeca/saturday_sick_call.json --weekday-of-day-zero 0
+```
 
 Measured on the committed set in `benchmarks/manifest.json` (seeded generator, 84 cases across
 14 scenario classes, 8–25 employees, one-week horizon), 3 solver seeds each, single-threaded.
@@ -113,6 +122,23 @@ roster costs the same paid hours, so the cost axis collapses. See
 [`docs/benchmarks.md`](docs/benchmarks.md) for the per-class table and for what this set does *not*
 show — nothing here ever came close to a time budget, and median damage is one assignment.
 
+The performance work behind these numbers, including the five levers that did not pay off, is indexed
+in [`docs/studies/README.md`](docs/studies/README.md).
+
+---
+
+## Correctness
+
+The model and the checker are two independent implementations of the same specification.
+They share no rule logic — no predicate, no threshold — enforced in CI, and the differential harness is how we know which one is wrong.
+Solver objectives are held against exhaustively enumerated optima on committed micro-instances, so the correctness claim rests on ground truth rather than on the solver agreeing with itself.
+
+The reproducibility claim carried a silent bug of its own: the optimum was degenerate, and which
+roster came back was decided by the solver binary rather than the specification, without any test
+noticing. That finding and its fix are indexed as a study: [`docs/studies/README.md`](docs/studies/README.md) (`D-119`, `D-121`).
+
+Test layers, invariants and the harness design: [`docs/specs/validation.md`](docs/specs/validation.md).
+
 ---
 
 ## Architecture
@@ -140,8 +166,7 @@ show — nothing here ever came close to a time budget, and median damage is one
 - **The solver service is stateless**:
   payload in, payload out, no database reads.
   Every solve's input, profile version and seed are persisted by the caller, so any roster produced in production can be reproduced offline — **on any machine, not just the one that produced it**.
-  That is a repaired claim rather than an assumed one. The optimum is *degenerate*: on the committed set, four solver seeds return the same objective every time and a different roster on 24 of the replans and on all 84 cold weeks, so the roster used to be chosen by the search and therefore by the binary.
-  It is now chosen by the model — the optimal value is pinned and a canonical criterion picks one point on the optimal face ([`D-119`](docs/decisions.md)) — and CI proves it on a different ortools build from the one every committed artifact was recorded with ([`D-121`](docs/decisions.md)).
+  That is a repaired claim rather than an assumed one: the optimal value is pinned and a canonical criterion picks one point on the optimal face ([`D-119`](docs/decisions.md)), and CI proves it on a different ortools build from the one every committed artifact was recorded with ([`D-121`](docs/decisions.md)).
 - **Async by construction.**
   Solves take real time;
   synchronous HTTP breaks on timeouts, retry storms and the absence of cancellation.
@@ -153,67 +178,49 @@ show — nothing here ever came close to a time budget, and median damage is one
   exact → time-boxed with reported gap → greedy repair → last known good.
   The service never returns nothing.
 
-## Correctness
+---
 
-The model and the checker are two independent implementations of the same specification.
-They share no rule logic — no predicate, no threshold — enforced in CI, and the differential harness is how we know which one is wrong.
-Solver objectives are held against exhaustively enumerated optima on committed micro-instances, so the correctness claim rests on ground truth rather than on the solver agreeing with itself.
+## Repository map
 
-Test layers, invariants and the harness design: [`docs/specs/validation.md`](docs/specs/validation.md).
+```text
+README.md                   this file
+docs/finish.md              the finish declaration — what shipped, what did not
+docs/archive/PLAN.md        tiers and sequencing (archived, not maintained)
+roster_replan/
+  model.py                  CP-SAT formulation
+  checker.py                independent legality verification — imports no solver
+  repair.py                 greedy repair — solver-free, by contract
+  ladder.py                 exact → time-boxed → greedy → last known good
+  explain.py                why a shift is short — answers from the checker, not the model
+  prose.py                  findings in planner language, and the bound on what may be claimed
+  core.py                   minimal infeasibility cores
+  whatif.py                 re-solve under a hypothetical change
+  profile.py                profile document, contradictions, feasibility probe
+  nl.py                     English → candidate profile — the only stage that needs a model
+  compiled.py               per-tenant model cache
+  service/                  async job API, contracts, and the tool surface
+tests/
+  test_ground_truth.py      exhaustive ground truth on micro-instances
+  test_differential.py      model ⟺ checker
+  test_properties.py        invariants
+  test_golden.py            committed scenarios and objective values
+  test_specs.py             the checkable half of "all specs true"
+  mutation.py               deliberate defects, each naming the layer that must catch it
+benchmarks/
+  generator.py              seeded instance generator
+  manifest.json             the committed set, as seeds and fingerprints
+  milp.py                   the MILP formulation, for D-001
+  nl_eval.py                the parse against free-form text — needs a key, so not in the suite
+docs/
+  specs/                    rules.md · model.md · replan.md · validation.md · config.md · service.md · capture.md
+  decisions.md              what was chosen, what was rejected, why
+  studies/                  analyses, nulls, rejected alternatives + index
+  benchmarks.md             results and method
+  quickstart.md             demo output, suite commands, the one script that costs money
+scenarios/horeca/           demo data — domain specificity lives here, not in the code
+```
 
-### The same input gives the same roster, and that had to be earned
-
-The objective turned out to be **flat across many rosters**. On the committed set, four solver seeds
-return the same objective value *every time* and a different roster on 24 of the 84 replans and on
-all 84 cold weeks. So which optimum came back was decided by the search — and therefore by the
-ortools binary, not by anything in the specification. That falsified the reproducibility claim above,
-and it did it quietly: every objective value, every benchmark number and every test stayed green,
-because none of them looked at *which* optimum.
-
-CI found it, by being the first machine that had never run this code. The fix is a second phase on
-every proved optimum — pin the optimal value, minimise a canonical criterion over the optimal face —
-so nothing about what is optimal changes and the roster becomes a function of the model
-([`D-119`](docs/decisions.md)). Degeneracy went to zero on both counts, and CI now proves it on a
-different build from the one every committed artifact was recorded with.
-
-It cost 61% of search time and a premise this repo reasoned from everywhere: build no longer
-outruns search at a one-week horizon, so [`D-081`](docs/decisions.md)'s two-clock argument is now
-scoped rather than general. Both are stated because a fix whose price is unrecorded is half a
-finding.
-
-## Performance
-
-The scaling problem here is **many small instances** and **interactive latency**, not one large instance.
-Benchmarks are built accordingly; throughput and p95 across tenants, not a single 5000-employee monolith.
-
-Levers, measured, including the five that did not pay off:
-
-| Lever | Result |
-| --- | --- |
-| Domain presolve | **28% off build, 14% off search**, 28/28 cases — a quarter of the model removed |
-| Memoising the shift-window lookup | **The largest one**: 20% off build, found by profiling — building costs more than solving here |
-| Per-tenant compiled-model caching | **Null for replanning** — 0 hits in 144 solves; a replan changes the model's own inputs |
-| Warm starts from the previous solution | **9% of search time**, paired on 662 of 756 runs; invisible end to end |
-| Symmetry breaking | **Null** — 3 interchangeable employees across 28 cases. Worth 20% where symmetry exists, so the null is about the distribution |
-| `regular` automaton for shift sequences | **Rejected, 19% slower** — a one-week horizon leaves exactly one window to replace |
-| `no_overlap` intervals for rest gaps | **Rejected** — trades search time for build time, and the sign of the total flips by instance |
-| Pattern/column variables | **Rejected** — no proof of optimality in 30 s on a cold week, against ~20 ms |
-
-Five of the eight textbook levers lost, and the one that mattered most was the least interesting:
-at these sizes the model is built more slowly than it is solved, and the biggest single win was one
-memoised lookup that no encoding study could have found. Three of the four failures share a
-cause worth naming — a global constraint aggregates, and this model gates every rule *instance*, so
-replacing many local constraints with one global one coarsens what a failure can be blamed on. That
-is a real cost when the T4 deliverable is an explainer. Each study, including every null:
-[`docs/studies/README.md`](docs/studies/README.md).
-
-**"At these sizes" is now a measured boundary rather than a hedge.** The horizon study
-([`D-116`](docs/decisions.md)) runs the same model over one, two and four weeks: size grows
-*linearly*, not by the order of magnitude the spec had asserted, but search grows 23× where build
-grows 5.5× — so build stops dominating somewhere between one week and two, and every performance
-conclusion above is scoped to a week. A longer horizon is still refused, for the reason the spec did
-not give: four weeks solved at once reaches **identical coverage** to four weeks solved one at a
-time, and under pressure is two to six times slower for it.
+---
 
 ## Deliberately out of scope
 
@@ -221,109 +228,6 @@ Authentication, persistence, a user interface, and demand forecasting.
 All data committed to this repository is synthetic.
 The forecast → optimise interface is documented in [`docs/specs/model.md`](docs/specs/model.md), not implemented.
 
-## Quickstart
-
-The demo command at the top of this file prints:
-
-```text
-tenant horeca-demo, profile horeca-2026.1
-12 staff, 21 open shifts, 35 assignments published
-replanning at hour 129 of the horizon
-
-answer: exact — proven optimal
-disruption 100040, gap 0.0%
-solved in 14 ms
-
-1 changed assignment(s):
-  dropped    E02  Sat 15:00-23:00 (E)
-
-Sat 15:00-23:00 (E) is 1 short of its 3 required staff.
-  6 of the 12 staff do not hold a skill the shift requires (R-SKILL).
-  5 of the 12 staff would not get the minimum rest between shifts (R-REST-GAP).
-  4 of the 12 staff are absent or unavailable then (R-AVAIL).
-  4 of the 12 staff would exceed their hours for the day (R-MAX-DAILY).
-  E01, E05 and E08 would exceed their hours for the week (R-MAX-WEEKLY).
-```
-
-The scenario file is the real wire format, so it doubles as the worked example of what a caller
-sends. The shortfall is the honest outcome: E02 called in sick and **nobody could legally replace
-them** — the explanation says why, person by person, and every line is derived rather than phrased
-by a model.
-
-The suite and the import contracts are the two things CI runs on every push:
-
-```bash
-uv run pytest -q          # 766 tests, about a minute
-uv run lint-imports       # the 10 contracts that carry the independence rule
-```
-
-CI runs the first with `-m "not machine"`, which drops the three timing guards calibrated to this
-hardware ([`D-114`](docs/decisions.md)). Everything else runs everywhere, including the benchmark
-manifest's solved half — that one was deselected too until the optimum became canonical and stopped
-carrying the build that produced it ([`D-119`](docs/decisions.md), [`D-121`](docs/decisions.md)).
-
-Everything above — and the whole test suite — runs with no API key. One script does not:
-
-```bash
-cp .env.example .env          # paste a key into it; .env is gitignored
-uv sync --extra nl
-uv run python -m benchmarks.nl_eval --free-form -k rest-plain   # one call, a few cents
-uv run python -m benchmarks.nl_eval                             # 18 calls, well under a dollar
-```
-
-That is the natural-language parse measured against text its author did not render
-([`D-102`](docs/decisions.md)). It is a script rather than a test because it costs money and
-because a result that depends on a model does not belong in a suite that must be reproducible.
-
-## Repository map
-
-```text
-README.md                  this file — final-state
-docs/finish.md             the finish declaration — what shipped, what did not
-docs/archive/PLAN.md       tiers and sequencing (archived, not maintained)
-roster_replan/
-  model.py                 CP-SAT formulation
-  checker.py               independent legality verification — imports no solver
-  repair.py                greedy repair — solver-free, by contract
-  ladder.py                exact → time-boxed → greedy → last known good
-  explain.py               why a shift is short — answers from the checker, not the model
-  prose.py                 findings in planner language, and the bound on what may be claimed
-  core.py                  minimal infeasibility cores
-  whatif.py                re-solve under a hypothetical change
-  profile.py               profile document, contradictions, feasibility probe
-  nl.py                    English → candidate profile — the only stage that needs a model
-  compiled.py              per-tenant model cache
-  service/                 async job API, contracts, and the tool surface
-tests/
-  test_ground_truth.py     exhaustive ground truth on micro-instances
-  test_differential.py     model ⟺ checker
-  test_properties.py       invariants
-  test_golden.py           committed scenarios and objective values
-  test_specs.py            the checkable half of "all specs true"
-  mutation.py              deliberate defects, each naming the layer that must catch it
-benchmarks/
-  generator.py             seeded instance generator
-  manifest.json            the committed set, as seeds and fingerprints
-  milp.py                  the MILP formulation, for D-001
-  nl_eval.py               the parse against free-form text — needs a key, so not in the suite
-docs/
-  specs/                   rules.md · model.md · replan.md · validation.md · config.md · service.md · capture.md
-  decisions.md             what was chosen, what was rejected, why
-  studies/                 analyses, nulls, rejected alternatives + index
-  benchmarks.md            results and method
-scenarios/horeca/          demo data — domain specificity lives here, not in the code
-```
-
 ---
 
-## About
-
-Mo Firouz — [github.com/MoFirouzT](https://github.com/MoFirouzT). MIT licensed. Every payload, roster
-and tenant here is synthetic: no customer data, no vendor formats, no wage data.
-
-**Built with heavy use of an AI coding assistant**, which is worth saying plainly, because the commit
-history makes it obvious and because the volume is not the interesting part. What the tooling does not
-supply is the judgement about what to measure and what to keep when the answer goes against the plan.
-Five of the eight levers above lost. [`D-001`](docs/decisions.md) records that the founding solver
-choice is not justified by speed. [`benchmarks.md`](docs/benchmarks.md) names the weakness that limits
-every number in it, and [`finish.md`](docs/finish.md) lists what did not ship beside what did.
+MIT licensed. See [`LICENSE`](LICENSE).

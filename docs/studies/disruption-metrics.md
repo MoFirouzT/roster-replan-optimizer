@@ -24,7 +24,7 @@ it was going to be tested against turns out to be the wrong one.
 
 ## Comparing rosters is the wrong measurement
 
-The obvious method — solve under each metric, ask whether the rosters differ — reports 52 of 84 and
+The obvious method — solve under each metric, ask whether the rosters differ — reports 49 of 84 and
 is worthless. A metric usually has **many** optimal rosters, and which one comes back is the solver's
 search order, so two rosters differing says nothing about whether the two metrics wanted different
 things. D0 in particular has an enormous tie set: it would "disagree" with everything, including with

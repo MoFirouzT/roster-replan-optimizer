@@ -99,9 +99,9 @@ as a miss. It is not part of the normal suite — it rewrites source files — s
 layer is added, or when one is about to be trusted. Adding a layer means adding a mutant for it.
 
 **A full run is about 10 minutes**, not the hour it is sometimes assumed to be: 9m27s for 103
-mutants on 2026-08-17. Every run now records `started_at` and `duration_seconds` in its report, so
-the figure is checkable rather than folklore — quote the report, not this sentence, once they differ.
-A single layer (`-k service`) is seconds, and is the cheap way to settle one doubtful result.
+mutants on 2026-08-17. Every run records `started_at` and `duration_seconds` in its report (`D-130`),
+so the figure is checkable rather than folklore — quote the report, not this sentence, once they
+differ. A single layer (`-k service`) is seconds, and is the cheap way to settle one doubtful result.
 
 **Read the verdict from `tests/mutation-report.json`, not from the terminal.** Reading a run's result
 through a pipe has twice destroyed it: `tail` truncates the per-mutant lines *and* reports its own
@@ -119,9 +119,9 @@ wrote the mutated text back after the restore verified. `unvouched_for` names th
 hand, or re-run, before believing the catches. Running on a dirty tree is allowed — it is when a new
 layer is being proved — but it buys a weaker result, and now says so.
 
-A late write does not cost a whole re-run. Only the mutants touching the named paths are in doubt, so
-re-run that layer alone — **and send it somewhere else with `--report`**, or a 5-mutant report
-replaces the 103-mutant one it was meant to repair:
+A late write does not cost a whole re-run (`D-130`). Only the mutants touching the named paths are in
+doubt, so re-run that layer alone — **and send it somewhere else with `--report`**, or a 5-mutant
+report replaces the 103-mutant one it was meant to repair:
 
 ```bash
 uv run python -m tests.mutation -k service --report /tmp/service-rerun.json
