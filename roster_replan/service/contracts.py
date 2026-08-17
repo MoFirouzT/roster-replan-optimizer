@@ -137,6 +137,8 @@ class EmployeeIn(Strict):
     max_shifts_per_type: dict[int, int] | None = None
     min_hours_this_period: float | None = None
     max_consecutive_days: int | None = None
+    # `R-DAY-OFF`: day indices, not intervals -- see the rule for why the two differ.
+    days_off: list[int] = Field(default_factory=list)
 
     flexi_eligible: list[int] | None = None
     dimona_ok: list[int] | None = None
@@ -268,6 +270,7 @@ def to_domain(payload: InstanceIn) -> Instance:
                 ),
                 min_hours_this_period=e.min_hours_this_period,
                 max_consecutive_days=e.max_consecutive_days,
+                days_off=frozenset(e.days_off),
                 flexi_eligible=(
                     None if e.flexi_eligible is None else frozenset(e.flexi_eligible)
                 ),
@@ -394,6 +397,7 @@ def from_domain(instance: Instance) -> InstanceIn:
                 ),
                 min_hours_this_period=e.min_hours_this_period,
                 max_consecutive_days=e.max_consecutive_days,
+                days_off=sorted(e.days_off),
                 flexi_eligible=(
                     None if e.flexi_eligible is None else sorted(e.flexi_eligible)
                 ),

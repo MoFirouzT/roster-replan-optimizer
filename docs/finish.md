@@ -429,27 +429,36 @@ proved optimal and canonical within seconds.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 933, of which 45 skip without fetched benchmark data |
+| Tests | 567 | 936, of which 45 skip without fetched benchmark data |
 | Mutants, each naming the layer that must catch it | 59 | 132 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 137, none open |
+| Decision records | 94, 2 open | 141, none open |
 | Studies, including nulls | 8 | 13 |
 | Python | ~12,000 lines | ~24,500 lines |
 
-The mutation harness has been run in full four times since the declaration: 95 mutants all caught on a
-clean tree, `verdict: clean` and `trustworthy: true`; 103 of 103 caught but `unverifiable` for a late
-write, closed by re-running the one affected layer (`D-130`); 108 of 108 `clean` on the tree `D-131`
-was committed to; and most recently **111 of 111 caught in 573 seconds**, `unverifiable` again for a
-late write to `disruption.py` and closed the same way — the three layers whose mutants touch that file
-re-run alone, all `clean`. Two of the four full runs have been spoiled by an editor writing under
-them, which is `D-130`'s remedy earning its place rather than a new finding. The nine `foreign` mutants were added after that run and are proven at
-their own layer, including with the benchmark archives moved aside — the check that matters for a
-layer whose data is fetched rather than committed. The first
-clean run was
-the first whose verdict meant what it says, because the harness had to be hardened a third time
-first (`D-112`): it had been reporting `clean` while a mutated file sat in the working tree, since its
-clean-tree check skips files that were already modified and `trustworthy` was derived from that check
-alone.
+The mutation harness has been run in full eight times since the declaration, and **only the last one
+means what a verdict is supposed to mean**: 132 of 132 caught, `clean` and `trustworthy`, on a
+verified tree, in 830 seconds.
+
+The seven before it were each spoiled, and the four hardenings they produced are the reason this
+paragraph is long. Three reported `unverifiable` for an editor writing back under the run (`D-112`,
+`D-130`) — the remedy being a layer-sized re-run rather than a whole one. One reported a **survivor it
+did not have**, because the defect was written away inside the test window (`D-139`). And the last
+three reported survivors that came and went, which turned out to be two problems at once: a
+micro-instance whose floor could not be told from a ceiling (`D-140`), and **fourteen mutants the
+harness had never actually tested** (`D-141`) — CPython validates cached bytecode on a source's size
+and its mtime in whole seconds, so a size-neutral edit written inside one second is invisible and the
+interpreter runs the original code.
+
+That last one is the worst of the four, and it is worth stating plainly: it did not make a verdict
+untrustworthy in a way the report could state, it made a `clean` verdict **partly hollow**, with
+nothing anywhere saying which mutants it covered. Every earlier `clean` on this catalogue should be
+read with that caveat.
+
+The first clean run was the first whose verdict meant what it says, because the harness had to be
+hardened a third time first (`D-112`): it had been reporting `clean` while a mutated file sat in the
+working tree, since its clean-tree check skips files that were already modified and `trustworthy` was
+derived from that check alone.
 
 The two earlier hardenings were the same failure in cruder forms — an editor's format-on-save watcher
 wrote mutated text back under it three times, once *minutes after* a run had finished, and the verdict

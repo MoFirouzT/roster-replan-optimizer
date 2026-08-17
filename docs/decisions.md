@@ -4083,3 +4083,85 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   VS Code was reported as the cure for the flakiness; it fixed `unvouched_for` and `leaked`, and the
   survivor set still moved afterwards — which is what finally ruled the editor out and pointed here.
 - **Date.** 2026-08-17.
+
+## D-142 — A day off is not an interval, and that is a rule rather than a workaround
+
+- **Decision.** `R-DAY-OFF` joins the registry as a hard, optional operational rule: an employee is
+  not assigned any shift that **starts** on a day granted off. `Employee.days_off` is a set of day
+  indices, both readings enforce it, and the nurse-rostering importer stops dropping its source's days
+  off — the approximation it has carried since `D-125`.
+- **Alternatives.** *Translate a day off into an unavailability interval*, which is the obvious
+  mapping and is wrong. *Leave them dropped* and report the quality comparison with its bias intact.
+  *Widen `R-AVAIL`* to take a day set as well as intervals, folding two readings of availability into
+  one rule.
+- **Reason.** **The obvious translation is wrong at exactly one boundary, and that boundary is
+  common.** A shift starting at 22:00 the evening before a granted day runs six hours into it and
+  overlaps any interval covering that day, so an interval reading refuses a night shift the grant
+  never meant to touch. Start-day attribution — `rules.md`'s convention that a shift belongs to the
+  day it begins on — is what makes a day-indexed set exact where an interval is not.
+
+  This was not reasoned from first principles. `D-125` recorded it as a defect found from outside: the
+  first import of the benchmark set flagged *every* night shift before a day off as `R-AVAIL`, and
+  days off were dropped rather than approximated. The fix for that was a rule, and it took until now
+  to write it.
+
+  **It is a third kind of unavailability, not a variant of the two `R-AVAIL` already has.** That rule
+  splits by provenance: an absence is never relaxable, a declared unavailability is. A granted day off
+  is something the employer *gave*, which a planner may need to ask back. Folding it into `R-AVAIL`
+  would put three provenances and two readings of time under one ID, which is the shape the registry
+  exists to prevent.
+- **Consequences.** **The external oracle confirms the reading.** Their published rosters honour all
+  70 granted days off across the three compared instances — zero `R-DAY-OFF` violations — where an
+  interval translation reported a violation for every night shift before one. A rule that agrees with
+  thirteen rosters somebody else built is a rule read correctly.
+
+  **This closes the freedom `D-137` named**, which was the point: the quality comparison handed this
+  project 14, 20 and 36 constraints their solver had to honour. What remains of that comparison's
+  unfairness is the half running the other way — their values are proved optima and these solves
+  return `FEASIBLE` at a budget.
+
+  **A mutant found the layer this rule cannot be tested in.** `model-day-off-never-binds` survived
+  against `tests/test_differential.py` and is named for `tests/test_ground_truth.py` instead: the
+  generator grants nobody a day off, so both readings agree perfectly about an instance where the rule
+  never applies. That is `D-108`'s note about fairness arriving in a second place, and it is worth
+  stating rather than quietly re-pointing the mutant — the differential layer covers this rule only if
+  the generated set ever contains it.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.
+
+## D-143 — A catch against a red catcher is not a catch, and CI found it before the harness did
+
+- **Decision.** The harness checks **every distinct catcher passes before anything is mutated** and
+  refuses to start if one does not, alongside the anchor pre-flight it already had. Checked once per
+  catcher — 25 runs rather than 132 — because the question is about the tree, not about a mutation.
+- **Alternatives.** *Re-run each catcher per mutant*, doubling a fourteen-minute run to answer the
+  same question 132 times. *Trust the suite to be green*, which is what was being done and is exactly
+  what failed. *Treat it as a workflow problem* — regenerate the golden record and remember harder.
+- **Reason.** **A mutant is scored caught when its catcher fails.** A catcher that was *already*
+  failing therefore scores every mutant it guards as caught without testing one of them, and the run
+  reports that as a clean verdict.
+
+  It happened here. `D-140` rewrote the `R-MIN-HOURS` micro-instance and the golden record was not
+  regenerated with it, so `tests/test_golden.py` was red from that commit onward. The full run that
+  followed reported **132 of 132 caught, `clean`, `trustworthy: true`** — with one mutant,
+  `both-readings-reweighted`, scored on a test that could not have passed whatever the code did. It is
+  genuinely caught once the record is regenerated, so nothing was hidden; what was wrong was the
+  verdict's basis, not its answer.
+
+  **CI found it, and that is the second time CI has caught something the local discipline could not**
+  (`D-118` was the first). The local sequence was: change a micro-instance, run the mutation harness,
+  commit. The harness's own pre-flight checked anchors and the working tree and had nothing to say
+  about a test that was already failing, and the full suite was not run in between.
+- **Consequences.** **The `clean` verdict reported for that run stands for 131 of its 132 mutants.**
+  That is a smaller correction than `D-141`'s — which made a clean verdict partly hollow for fourteen
+  — and it is the same species: a verdict resting on something nobody checked. Five hardenings in, the
+  pattern named in `finish.md` is unchanged, and every one of them has been the harness being
+  confidently wrong rather than failing to run.
+
+  The refusal message names the failing tests, so the fix is visible without a second run. The cost is
+  25 catcher runs at the start of a full run, which is under a minute against fourteen.
+
+  **The golden record's regeneration is the actual fix for CI**, and it was already in the working
+  tree when the failure was reported: exactly two entries moved, the new day-off instance and the
+  rewritten `hours_have_a_floor`, checked entry by entry rather than accepted wholesale.
+- **Date.** 2026-08-17.

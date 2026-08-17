@@ -98,8 +98,9 @@ Every mutant names the layer expected to object, and one caught only by some oth
 as a miss. It is not part of the normal suite — it rewrites source files — so run it when a test
 layer is added, or when one is about to be trusted. Adding a layer means adding a mutant for it.
 
-**A full run is about 10 minutes**, not the hour it is sometimes assumed to be: 9m27s for 103
-mutants on 2026-08-17. Every run records `started_at` and `duration_seconds` in its report (`D-130`),
+**A full run is about 14 minutes**: 13m50s for all 132 mutants on 2026-08-17, up from 9m27s for 103
+before `D-141` made the harness delete cached bytecode after every write. Recompiling is most of the
+difference, and it is what a size-neutral mutant costs to test at all. Every run records `started_at` and `duration_seconds` in its report (`D-130`),
 so the figure is checkable rather than folklore — quote the report, not this sentence, once they
 differ. A single layer (`-k service`) is seconds, and is the cheap way to settle one doubtful result.
 

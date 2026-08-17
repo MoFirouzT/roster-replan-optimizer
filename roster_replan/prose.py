@@ -65,6 +65,7 @@ RULE_TEXT: dict[str, str] = {
     "R-MAX-SHIFT-TYPE": "have worked their allowance of that shift",
     "R-MIN-HOURS": "would be left below their minimum hours",
     "R-SUCCESSION": "worked a shift this one may not follow",
+    "R-DAY-OFF": "have that day off",
     "R-FLEXI-ELIG": "are not eligible for a flexi-job that day",
     "R-DIMONA-FLX": "have no Dimona filing for that day",
     "R-PIN-PAST": "are fixed by a shift that has already started",

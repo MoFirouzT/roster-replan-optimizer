@@ -72,6 +72,7 @@ def check(roster: Roster, instance: Instance) -> list[Violation]:
     violations += _max_shifts_per_type(roster, instance)
     violations += _min_hours(roster, instance)
     violations += _succession(roster, instance)
+    violations += _days_off(roster, instance)
     return sorted(violations, key=lambda v: (v.rule, _nk(v.employee), _nk(v.day), _nk(v.shift)))
 
 
@@ -776,4 +777,31 @@ def _succession(roster: Roster, instance: Instance) -> list[Violation]:
                             required=f"not after {instance.shift_types[earlier].label}",
                         )
                     )
+    return out
+
+
+# --- R-DAY-OFF ----------------------------------------------------------------------
+# Membership of the granted set, read against the day a shift *starts* on. Deliberately not
+# `_avail`'s interval intersection: that is the reading this rule exists because it cannot
+# do, since a span crossing midnight overlaps a day it does not belong to (`D-142`).
+
+
+def _days_off(roster: Roster, instance: Instance) -> list[Violation]:
+    out = []
+    for employee, day, shift in sorted(roster):
+        person = instance.employees[employee]
+        if day in person.days_off:
+            out.append(
+                Violation(
+                    rule="R-DAY-OFF",
+                    message=f"{person.name} is assigned {_label(instance, day, shift)} on a "
+                    f"granted day off",
+                    employee=employee,
+                    day=day,
+                    shift=shift,
+                    observed=day,
+                    required="not a granted day off",
+                    historical=instance.is_past(day, shift),
+                )
+            )
     return out

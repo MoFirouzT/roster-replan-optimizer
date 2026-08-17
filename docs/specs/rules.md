@@ -42,6 +42,7 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | `R-MAX-SHIFT-TYPE` | Maximum assignments of one shift type | hard, **optional** | count, per employee and shift type | **not statutory** — operational/CBA (`D-136`) |
 | `R-MIN-HOURS` | Minimum assigned hours over the horizon | hard, **optional** | hours, per employee | **not statutory** — operational/CBA (`D-136`) |
 | `R-SUCCESSION` | A shift type that may not follow another | hard, **optional** | pairs of shift types | **not statutory** — operational/CBA (`D-136`) |
+| `R-DAY-OFF` | A day granted off, by day rather than by interval | hard, **optional** | day set, per employee | **not statutory** — operational/CBA (`D-142`) |
 | `R-WEEKLY-REST` | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
 | `R-FLEXI-ELIG` | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1 |
 | `R-DIMONA-FLX` | `FLX` Dimona filing as an eligibility gate | hard, **resolved upstream** | filing state, per employee/day | NSSO Dimona instructions; Wet 16 Nov 2015 |
@@ -886,6 +887,39 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   the pairing, not about a canonical shift for the day.
 - **Reported on the second day**, the one the forbidden shift falls on, in both readings.
 - **Explainer text.** `Ana works M on day 4, which may not follow N.`
+- **Provenance.** Operational, or a CBA.
+
+### `R-DAY-OFF` — a day granted off
+
+- **Statement.** An employee is not assigned any shift that *starts* on a day they have been granted
+  off.
+- **Predicate.** For every `e ∈ E`, `d ∈ days_off[e]` and `s` with `(d, s) ∈ O`:
+
+  ```
+  x[e, d, s] = 0
+  ```
+
+- **Class.** Hard and **optional**, on `R-MAX-WEEKENDS`'s terms: an empty set is a caller not asking.
+- **Why this is not `R-AVAIL`** (`D-142`). `R-AVAIL` refuses an assignment overlapping an interval,
+  and a day off is not an interval. A shift starting at 22:00 the evening *before* runs six hours into
+  the granted day and overlaps any interval covering it — so an interval reading refuses a shift the
+  grant never meant to touch, while the day-indexed reading is exact. **Start-day attribution is what
+  makes the difference**, and it is the convention `rules.md` fixes for exactly this class of
+  question.
+
+  This is not hypothetical. The nurse-rostering importer drops its source's days off rather than
+  translate them, and states the reason: every night shift before a day off was reported as `R-AVAIL`.
+  That was the collision above, met from outside.
+- **A grant, not an absence.** `R-AVAIL` splits by provenance — an absence is never relaxable, a
+  declared unavailability is. This is a third thing: something the employer gave, which a planner may
+  need to take back with the employee's agreement. Hard, and gated like every hard rule, so a core
+  names it rather than a planner discovering it as an unexplained shortfall.
+- **Model encoding.** One gated `x = 0` per (employee, granted day, shift starting that day). Gated
+  rather than removed in the presolve, for `R-MAX-SHIFT-TYPE`'s reason: presolve removes the
+  impossible, and a day the tenant granted is a rule a roster can break and be told about.
+- **Checker encoding.** Membership of the granted set, read against the day the shift starts on.
+  Deliberately not interval intersection — that is the reading this rule exists because it cannot do.
+- **Explainer text.** `Ana is assigned day 3 07:00-15:00 (M) on a granted day off.`
 - **Provenance.** Operational, or a CBA.
 
 ## Eligibility gates

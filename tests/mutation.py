@@ -10,8 +10,9 @@ truncates the per-mutant lines and reports *its own* exit status, so a run that 
 mutated file into the working tree read as a clean pass.
 `jq .verdict tests/mutation-report.json` answers the only question that matters first.
 
-**A full run is about 10 minutes** -- 9m27s for all 103 mutants on 2026-08-17, in the default
-catcher-only mode. `--full` is a different and much longer question. That number is in the
+**A full run is about 14 minutes** -- 13m50s for all 132 mutants on 2026-08-17, in the default
+catcher-only mode. It was 9m27s for 103 before `D-141` added bytecode invalidation; recompiling each
+mutated file is the price of a size-neutral mutation being visible to the interpreter at all. `--full` is a different and much longer question. That number is in the
 report as `duration_seconds`, because until it was there every estimate in circulation was a
 guess: this file said "tens of minutes", and a guess of 100 went unchallenged for want of a
 single recorded figure.
@@ -1224,6 +1225,38 @@ MUTANTS: tuple[Mutant, ...] = (
         "        limit = None\n        if limit is None:",
         "tests/test_optional_rules.py",
     ),
+    # --- R-DAY-OFF ----------------------------------------------------------------------
+    # The rule exists because an interval reading is wrong at the day boundary, so the mutant
+    # that matters is the one that reinstates the interval reading. Both are size-changing,
+    # which `D-141` is the reason for caring about.
+    Mutant(
+        "model-day-off-catches-the-night-before",
+        "dayoff",
+        MODEL,
+        "                if e != employee or d != day:",
+        "                if e != employee or d not in (day, day - 1):",
+        "tests/test_ground_truth.py",
+    ),
+    Mutant(
+        "checker-day-off-catches-the-night-before",
+        "dayoff",
+        CHECKER,
+        "        if day in person.days_off:",
+        "        if day in person.days_off or day + 1 in person.days_off:",
+        "tests/test_ground_truth.py",
+    ),
+    # Named for `test_ground_truth.py` and *not* the differential harness, which cannot see
+    # this: the generator grants nobody a day off, so both readings agree perfectly about an
+    # instance where the rule never applies. That is `D-108`'s note about fairness in another
+    # place -- a layer needs an instance containing the structure before a null means anything.
+    Mutant(
+        "model-day-off-never-binds",
+        "dayoff",
+        MODEL,
+        "        for day in sorted(person.days_off):",
+        "        for day in sorted(()):",
+        "tests/test_ground_truth.py",
+    ),
     # --- The foreign importer -----------------------------------------------------------
     # Every one of these is a silent misreading of somebody else's data: the parse succeeds,
     # the numbers look plausible, and what they mean is wrong. These three are mutated in the
@@ -1617,7 +1650,33 @@ def main() -> int:
         print("!! is stale. `git diff` the named files; format-on-save is the usual culprit.")
         return 2
 
-    print(f"{len(chosen)} mutants; each expects its own layer to object.\n")
+    # **Is every catcher green before anything is mutated?** (`D-143`) A mutant is scored
+    # caught when its catcher fails, so a catcher that was *already* failing scores every
+    # mutant it guards as caught without testing one. That happened: a micro-instance was
+    # rewritten and the golden record not regenerated, and the run that followed reported
+    # `clean` with `tests/test_golden.py` red the whole time.
+    #
+    # Checked once per distinct catcher rather than once per mutant -- 25 runs instead of
+    # 132, and the question is about the tree rather than about any mutation.
+    print(f"checking {len(set(m.catcher for m in chosen))} catchers are green first...")
+    red = []
+    for catcher in sorted({m.catcher for m in chosen}):
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", catcher, "-q", "--no-header", "--tb=no", "-p",
+             "no:cacheprovider"],
+            cwd=ROOT, capture_output=True, text=True, timeout=1800,
+        )
+        if result.returncode != 0:
+            red.append(f"{catcher} ({', '.join(_failed_tests(result.stdout)[:3]) or 'no test failure -- a collection error'})")
+    if red:
+        print("!! refusing to start: these catchers already fail —")
+        for line in red:
+            print(f"!!   {line}")
+        print("!! every mutant they guard would be scored caught without being tested.")
+        print("!! fix the tree first; a green catcher is what makes a catch mean anything.")
+        return 2
+
+    print(f"\n{len(chosen)} mutants; each expects its own layer to object.\n")
     started_at = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     started = time.monotonic()
     results = []

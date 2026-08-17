@@ -1,4 +1,81 @@
 {
+  "a_granted_day_off_is_not_an_interval": {
+    "D0": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "roster": [
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "shortfall": 100000
+    },
+    "D1": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "roster": [
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "shortfall": 100000
+    },
+    "D2": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "roster": [
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "shortfall": 100000
+    },
+    "D3": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "roster": [
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "shortfall": 100000
+    },
+    "D4": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "roster": [
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "shortfall": 100000
+    }
+  },
   "a_personal_consecutive_limit_is_stricter": {
     "D0": {
       "cost": 0,
@@ -1001,8 +1078,8 @@
       "cost": 0,
       "disruption": 0,
       "mix_shortfall": 0,
-      "objective": 2,
-      "peak": 2,
+      "objective": 3,
+      "peak": 3,
       "roster": [
         [
           0,
@@ -1011,7 +1088,12 @@
         ],
         [
           0,
-          3,
+          2,
+          0
+        ],
+        [
+          0,
+          4,
           0
         ]
       ],
@@ -1021,8 +1103,8 @@
       "cost": 0,
       "disruption": 0,
       "mix_shortfall": 0,
-      "objective": 2,
-      "peak": 2,
+      "objective": 3,
+      "peak": 3,
       "roster": [
         [
           0,
@@ -1031,7 +1113,12 @@
         ],
         [
           0,
-          3,
+          2,
+          0
+        ],
+        [
+          0,
+          4,
           0
         ]
       ],
@@ -1041,8 +1128,8 @@
       "cost": 0,
       "disruption": 0,
       "mix_shortfall": 0,
-      "objective": 2,
-      "peak": 2,
+      "objective": 3,
+      "peak": 3,
       "roster": [
         [
           0,
@@ -1051,7 +1138,12 @@
         ],
         [
           0,
-          3,
+          2,
+          0
+        ],
+        [
+          0,
+          4,
           0
         ]
       ],
@@ -1061,8 +1153,8 @@
       "cost": 0,
       "disruption": 0,
       "mix_shortfall": 0,
-      "objective": 2,
-      "peak": 2,
+      "objective": 3,
+      "peak": 3,
       "roster": [
         [
           0,
@@ -1071,7 +1163,12 @@
         ],
         [
           0,
-          3,
+          2,
+          0
+        ],
+        [
+          0,
+          4,
           0
         ]
       ],
@@ -1081,8 +1178,8 @@
       "cost": 0,
       "disruption": 0,
       "mix_shortfall": 0,
-      "objective": 2,
-      "peak": 2,
+      "objective": 3,
+      "peak": 3,
       "roster": [
         [
           0,
@@ -1091,7 +1188,12 @@
         ],
         [
           0,
-          3,
+          2,
+          0
+        ],
+        [
+          0,
+          4,
           0
         ]
       ],

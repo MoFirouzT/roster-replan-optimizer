@@ -36,12 +36,12 @@ it reported 60-80% of every published roster as illegal. That is `D-123`'s findi
 from the outside. `max_hours_this_week` is set to the statutory ceiling instead, where it
 cannot bind and their own limit does.
 
-**Days off are dropped, not translated.** Theirs forbids an assignment *on* a day; ours is
-interval overlap, and a night shift starting at 22:00 the evening before spills six hours
-into it. Translating a day off into an interval therefore reports every such night shift as
-`R-AVAIL` — the start-day attribution convention `rules.md` fixes, colliding with a naive
-translation. They are omitted rather than approximated, and `_days_off` records them so a
-caller can see what was dropped.
+**Days off are imported, and the collision that used to stop them is now a rule** (`D-142`).
+Theirs forbids an assignment *on* a day; `R-AVAIL` is interval overlap, and a night shift
+starting at 22:00 the evening before spills six hours into it — so translating a day off into
+an interval reported every such night shift as `R-AVAIL`. They were dropped for that reason
+from `D-125` until `R-DAY-OFF` gave the day-indexed reading a rule of its own. `Unencoded`
+still carries them, because a record of what the mapping did outlives the reason it did it.
 
 **`max_consecutive_days` is theirs, per employee.** It was the loosest limit in the workforce
 until `R-CONSEC-DAYS` gained a per-employee override (`D-136`), which is an approximation this
@@ -505,6 +505,8 @@ def as_rules(instance: Instance, unencoded: Unencoded) -> Instance:
         people.append(
             dataclasses.replace(
                 person,
+                # `R-DAY-OFF`, which is why these stopped being dropped (`D-142`).
+                days_off=frozenset(unencoded.days_off.get(person.name, ())),
                 max_weekends=limit.max_weekends,
                 min_consecutive_days_off=limit.min_consecutive_days_off,
                 min_consecutive_days_worked=limit.min_consecutive_shifts,

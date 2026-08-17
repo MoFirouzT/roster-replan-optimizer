@@ -189,6 +189,7 @@ def build(
     _max_shifts_per_type(built, instance)
     _min_hours(built, instance)
     _succession(built, instance)
+    _days_off(built, instance)
     if symmetry:
         _break_symmetry(built, instance)
     return built
@@ -720,6 +721,28 @@ def _succession(built: Built, instance: Instance) -> None:
                 # is the coordinate the checker names too.
                 literal = built.gate(model, Gate("R-SUCCESSION", employee, day + 1, later))
                 model.add(first + second <= 1).only_enforce_if(literal)
+
+
+# --- R-DAY-OFF ----------------------------------------------------------------------
+# One gated `x = 0` per (employee, day off, shift starting that day). Gated rather than
+# excluded in the presolve, for the reason `R-MAX-SHIFT-TYPE`'s zero cap is: the presolve
+# removes pairs that are *impossible*, and a day the tenant granted is a rule a roster can
+# break and be told about.
+#
+# **Start-day attribution decides which shifts this touches**, and it is the reason the rule
+# exists at all: a shift belongs to the day it starts on, so an evening shift the day before
+# is not on this day however far into it the span runs (`D-142`).
+
+
+def _days_off(built: Built, instance: Instance) -> None:
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        for day in sorted(person.days_off):
+            for (e, d, shift), var in built.x.items():
+                if e != employee or d != day:
+                    continue
+                literal = built.gate(model, Gate("R-DAY-OFF", employee, day, shift))
+                model.add(var == 0).only_enforce_if(literal)
 
 
 # --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------

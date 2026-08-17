@@ -59,8 +59,13 @@ nothing else.
 **Days off translated into intervals.** Theirs forbids an assignment *on* a day; ours is interval
 overlap, and a night shift starting at 22:00 the evening before spills six hours into it. Every
 `R-AVAIL` violation reported was a night shift the day before a day off — the start-day attribution
-convention `rules.md` fixes, colliding with a naive translation. Days off are now dropped rather than
-approximated.
+convention `rules.md` fixes, colliding with a naive translation.
+
+They were dropped for that reason until the collision became a rule of its own. **`R-DAY-OFF`
+(`D-142`) is the day-indexed reading**, and the import is now a translation rather than an omission —
+confirmed the way the objective was: their published rosters honour all 70 granted days off across
+the three compared instances, zero violations, where the interval reading flagged every night shift
+before one.
 
 With both corrected, **70 genuine hard violations across 6,363 assignments — 1.10%** on the best
 published solution of each instance.
@@ -318,26 +323,34 @@ budget:
 
 | instance | staff | weeks | published optimum | this project | ratio | status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2 | 14 | 2 | 828 | 719 | 0.87× | `FEASIBLE` |
-| 4 | 10 | 4 | 1,716 | 1,524 | 0.89× | `FEASIBLE` |
-| 6 | 18 | 4 | 1,950 | 2,167 | 1.11× | `FEASIBLE` |
+| 2 | 14 | 2 | 828 | 830 | **1.00×** | `FEASIBLE` |
+| 4 | 10 | 4 | 1,716 | 1,821 | 1.06× | `FEASIBLE` |
+| 6 | 18 | 4 | 1,950 | 2,470 | 1.27× | `FEASIBLE` |
 
-**Two of three are below a proved optimum, which is a red flag and not a result** (`D-137`). Their
-solutions are proven optimal under their own objective; a lower number means this comparison handed
-this project a freedom their solver did not have. It handed over two.
+**Nothing is below a proved optimum, which is the first sign this comparison is sound.** It was not
+always so, and the way it changed is the substance of `D-142`.
 
-**Days off are dropped, not translated**, which this study has recorded since `D-125` as an import
-decision and which turns out to be a quality-claim problem: **14, 20 and 36 constraints** on these
-three instances, every one honoured by their solver and ignored here.
+The first run of this table read **0.87×, 0.89× and 1.11×** — two of three *beating* solutions proven
+optimal under their own objective, which is impossible on a fair comparison and was correctly read as
+a red flag rather than a result (`D-137`). Two freedoms were behind it, both already documented in the
+importer and neither previously connected to a quality claim.
 
-**The rest rule was three hours weaker, and that one is closed.** `as_rules` now takes their stated
-`MinRestTime` of 14 hours rather than imposing Belgium's 11. It moved instance 6 from 1.16× to 1.11×
-and left the other two unchanged — a small freedom, which is what leaves the dropped days off carrying
-the result.
+**The rest rule was three hours weaker**, and closing it moved one instance from 1.16× to 1.11× and
+left the others alone — so it was not what carried the result.
 
-**The bias runs both ways and does not cancel.** Their values are proofs; all three of these are
-best efforts at a budget. That cuts against this project while the dropped days off cut for it, and
-two unmeasured biases in opposite directions are not a fair comparison.
+**Days off were dropped, not translated**, which this study recorded from `D-125` as an import
+decision: 14, 20 and 36 constraints their solver honoured and this one ignored. `R-DAY-OFF` (`D-142`)
+makes them expressible, and closing that freedom is what moved every row — 0.87× to 1.00×, 0.89× to
+1.06×, 1.11× to 1.27×. **The entire apparent win was bought with days off other people's rosters had
+to respect.**
+
+**Instance 2 lands within 0.24% of a proved optimum** at a 300-second budget, without proving
+optimality itself. That is the honest headline of this table, and it is a much better one than the
+figure it replaces.
+
+**One bias remains, and it runs the other way.** Their values are proofs; all three of these are best
+efforts at a budget, so this project is being compared at a disadvantage it could reduce by spending
+more time. That is worth stating and is the opposite of the flattery the first table carried.
 
 What the run *does* establish: this project's stack can express their problem and solve it, and the
 two implementations of their objective — one as CP-SAT terms, one as a scorer — agree on every case,

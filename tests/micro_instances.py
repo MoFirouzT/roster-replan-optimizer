@@ -697,6 +697,25 @@ def _a_personal_consecutive_limit_is_stricter() -> Instance:
     )
 
 
+def _a_granted_day_off_is_not_an_interval() -> Instance:
+    """A night shift the evening before a granted day off, which must stay legal.
+
+    The instance the rule exists for (`D-142`). Ana has day 1 off; the night shift on day 0
+    starts at 23:00 and runs to 07:00, six hours *into* day 1. Under start-day attribution it
+    belongs to day 0 and is legal, and an `R-AVAIL`-style interval reading would refuse it —
+    which is exactly what made the nurse-rostering importer drop its source's days off.
+
+    The morning on day 1 is the assignment the rule must refuse.
+    """
+    return instance(
+        employees=[person("Ana", days_off=frozenset({1}))],
+        open_shifts=(
+            OpenShift(day=0, shift=NIGHT, required=1),
+            OpenShift(day=1, shift=MORNING, required=1),
+        ),
+    )
+
+
 MICRO_INSTANCES: dict[str, Instance] = {
     "cold_clean": _cold_clean(),
     "coverage_shortfall_forced": _coverage_shortfall_forced(),
@@ -736,6 +755,7 @@ MICRO_INSTANCES: dict[str, Instance] = {
     "hours_have_a_floor": _hours_have_a_floor(),
     "a_shift_may_not_follow_another": _a_shift_may_not_follow_another(),
     "a_personal_consecutive_limit_is_stricter": _a_personal_consecutive_limit_is_stricter(),
+    "a_granted_day_off_is_not_an_interval": _a_granted_day_off_is_not_an_interval(),
 }
 
 # Instances whose incumbent already breaks a rule, so a solve legitimately returns a core

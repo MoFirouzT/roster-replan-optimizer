@@ -152,6 +152,16 @@ class Employee:
     # the ones that already exist, and this only changes where the limit is read from.
     max_consecutive_days: int | None = None
 
+    # `R-DAY-OFF`: days this employee is granted off, by day index (`D-142`).
+    #
+    # **Days rather than intervals, and that is the whole point of the rule.** `R-AVAIL`
+    # already refuses an assignment overlapping an interval, and it cannot express this: a
+    # shift starting at 22:00 the evening *before* runs six hours into the day off and
+    # overlaps any interval covering it, so an interval reading refuses a shift the granting
+    # of the day off never meant to touch. Start-day attribution is the convention that makes
+    # a day-indexed set exact where an interval is not.
+    days_off: frozenset[int] = frozenset()
+
     # Eligibility gates, indexed by day: a Dimona may not cross a quarter boundary, so
     # one employee can be eligible on 30 June and not on 1 July inside one horizon.
     # None means "not supplied", which input validation rejects for a flexi contract --
