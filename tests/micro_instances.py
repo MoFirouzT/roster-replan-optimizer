@@ -603,6 +603,93 @@ def _days_off_at_the_horizon_edge_are_not_judged() -> Instance:
     )
 
 
+def _blocks_of_work_have_a_minimum() -> Instance:
+    """Shifts on days 0, 3 and 4, and a two-day minimum on a block of work.
+
+    Day 0 is a one-day block bounded by the horizon's start, so it is not judged; days 3-4
+    are a legal pair. The rule bites on the roster that takes 0 and 3 and leaves 4, which
+    enumeration must therefore refuse — the shape that separates `R-MIN-BLOCK` from a rule
+    about totals.
+    """
+    return instance(
+        employees=[person("Ana", min_consecutive_days_worked=2)],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=3, shift=MORNING, required=1),
+            OpenShift(day=4, shift=MORNING, required=1),
+        ),
+    )
+
+
+def _one_shift_type_is_capped() -> Instance:
+    """Two evenings and a morning open, one person, and a cap of one **evening**.
+
+    **The mix is the whole instance.** Built with evenings alone, a cap read as a total on
+    all shifts gives exactly the same answer as a cap on that type, and the mutant that
+    confuses the two survives — which is what happened before this instance was rewritten.
+    The morning is what separates them: the optimum here works it *and* one evening, and a
+    total of one would refuse the pair.
+    """
+    return instance(
+        employees=[person("Ana", max_shifts_per_type={EVENING: 1})],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=2, shift=EVENING, required=1),
+            OpenShift(day=4, shift=EVENING, required=1),
+        ),
+    )
+
+
+def _hours_have_a_floor() -> Instance:
+    """A floor of 15 hours against 7.5-hour shifts: two shifts or none is legal, one is not.
+
+    The only rule in the registry a roster breaks by doing too little, so this is the only
+    micro-instance where adding an assignment can *fix* a violation.
+    """
+    return instance(
+        employees=[person("Ana", min_hours_this_period=15.0)],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=3, shift=MORNING, required=1),
+        ),
+    )
+
+
+def _a_shift_may_not_follow_another() -> Instance:
+    """A morning on day 0 and an evening on day 1, with that pairing forbidden.
+
+    **The direction matters and the obvious instance is the wrong one.** Evening-then-morning
+    is already refused by `R-REST-GAP` — 23:00 to 07:00 is eight hours — so an instance built
+    that way would pass with `R-SUCCESSION` deleted and prove nothing. Morning-then-evening
+    leaves 24 hours, which the gap rule permits, so this pair is refused by the succession
+    rule **alone**. That is what `rules.md` means by the two overlapping without one
+    subsuming the other.
+    """
+    return instance(
+        employees=[person("Ana")],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=1, shift=EVENING, required=1),
+        ),
+        params=replace(BASE_PARAMS, forbidden_successions=frozenset({(MORNING, EVENING)})),
+    )
+
+
+def _a_personal_consecutive_limit_is_stricter() -> Instance:
+    """Two people, four days, and one of them limited to two days in a row where the tenant
+    allows six.
+
+    `R-CONSEC-DAYS` reading a per-employee limit (`D-136`), which no instance with a single
+    limit can distinguish from reading the tenant's.
+    """
+    return instance(
+        employees=[person("Ana", max_consecutive_days=2), person("Bram")],
+        open_shifts=tuple(
+            OpenShift(day=day, shift=MORNING, required=1) for day in range(4)
+        ),
+    )
+
+
 MICRO_INSTANCES: dict[str, Instance] = {
     "cold_clean": _cold_clean(),
     "coverage_shortfall_forced": _coverage_shortfall_forced(),
@@ -637,6 +724,11 @@ MICRO_INSTANCES: dict[str, Instance] = {
     "weekends_on_the_threshold": _weekends_on_the_threshold(),
     "days_off_come_in_blocks": _days_off_come_in_blocks(),
     "days_off_at_the_horizon_edge_are_not_judged": _days_off_at_the_horizon_edge_are_not_judged(),
+    "blocks_of_work_have_a_minimum": _blocks_of_work_have_a_minimum(),
+    "one_shift_type_is_capped": _one_shift_type_is_capped(),
+    "hours_have_a_floor": _hours_have_a_floor(),
+    "a_shift_may_not_follow_another": _a_shift_may_not_follow_another(),
+    "a_personal_consecutive_limit_is_stricter": _a_personal_consecutive_limit_is_stricter(),
 }
 
 # Instances whose incumbent already breaks a rule, so a solve legitimately returns a core

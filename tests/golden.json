@@ -1,4 +1,88 @@
 {
+  "a_personal_consecutive_limit_is_stricter": {
+    "D0": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "shortfall": 0
+    },
+    "D1": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "shortfall": 0
+    },
+    "D2": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "shortfall": 0
+    },
+    "D3": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "shortfall": 0
+    },
+    "D4": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "shortfall": 0
+    }
+  },
+  "a_shift_may_not_follow_another": {
+    "D0": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "shortfall": 100000
+    },
+    "D1": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "shortfall": 100000
+    },
+    "D2": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "shortfall": 100000
+    },
+    "D3": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "shortfall": 100000
+    },
+    "D4": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100001,
+      "peak": 1,
+      "shortfall": 100000
+    }
+  },
   "absence_partial_day": {
     "D0": {
       "cost": 0,
@@ -80,6 +164,133 @@
       "mix_shortfall": 0,
       "objective": 1,
       "peak": 1,
+      "shortfall": 0
+    }
+  },
+  "blocks_of_work_have_a_minimum": {
+    "D0": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 3,
+      "peak": 3,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          4,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D1": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 3,
+      "peak": 3,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          4,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D2": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 3,
+      "peak": 3,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          4,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D3": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 3,
+      "peak": 3,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          4,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D4": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 3,
+      "peak": 3,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ],
+        [
+          0,
+          4,
+          0
+        ]
+      ],
       "shortfall": 0
     }
   },
@@ -785,6 +996,108 @@
       "shortfall": 0
     }
   },
+  "hours_have_a_floor": {
+    "D0": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D1": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D2": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D3": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ]
+      ],
+      "shortfall": 0
+    },
+    "D4": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 2,
+      "peak": 2,
+      "roster": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0
+        ]
+      ],
+      "shortfall": 0
+    }
+  },
   "incumbent_became_ineligible": {
     "D0": {
       "cost": 0,
@@ -1096,6 +1409,48 @@
         ]
       ],
       "shortfall": 0
+    }
+  },
+  "one_shift_type_is_capped": {
+    "D0": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100002,
+      "peak": 2,
+      "shortfall": 100000
+    },
+    "D1": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100002,
+      "peak": 2,
+      "shortfall": 100000
+    },
+    "D2": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100002,
+      "peak": 2,
+      "shortfall": 100000
+    },
+    "D3": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100002,
+      "peak": 2,
+      "shortfall": 100000
+    },
+    "D4": {
+      "cost": 0,
+      "disruption": 0,
+      "mix_shortfall": 0,
+      "objective": 100002,
+      "peak": 2,
+      "shortfall": 100000
     }
   },
   "overstaffing_impossible": {

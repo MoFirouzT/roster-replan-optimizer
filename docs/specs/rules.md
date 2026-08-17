@@ -38,6 +38,10 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | `R-CONSEC-DAYS` | Maximum consecutive working days | hard | days | **not statutory** — operational/CBA, see below |
 | `R-MAX-WEEKENDS` | Maximum weekends worked across the horizon | hard, **optional** | weekends, per employee | **not statutory** — operational/CBA (`D-135`) |
 | `R-MIN-DAYS-OFF` | Minimum length of a stretch of days off | hard, **optional** | days, per employee | **not statutory** — operational/CBA (`D-135`) |
+| `R-MIN-BLOCK` | Minimum length of a block of working days | hard, **optional** | days, per employee | **not statutory** — operational/CBA (`D-136`) |
+| `R-MAX-SHIFT-TYPE` | Maximum assignments of one shift type | hard, **optional** | count, per employee and shift type | **not statutory** — operational/CBA (`D-136`) |
+| `R-MIN-HOURS` | Minimum assigned hours over the horizon | hard, **optional** | hours, per employee | **not statutory** — operational/CBA (`D-136`) |
+| `R-SUCCESSION` | A shift type that may not follow another | hard, **optional** | pairs of shift types | **not statutory** — operational/CBA (`D-136`) |
 | `R-WEEKLY-REST` | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
 | `R-FLEXI-ELIG` | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1 |
 | `R-DIMONA-FLX` | `FLX` Dimona filing as an eligibility gate | hard, **resolved upstream** | filing state, per employee/day | NSSO Dimona instructions; Wet 16 Nov 2015 |
@@ -649,6 +653,11 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   may legitimately be switched off.
 - **Parameters.** `max_consecutive_days`, default **6**, tenant-configurable including *off*.
   `consecutive_days_worked_before_horizon[e]`, caller-supplied, mandatory when the rule is enabled.
+
+  **Per employee where one is supplied** (`D-136`). `Employee.max_consecutive_days` overrides the
+  tenant's number for that person and absence means the tenant's applies. This is not a second rule —
+  same ID, same encodings, same explainer text — only the place the limit is read from changes, and
+  it is what lets one workforce hold two limits, which is how the only real dataset here states it.
 - **Model encoding.** Sliding-window sums — `|D| − L + p` inequalities per employee, each over `L + 1`
   booleans, plus one reification per `(employee, day)` for `w`.
 
@@ -784,6 +793,99 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Checker encoding.** Walk the days off, measure each stretch, and skip those touching either end.
   Here the latitude has to be stated, which is the usual asymmetry between the two readings.
 - **Explainer text.** `Bram gets 1 day off from day 4; 2 consecutive required.`
+- **Provenance.** Operational, or a CBA.
+
+### `R-MIN-BLOCK` — blocks of working days
+
+- **Statement.** A block of consecutive working days inside the horizon is at least a stated number
+  of days long.
+- **Predicate.** `R-MIN-DAYS-OFF`'s pattern with worked and off exchanged. For every gap length `L`
+  from 1 to `min_consecutive_days_worked − 1` and every day `d` with `d + L + 1 < days`:
+
+  ```
+  −worked[e, d] + Σ_{j=1..L} worked[e, d+j] − worked[e, d+L+1]  ≤  L − 1
+  ```
+
+  The left side is `L` exactly on the pattern being forbidden — off, then `L` days worked, then off —
+  and at most `L − 1` on everything else.
+- **Class.** Hard and **optional**. A minimum of 1 forbids nothing and is treated as absent.
+- **Why a tenant wants it.** A single day between two stretches off is a day somebody travels in for
+  one shift. The rule is about the journey and the disruption to a week, not about the hours.
+- **Interior blocks only**, for the reason `R-MIN-DAYS-OFF` gives about its own edges (`D-134`).
+- **Model encoding.** The forbidden pattern above, one gated inequality per (employee, block length,
+  start). The boundary latitude needs no special case.
+- **Checker encoding.** Walk the worked days, measure each block, skip those touching either end.
+  Written as its own walk rather than as `R-MIN-DAYS-OFF`'s with a flag: one predicate serving two
+  rules is a defect that would break both readings of both at once.
+- **Explainer text.** `Ana works a block of 1 day(s) from day 3; 2 consecutive required.`
+- **Provenance.** Operational, or a CBA.
+
+### `R-MAX-SHIFT-TYPE` — how many of one shift
+
+- **Statement.** An employee works at most a stated number of assignments of a given shift type.
+- **Predicate.** For every `e ∈ E` and every capped shift type `s`:
+
+  ```
+  Σ_{d : (d, s) ∈ O} x[e, d, s]  ≤  max_shifts_per_type[e][s]
+  ```
+
+- **Class.** Hard and **optional**, per employee and shift type.
+- **Why not a total.** A cap on shifts in general is `R-MAX-WEEKLY` in another unit. This one says
+  *four nights a month*, and a cap of **zero is a prohibition** — the shape a total cannot express.
+- **A cap of zero is a rule, not an impossibility**, so it stays here rather than moving into the
+  presolve's exclusions. Presolve removes pairs that cannot be worked; a cap the tenant chose should
+  be reportable as a rule the roster broke.
+- **Model encoding.** One gated sum per (employee, capped type).
+- **Checker encoding.** Count the employee's assignments of that type and compare.
+- **Explainer text.** `Ana works 5 N shifts; 4 allowed.`
+- **Provenance.** Operational, or a CBA.
+
+### `R-MIN-HOURS` — the floor
+
+- **Statement.** An employee is assigned at least a stated number of working hours across the horizon.
+- **Predicate.** For every `e ∈ E` with a supplied floor:
+
+  ```
+  Σ_{(d, s) ∈ O} work_hours(d, s) · x[e, d, s]  ≥  min_hours_this_period[e]
+  ```
+
+  `R-MAX-PERIOD`'s arithmetic with the comparison reversed, over the same span.
+- **Class.** Hard and **optional**.
+- **The only hard rule here a roster breaks by doing too little**, and that makes it the only one that can
+  conflict with `R-COVER`'s soft floor: a week with too few shifts to go round cannot meet everybody's
+  minimum, and no legal roster exists. **That is a legitimate infeasibility rather than a defect**, and
+  it is gated like every other hard constraint, so the core names this rule instead of leaving a
+  planner to infer it from a shortfall.
+- **Model encoding.** One gated inequality per employee with a floor supplied.
+- **Checker encoding.** Sum the employee's assigned work hours and compare. Net time, under the same
+  convention every hours rule here uses.
+- **Explainer text.** `Ana is assigned 15h; 24h is the minimum for the period.`
+- **Provenance.** Operational, or a CBA — a guaranteed-hours clause is the usual source.
+
+### `R-SUCCESSION` — a shift that may not follow another
+
+- **Statement.** Where a tenant forbids a pairing, an employee working the earlier shift type does not
+  work the later one the next day.
+- **Predicate.** For every `e ∈ E`, `d ∈ D` and `(a, b) ∈ forbidden_successions`:
+
+  ```
+  x[e, d, a] + x[e, d+1, b]  ≤  1
+  ```
+
+- **Class.** Hard and **optional**. The pairs are on `RuleParams`, because they are a property of the
+  shift catalogue rather than of a person.
+- **Not subsumed by `R-REST-GAP`, though they overlap.** A rest gap is hours between two shifts and is
+  satisfied by enough of them; this forbids a pairing outright however long the gap. A tenant who does
+  not want anyone on an early shift the day after a late one is stating a rule about the *pattern*,
+  and stating it as hours would forbid other pairs they are content with.
+- **Model encoding.** One gated inequality per (employee, day, pair). Pairwise rather than an
+  automaton, for the reason [`studies/regular-constraint.md`](../studies/regular-constraint.md) gives:
+  the pairs are local, the expansion is small, and the day coordinate survives into the violation.
+- **Checker encoding.** Group the roster by employee and day, then check every consecutive pair. An
+  employee holding two shifts on one day makes several pairs and each is checked — the rule is about
+  the pairing, not about a canonical shift for the day.
+- **Reported on the second day**, the one the forbidden shift falls on, in both readings.
+- **Explainer text.** `Ana works M on day 4, which may not follow N.`
 - **Provenance.** Operational, or a CBA.
 
 ## Eligibility gates

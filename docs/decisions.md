@@ -3808,3 +3808,73 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   make the harness admit uncertainty has paid for itself (`D-112`, `D-130`).
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-17.
+
+## D-136 — The rest of their constraint set, and the one rule that can refuse a roster
+
+- **Decision.** `R-MIN-BLOCK`, `R-MAX-SHIFT-TYPE`, `R-MIN-HOURS` and `R-SUCCESSION` join the registry
+  as hard, optional operational rules on `D-135`'s terms, encoded in both readings. `R-CONSEC-DAYS`
+  gains a **per-employee limit** rather than a second rule: `Employee.max_consecutive_days` overrides
+  the tenant's where supplied. With these, all seven constraints `D-134` measured are encoded.
+- **Alternatives.** *Leave `MinTotalMinutes` out*, since `D-134` measured zero breaches of it. *Model
+  `MaxConsecutiveShifts` as its own rule*, which is what a registry entry per foreign field would have
+  produced. *Share one predicate between `R-MIN-BLOCK` and `R-MIN-DAYS-OFF`*, parameterised by
+  whether it walks worked days or days off. *An automaton for `R-SUCCESSION`*.
+- **Reason.** **`R-MIN-HOURS` is the interesting one, and it earns its place by being different.**
+  Every other rule in this registry is satisfied by an empty roster; this one is the only rule a
+  roster breaks by doing too *little*. That makes it the only one that can conflict with `R-COVER`'s
+  soft floor — a week with too few shifts to go round cannot meet everybody's minimum, and no legal
+  roster exists. That is a legitimate infeasibility rather than a defect, and gating it means the core
+  names the rule instead of leaving a planner to infer it from a shortfall.
+
+  It is also the one `D-134` measured as breached **zero times**, which is an argument for leaving it
+  out and is not the argument that wins: a fair comparison against their solver needs every constraint
+  their solver had, or this side gets a freedom theirs did not. If it turns out to bind on nothing
+  once the comparison runs, that is a null worth recording rather than a rule worth keeping quiet.
+
+  **`MaxConsecutiveShifts` is not a new rule and should not have got an ID.** `R-CONSEC-DAYS` already
+  states it; the only difference is that theirs is per employee and this registry's was per tenant.
+  Adding an entry would have put two IDs on one predicate, which is the failure the registry exists to
+  prevent — the same rule reported under two names by two readings. It also **retires a stated
+  approximation**: `foreign.py` had been taking the loosest limit in the workforce and saying so.
+
+  **No shared predicate between `R-MIN-BLOCK` and `R-MIN-DAYS-OFF`.** They are mirror images and the
+  temptation to write one walker with a flag is strong. One predicate serving two rules is a defect
+  that breaks *both readings of both rules at once*, which is precisely what the independence rule
+  exists to make impossible. Written twice, deliberately.
+
+  **Pairwise for `R-SUCCESSION`, not an automaton**, on `D-088`'s measured grounds: the pairs are
+  local, the expansion is small, and the day coordinate survives into the violation where an
+  automaton's would not.
+- **Consequences.** **A cap of zero in `R-MAX-SHIFT-TYPE` is a rule, not an impossibility.** It stays
+  out of the presolve's exclusions: presolve removes pairs that *cannot* be worked, and a cap the
+  tenant chose should be reportable as a rule the roster broke rather than vanishing from the model.
+
+  **The study-only automaton had to move.** `_consec_days_automaton` built one transition table
+  outside the employee loop; with per-employee limits that would quietly enforce one tenant's number
+  on everybody, and `lab.agree` requires every encoding variant to reach the same optimum. It is now
+  built per employee, which costs the study nothing and keeps the variants honest.
+
+  **`D-134`'s measurement is the gate for this work, and it passes.** It was written to decide
+  whether these constraints bind; re-run against rosters this model now produces, it is the check
+  that encoding them worked — 31, 77 and 198 breaches on the three instances with a clean past, all
+  three now **zero**, with no hard violation under this project's own checker either.
+
+  **And it cost something, though less of the cost is attributable than the first write-up claimed.**
+  All three came back `FEASIBLE` rather than `OPTIMAL` at a 120-second budget. Measured against the
+  same instances without the rules, only **instance 2** is a clean before-and-after: `OPTIMAL` in 58
+  seconds becomes a feasible roster with a gap. Instances 4 and 6 were already spending the whole
+  budget *without* them — `OPTIMAL` because the proof lands in phase one and `D-119`'s canonicalising
+  phase spends the remainder — so they support no claim about these rules' cost. What all three do
+  support is size: **45% to 55% more variables**.
+
+  The first draft of this record said the instances had proved optimality "in single-digit seconds"
+  without the rules. That is `D-127`'s figure for a different instance under a different measurement,
+  and the numbers here contradict it; it is corrected rather than quietly dropped because quoting a
+  neighbouring study's number as if it were this one's is the specific error worth not repeating.
+
+  `D-104` retired LNS because every solve returned `OPTIMAL` in milliseconds; `D-127` narrowed that to
+  *this does not happen in the regime we serve*. One instance narrows it again — **not with the
+  objective we shipped and rules a tenant may switch on** — and a tenant enabling all seven over a
+  month should expect a gap rather than a proof.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.

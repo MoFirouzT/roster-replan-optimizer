@@ -1,7 +1,11 @@
-"""`R-MAX-WEEKENDS` and `R-MIN-DAYS-OFF` — structure across weeks (`D-135`).
+"""The registry's **hard, optional** family (`D-135`, `D-136`).
 
-The two rules `D-134` measured this model breaking on every case it was given, now encoded.
-`tests/micro_instances.py` carries four instances for them, so brute-force ground truth and
+Seven rules a caller opts into by supplying a parameter, all of them constraints
+`D-134` measured this model breaking on every case it was given, all of them now encoded:
+`R-MAX-WEEKENDS`, `R-MIN-DAYS-OFF`, `R-MIN-BLOCK`, `R-MAX-SHIFT-TYPE`, `R-MIN-HOURS`,
+`R-SUCCESSION`, and `R-CONSEC-DAYS`'s per-employee limit.
+
+`tests/micro_instances.py` carries nine instances for them, so brute-force ground truth and
 the differential harness already hold the two readings against each other. What is here is
 what those cannot say:
 
@@ -28,7 +32,7 @@ from roster_replan.checker import check
 from roster_replan.domain import OpenShift, RuleParams
 from roster_replan.model import solve
 from roster_replan.validation import validate_instance
-from tests.micro_instances import MICRO_INSTANCES, MORNING, instance, person
+from tests.micro_instances import EVENING, MICRO_INSTANCES, MORNING, instance, person
 
 WEEKEND = frozenset({5, 6})
 
@@ -182,3 +186,149 @@ def test_a_weekend_day_outside_a_week_is_rejected():
     defects = [d for d in validate_instance(broken) if d.field == "params.weekend_days"]
     assert len(defects) == 1
     assert defects[0].observed == 7
+
+
+# --- The rest of the family (`D-136`) -------------------------------------------------
+
+
+def _week(**employee):
+    """One person, a shift open every day of a week."""
+    return instance(
+        days=7,
+        employees=[person("Ana", max_hours_this_week=60.0, **employee)],
+        open_shifts=tuple(OpenShift(day=d, shift=MORNING, required=1) for d in range(7)),
+    )
+
+
+@pytest.mark.parametrize(
+    ("worked", "expected"),
+    [
+        (frozenset({1, 2, 3}), []),
+        (frozenset({0, 2, 3, 4}), []),          # the day-zero block touches the edge
+        (frozenset({1, 2, 3, 4, 5, 6}), []),    # and so does the day-six one
+        (frozenset({1, 4, 5}), [1]),            # a lone interior day is the breach
+    ],
+    ids=["a-legal-block", "block-at-day-zero", "block-at-the-last-day", "a-lone-day"],
+)
+def test_only_interior_blocks_of_work_are_judged(worked, expected):
+    """`R-MIN-BLOCK` mirrors `R-MIN-DAYS-OFF`, including its boundary latitude: a block
+    running to either end of the horizon may continue outside it."""
+    week = _week(min_consecutive_days_worked=2)
+    roster = frozenset({(0, day, MORNING) for day in worked})
+
+    assert [v.day for v in check(roster, week) if v.rule == "R-MIN-BLOCK"] == expected
+
+
+def test_a_shift_type_cap_is_not_a_cap_on_shifts():
+    """`R-MAX-SHIFT-TYPE` counts one type. A reading that counted every shift would refuse a
+    roster this one must allow, and a cap of zero — a prohibition — would become a cap on
+    working at all."""
+    capped = instance(
+        days=7,
+        employees=[person("Ana", max_hours_this_week=60.0, max_shifts_per_type={EVENING: 1})],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=2, shift=MORNING, required=1),
+            OpenShift(day=4, shift=EVENING, required=1),
+        ),
+    )
+    two_mornings_and_an_evening = frozenset({(0, 0, MORNING), (0, 2, MORNING), (0, 4, EVENING)})
+
+    assert [v for v in check(two_mornings_and_an_evening, capped) if v.rule == "R-MAX-SHIFT-TYPE"] == []
+
+
+def test_a_cap_of_zero_is_a_prohibition_and_is_reported_as_a_rule():
+    """Not folded into the presolve's exclusions: presolve removes pairs that *cannot* be
+    worked, and a cap the tenant chose should come back as a rule the roster broke."""
+    forbidden = instance(
+        days=7,
+        employees=[person("Ana", max_shifts_per_type={EVENING: 0})],
+        open_shifts=(OpenShift(day=0, shift=EVENING, required=1),),
+    )
+    breach = [v for v in check(frozenset({(0, 0, EVENING)}), forbidden) if v.rule == "R-MAX-SHIFT-TYPE"]
+
+    assert len(breach) == 1
+    assert breach[0].observed == 1 and breach[0].required == 0
+
+
+def test_the_hours_floor_is_the_one_rule_an_empty_roster_breaks():
+    """Every other hard rule in the registry is satisfied by assigning nobody. This one is
+    what makes `R-MIN-HOURS` able to conflict with `R-COVER`'s soft floor."""
+    floored = _week(min_hours_this_period=15.0)
+
+    empty = [v for v in check(frozenset(), floored) if not v.soft]
+    assert [v.rule for v in empty] == ["R-MIN-HOURS"]
+
+    enough = frozenset({(0, 0, MORNING), (0, 3, MORNING)})
+    assert [v for v in check(enough, floored) if v.rule == "R-MIN-HOURS"] == []
+
+
+def test_an_unmeetable_floor_is_an_infeasibility_that_names_itself():
+    """The conflict `rules.md` warns about, end to end. There is one shift and a floor two
+    shifts high, so no legal roster exists — and because the rule is gated, the answer is a
+    core naming `R-MIN-HOURS` rather than a shortfall a planner has to interpret.
+    """
+    impossible = instance(
+        days=7,
+        employees=[person("Ana", min_hours_this_period=15.0)],
+        open_shifts=(OpenShift(day=0, shift=MORNING, required=1),),
+    )
+    core = solve(impossible, seed=7, time_limit=30.0)
+
+    assert isinstance(core, list) and core, "expected an infeasibility core"
+    # `in` rather than `==`: CP-SAT returns a sufficient set of assumptions, not a minimal
+    # one, which is the same caveat `tests/test_differential.py` records.
+    assert "R-MIN-HOURS" in {gate.rule for gate in core}
+
+
+def test_a_forbidden_succession_is_not_a_rest_gap():
+    """The claim `rules.md` makes about the two overlapping without either subsuming the
+    other, asserted on the pair that separates them.
+
+    Evening-then-morning is refused by `R-REST-GAP` anyway — eight hours — so it proves
+    nothing. Morning-then-evening leaves 24 hours, which the gap rule permits.
+    """
+    paired = instance(
+        days=7,
+        employees=[person("Ana", max_hours_this_week=60.0)],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=1, shift=EVENING, required=1),
+        ),
+        params=dataclasses.replace(
+            _week().params, forbidden_successions=frozenset({(MORNING, EVENING)})
+        ),
+    )
+    roster = frozenset({(0, 0, MORNING), (0, 1, EVENING)})
+    found = [v.rule for v in check(roster, paired)]
+
+    assert "R-SUCCESSION" in found
+    assert "R-REST-GAP" not in found, "the pair must be legal on rest, or the rule proves nothing"
+
+    # And the reverse pairing is untouched: the rule is directional.
+    reversed_pairs = dataclasses.replace(
+        paired,
+        params=dataclasses.replace(
+            paired.params, forbidden_successions=frozenset({(EVENING, MORNING)})
+        ),
+    )
+    assert [v for v in check(roster, reversed_pairs) if v.rule == "R-SUCCESSION"] == []
+
+
+def test_a_personal_consecutive_limit_overrides_the_tenants():
+    """`R-CONSEC-DAYS` per employee (`D-136`) — one rule, two limits, not two rules."""
+    mixed = instance(
+        days=7,
+        employees=[
+            person("Ana", max_hours_this_week=60.0, max_consecutive_days=2),
+            person("Bram", max_hours_this_week=60.0),
+        ],
+        open_shifts=tuple(OpenShift(day=d, shift=MORNING, required=1) for d in range(4)),
+    )
+
+    ana = frozenset({(0, day, MORNING) for day in range(3)})
+    assert [v.rule for v in check(ana, mixed) if v.rule == "R-CONSEC-DAYS"] == ["R-CONSEC-DAYS"]
+
+    # The same three days for Bram, whose limit is the tenant's six.
+    bram = frozenset({(1, day, MORNING) for day in range(3)})
+    assert [v for v in check(bram, mixed) if v.rule == "R-CONSEC-DAYS"] == []

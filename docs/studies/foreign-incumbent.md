@@ -268,11 +268,44 @@ the same claim with a number on it, produced by somebody else's constraint set r
 introspection, and it ranks the survey's items by how badly each is currently ignored rather than by
 how plausible each sounded.
 
-**Two of the seven are now rules of this product** (`D-135`). `R-MAX-WEEKENDS` and `R-MIN-DAYS-OFF`
-are in `rules.md`'s registry, hard and optional, encoded in the model and the checker and carried into
-brute-force ground truth by four micro-instances. They were chosen as the two worst breaches and
-because between them they carry both encoding shapes the remaining five reuse — a count over weeks,
-and a forbidden pattern over a run.
+**All seven are now rules of this product** (`D-135`, `D-136`), hard and optional, encoded in the
+model and the checker and carried into brute-force ground truth by nine micro-instances.
+`MaxConsecutiveShifts` is the exception that proves the shape: it got no rule ID, because
+`R-CONSEC-DAYS` already states that predicate and only needed a per-employee limit.
+
+**The measurement that motivated the work is the check that it worked.** Asked to hold their
+constraints, this model now produces rosters that satisfy all seven where it previously broke six:
+
+| instance | staff | breaches before | breaches after |
+| --- | --- | --- | --- |
+| 2 | 14 | 31 | **0** |
+| 4 | 10 | 77 | **0** |
+| 6 | 18 | 198 | **0** |
+
+**The rules are not free, and the honest version of the price is narrower than the first one written
+here.** Measured against the same instances solved without them, at a 120-second budget:
+
+| instance | staff | weeks | without the rules | with them | variables | added |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 14 | 2 | `OPTIMAL`, 58 s | **`FEASIBLE`, hit the budget** | 1,750 | +786 |
+| 4 | 10 | 4 | `OPTIMAL`, at the budget | `FEASIBLE`, at the budget | 2,598 | +1,430 |
+| 6 | 18 | 4 | `OPTIMAL`, at the budget | `FEASIBLE`, at the budget | 6,493 | +3,527 |
+
+**Instance 2 is the only clean before-and-after**, and it is a real degradation: optimality proved in
+58 seconds becomes a feasible roster with a gap. Instances 4 and 6 were already consuming the whole
+budget *without* the rules — reported `OPTIMAL` because the proof lands in phase one and `D-119`'s
+canonicalising phase spends what is left — so they cannot carry a claim about the rules' cost either
+way. The first draft of this paragraph said these instances proved optimality "in single-digit
+seconds", which is `D-127`'s figure for a different instance under a different measurement, and the
+numbers above contradict it.
+
+What the variable counts do support on all three is the size: **45% to 55% more variables**, which is
+the seven rules' encoding rather than an interaction with anything.
+
+So the claim `D-104` and `D-127` have been narrowing narrows once more, and only by as much as one
+instance carries: `OPTIMAL` in milliseconds was a statement about the regime this project serves *with
+the objective it shipped*, and switching on rules a tenant may legitimately want is enough to leave
+it (`D-136`).
 
 ## What this does not establish
 

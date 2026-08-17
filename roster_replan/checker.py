@@ -68,6 +68,10 @@ def check(roster: Roster, instance: Instance) -> list[Violation]:
     violations += _consec_days(roster, instance)
     violations += _max_weekends(roster, instance)
     violations += _min_days_off(roster, instance)
+    violations += _min_block(roster, instance)
+    violations += _max_shifts_per_type(roster, instance)
+    violations += _min_hours(roster, instance)
+    violations += _succession(roster, instance)
     return sorted(violations, key=lambda v: (v.rule, _nk(v.employee), _nk(v.day), _nk(v.shift)))
 
 
@@ -514,13 +518,17 @@ def _max_daily(roster: Roster, instance: Instance) -> list[Violation]:
 
 
 def _consec_days(roster: Roster, instance: Instance) -> list[Violation]:
-    limit = instance.params.max_consecutive_days
-    if limit is None:
-        return []
-
     out = []
     for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
         person = instance.employees[employee]
+        # The employee's own limit where they have one, the tenant's otherwise (`D-136`).
+        # Read here rather than shared with the model, like every other threshold.
+        limit = person.max_consecutive_days
+        if limit is None:
+            limit = instance.params.max_consecutive_days
+        if limit is None:
+            continue
+
         worked = {day for day, _ in shifts}
         streak = person.consecutive_days_worked_before_horizon
         reported = False
@@ -626,4 +634,146 @@ def _min_days_off(roster: Roster, instance: Instance) -> list[Violation]:
                         )
                     )
                 start = None
+    return out
+
+
+# --- R-MIN-BLOCK --------------------------------------------------------------------
+# The mirror of `_min_days_off`, and written as its own walk rather than as that function
+# with a flag: a shared helper parameterised by "worked or off" is one predicate serving
+# two rules, and a defect in it would break both readings of both at once.
+#
+# Interior blocks only, for the reason `R-MIN-DAYS-OFF` gives about its own edges.
+
+
+def _min_block(roster: Roster, instance: Instance) -> list[Violation]:
+    out = []
+    for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
+        minimum = instance.employees[employee].min_consecutive_days_worked
+        if minimum is None or minimum < 2:
+            continue
+
+        worked = {day for day, _ in shifts}
+        start = None
+        for day in range(instance.days + 1):
+            on = day < instance.days and day in worked
+            if on and start is None:
+                start = day
+            elif not on and start is not None:
+                length = day - start
+                if start > 0 and day < instance.days and length < minimum:
+                    person = instance.employees[employee]
+                    out.append(
+                        Violation(
+                            rule="R-MIN-BLOCK",
+                            message=f"{person.name} works a block of {length} day(s) from "
+                            f"day {start}; {minimum} consecutive required",
+                            employee=employee,
+                            day=start,
+                            observed=length,
+                            required=minimum,
+                        )
+                    )
+                start = None
+    return out
+
+
+# --- R-MAX-SHIFT-TYPE ---------------------------------------------------------------
+# Count assignments of the capped type. A cap of zero is a prohibition and is reported the
+# same way as any other breach -- the rule is the tenant's choice, not an impossibility,
+# so it belongs in the violation list rather than in the presolve's exclusions.
+
+
+def _max_shifts_per_type(roster: Roster, instance: Instance) -> list[Violation]:
+    out = []
+    for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
+        caps = instance.employees[employee].max_shifts_per_type
+        if not caps:
+            continue
+
+        for shift, cap in sorted(caps.items()):
+            worked = sum(1 for _, s in shifts if s == shift)
+            if worked > cap:
+                person = instance.employees[employee]
+                label = instance.shift_types[shift].label
+                out.append(
+                    Violation(
+                        rule="R-MAX-SHIFT-TYPE",
+                        message=f"{person.name} works {worked} {label} shifts; {cap} allowed",
+                        employee=employee,
+                        day=0,
+                        shift=shift,
+                        observed=worked,
+                        required=cap,
+                    )
+                )
+    return out
+
+
+# --- R-MIN-HOURS --------------------------------------------------------------------
+# A floor, so the arithmetic is `R-MAX-PERIOD`'s with the comparison reversed. Net working
+# time, under the same convention every hours rule here uses.
+
+
+def _min_hours(roster: Roster, instance: Instance) -> list[Violation]:
+    out = []
+    for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
+        floor = instance.employees[employee].min_hours_this_period
+        if floor is None:
+            continue
+
+        worked = sum(instance.shift_types[shift].work_hours for _, shift in shifts)
+        if worked < floor:
+            person = instance.employees[employee]
+            out.append(
+                Violation(
+                    rule="R-MIN-HOURS",
+                    message=f"{person.name} is assigned {worked:g}h; {floor:g}h is the "
+                    f"minimum for the period",
+                    employee=employee,
+                    day=0,
+                    observed=worked,
+                    required=floor,
+                )
+            )
+    return out
+
+
+# --- R-SUCCESSION -------------------------------------------------------------------
+# Which shift someone worked on each day, then every consecutive pair. An employee holding
+# two shifts on one day makes several pairs, and each is checked: the rule is about the
+# pairing, not about a canonical shift for the day.
+
+
+def _succession(roster: Roster, instance: Instance) -> list[Violation]:
+    pairs = instance.params.forbidden_successions
+    if not pairs:
+        return []
+
+    by_day: dict[int, dict[int, list[int]]] = defaultdict(lambda: defaultdict(list))
+    for employee, day, shift in roster:
+        by_day[employee][day].append(shift)
+
+    out = []
+    for employee in sorted(by_day):
+        days = by_day[employee]
+        for day in sorted(days):
+            for earlier in sorted(days[day]):
+                for later in sorted(days.get(day + 1, [])):
+                    if (earlier, later) not in pairs:
+                        continue
+                    person = instance.employees[employee]
+                    out.append(
+                        Violation(
+                            rule="R-SUCCESSION",
+                            message=f"{person.name} works "
+                            f"{instance.shift_types[later].label} on day {day + 1}, which "
+                            f"may not follow {instance.shift_types[earlier].label}",
+                            employee=employee,
+                            # The day the forbidden shift falls on, matching the model.
+                            day=day + 1,
+                            shift=later,
+                            observed=instance.shift_types[earlier].label,
+                            required=f"not after {instance.shift_types[earlier].label}",
+                        )
+                    )
     return out

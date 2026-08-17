@@ -133,6 +133,25 @@ class Employee:
     max_weekends: int | None = None
     min_consecutive_days_off: int | None = None
 
+    # The rest of the same family (`D-136`), on the same terms: absent is a caller not
+    # asking for the rule.
+    #
+    # `min_consecutive_days_worked` is `R-MIN-DAYS-OFF` inverted -- a block of work too
+    # short to be worth coming in for -- and `max_shifts_per_type` caps how many of *one*
+    # shift type someone works, which a total cannot express: a cap of zero on nights is a
+    # prohibition, and no ceiling on shifts in general says it.
+    min_consecutive_days_worked: int | None = None
+    max_shifts_per_type: dict[int, int] | None = None
+
+    # A floor rather than a ceiling, and the only rule here a roster breaks by doing too
+    # *little* (`R-MIN-HOURS`). Over the whole horizon, parallel to `max_hours_this_period`.
+    min_hours_this_period: float | None = None
+
+    # Per-employee `R-CONSEC-DAYS`, overriding `RuleParams.max_consecutive_days` where it is
+    # supplied. Not a new rule: the registry entry, both encodings and the explainer text are
+    # the ones that already exist, and this only changes where the limit is read from.
+    max_consecutive_days: int | None = None
+
     # Eligibility gates, indexed by day: a Dimona may not cross a quarter boundary, so
     # one employee can be eligible on 30 June and not on 1 July inside one horizon.
     # None means "not supplied", which input validation rejects for a flexi contract --
@@ -271,6 +290,14 @@ class RuleParams:
     # horizon and never a Monday, so which of its days are "the weekend" is a fact only the
     # caller holds. Empty switches the rule off (`D-135`).
     weekend_days: frozenset[int] = frozenset()
+
+    # `R-SUCCESSION`: pairs `(earlier, later)` of shift-type indices where `later` may not
+    # be worked the day after `earlier`. Here rather than on `Employee` because it is a
+    # property of the shift catalogue, and it travels with `Profile`, which holds both.
+    #
+    # Not subsumed by `R-REST-GAP`, though the two overlap: a rest gap is hours between two
+    # shifts, and this forbids a pairing outright however many hours separate it.
+    forbidden_successions: frozenset[tuple[int, int]] = frozenset()
 
     derogation_basis: dict[str, str] = field(default_factory=dict)
 

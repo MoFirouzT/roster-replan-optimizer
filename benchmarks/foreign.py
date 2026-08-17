@@ -43,8 +43,9 @@ into it. Translating a day off into an interval therefore reports every such nig
 translation. They are omitted rather than approximated, and `_days_off` records them so a
 caller can see what was dropped.
 
-**`max_consecutive_days` is theirs at its most permissive.** Ours is per instance and theirs
-is per employee, so the loosest is used and a violation means someone exceeded even that.
+**`max_consecutive_days` is theirs, per employee.** It was the loosest limit in the workforce
+until `R-CONSEC-DAYS` gained a per-employee override (`D-136`), which is an approximation this
+importer no longer has to make.
 
 **Their rest rule is stricter than the one imposed on them, and that is a check rather than a
 coincidence** (`D-132`). The `.txt` form states no rest gap, which is why this importer applies
@@ -570,6 +571,8 @@ def load(number: int) -> tuple[Instance, frozenset, Unencoded]:
                 max_hours_this_week=ABSOLUTE_WEEKLY_CEILING_HOURS,
                 max_daily_hours=ABSOLUTE_DAILY_CEILING_HOURS,
                 max_hours_this_period=int(parts[2]) / 60.0,
+                # Theirs, per employee, now that `R-CONSEC-DAYS` reads one (`D-136`).
+                max_consecutive_days=int(parts[4]),
             )
         )
 
@@ -583,6 +586,8 @@ def load(number: int) -> tuple[Instance, frozenset, Unencoded]:
             OpenShift(day=day, shift=shift, required=need)
             for (day, shift), need in sorted(required.items())
         ),
+        # The tenant-level limit is the loosest in the workforce, so it can never bind
+        # where an employee's own is stricter. Every employee carries theirs above.
         params=RuleParams(max_consecutive_days=max(consecutive), **PARAMS),
         disruption=shipped_d2(),
     )

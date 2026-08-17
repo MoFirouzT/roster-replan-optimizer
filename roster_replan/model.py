@@ -185,6 +185,10 @@ def build(
         _consec_days(built, instance)
     _max_weekends(built, instance)
     _min_days_off(built, instance)
+    _min_block(built, instance)
+    _max_shifts_per_type(built, instance)
+    _min_hours(built, instance)
+    _succession(built, instance)
     if symmetry:
         _break_symmetry(built, instance)
     return built
@@ -510,12 +514,15 @@ def _max_daily(built: Built, instance: Instance) -> None:
 
 
 def _consec_days(built: Built, instance: Instance) -> None:
-    limit = instance.params.max_consecutive_days
-    if limit is None:
-        return
-
     model = built.model
     for employee, person in enumerate(instance.employees):
+        # Per employee where supplied, the tenant's limit otherwise (`D-136`). Not a new
+        # rule: same ID, same encoding, same explainer text -- only where the number is
+        # read from changes, which is what lets a workforce hold two different limits.
+        limit = _consec_limit(instance, person)
+        if limit is None:
+            continue
+
         worked = {}
         for day in range(instance.days):
             same_day = [
@@ -614,6 +621,107 @@ def _min_days_off(built: Built, instance: Instance) -> None:
                 ).only_enforce_if(literal)
 
 
+# --- R-MIN-BLOCK --------------------------------------------------------------------
+# `R-MIN-DAYS-OFF` with worked and off exchanged: forbid `off, worked × L, off` for every
+# L below the minimum.
+#
+#     −worked[d] + Σ_{j=1..L} worked[d+j] − worked[d+L+1]  ≤  L − 1
+#
+# The left side is L exactly on the forbidden pattern and at most L−1 on everything else.
+# The boundary latitude falls out the same way (`D-134`): the pattern needs a day off on
+# both sides, so a block running to either end of the horizon is never matched.
+
+
+def _min_block(built: Built, instance: Instance) -> None:
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        minimum = person.min_consecutive_days_worked
+        if minimum is None or minimum < 2:
+            continue
+
+        worked = _worked_indicators(built, instance, employee)
+        for block in range(1, minimum):
+            for start in range(instance.days - block - 1):
+                inside = [worked[start + 1 + j] for j in range(block)]
+                literal = built.gate(model, Gate("R-MIN-BLOCK", employee, start + 1))
+                model.add(
+                    -worked[start] + sum(inside) - worked[start + block + 1] <= block - 1
+                ).only_enforce_if(literal)
+
+
+# --- R-MAX-SHIFT-TYPE ---------------------------------------------------------------
+# One sum per (employee, capped shift type). A cap of zero is a prohibition and is left to
+# this rule rather than folded into `exclusions`: presolve removes pairs that are
+# *impossible*, and a cap the tenant chose is a rule that should be reportable as one.
+
+
+def _max_shifts_per_type(built: Built, instance: Instance) -> None:
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        if not person.max_shifts_per_type:
+            continue
+
+        for shift, cap in sorted(person.max_shifts_per_type.items()):
+            assigned = [
+                var for (e, _, s), var in built.x.items() if e == employee and s == shift
+            ]
+            if not assigned:
+                continue
+            literal = built.gate(model, Gate("R-MAX-SHIFT-TYPE", employee, 0, shift))
+            model.add(sum(assigned) <= cap).only_enforce_if(literal)
+
+
+# --- R-MIN-HOURS --------------------------------------------------------------------
+# The only rule here a roster breaks by doing too little, which makes it the only one that
+# can conflict with `R-COVER`'s soft floor: a week with too few shifts to go round cannot
+# meet everybody's minimum, and no roster exists. That is a legitimate infeasibility and it
+# is gated like every other, so the core names this rule rather than leaving a planner to
+# infer it from a shortfall.
+
+
+def _min_hours(built: Built, instance: Instance) -> None:
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        floor = person.min_hours_this_period
+        if floor is None:
+            continue
+
+        minutes = [
+            _minutes(instance.shift_types[s].work_hours) * var
+            for (e, _, s), var in built.x.items()
+            if e == employee
+        ]
+        if not minutes:
+            continue
+        literal = built.gate(model, Gate("R-MIN-HOURS", employee, 0))
+        model.add(sum(minutes) >= _minutes(floor)).only_enforce_if(literal)
+
+
+# --- R-SUCCESSION -------------------------------------------------------------------
+# One inequality per (employee, day, forbidden pair). Pairwise rather than an automaton
+# for the reason `studies/regular-constraint.md` gives about `R-CONSEC-DAYS`: the pairs are
+# local, so the expansion is small and the day coordinate survives into the violation.
+
+
+def _succession(built: Built, instance: Instance) -> None:
+    pairs = instance.params.forbidden_successions
+    if not pairs:
+        return
+
+    model = built.model
+    for employee in range(len(instance.employees)):
+        for day in range(instance.days - 1):
+            for earlier, later in sorted(pairs):
+                first = built.x.get((employee, day, earlier))
+                second = built.x.get((employee, day + 1, later))
+                if first is None or second is None:
+                    continue
+                # Reported at the *second* day, the one the forbidden shift falls on, which
+                # is the coordinate the checker names too.
+                literal = built.gate(model, Gate("R-SUCCESSION", employee, day + 1, later))
+                model.add(first + second <= 1).only_enforce_if(literal)
+
+
 # --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------
 # The textbook encoding of a sequence rule, and `model.md` calls it a T2 study rather than
 # a T1 assumption precisely so it has to earn the swap. See `studies/regular-constraint.md`.
@@ -635,6 +743,13 @@ def _worked_indicators(built: Built, instance: Instance, employee: int) -> dict[
     return worked
 
 
+def _consec_limit(instance: Instance, person) -> int | None:
+    """`R-CONSEC-DAYS`'s limit for one employee: theirs, or the tenant's."""
+    if person.max_consecutive_days is not None:
+        return person.max_consecutive_days
+    return instance.params.max_consecutive_days
+
+
 def _consec_days_automaton(built: Built, instance: Instance) -> None:
     """The same rule as a state machine over the week: state = current streak length.
 
@@ -651,20 +766,24 @@ def _consec_days_automaton(built: Built, instance: Instance) -> None:
     gate with no day would not match its counterpart and the differential harness would
     have to be told about the exception. See `studies/regular-constraint.md`.
     """
-    limit = instance.params.max_consecutive_days
-    if limit is None:
-        return
-
     model = built.model
-    # State `s` means "s consecutive days worked, ending here". Working from the last
-    # allowed state is what the rule forbids, so that transition simply does not exist.
-    transitions = []
-    for state in range(limit + 1):
-        transitions.append((state, 0, 0))
-        if state < limit:
-            transitions.append((state, 1, state + 1))
-
     for employee, person in enumerate(instance.employees):
+        # Read per employee for the reason the window encoding does (`D-136`). The automaton
+        # is built inside the loop rather than once outside it, because two employees may
+        # now hold different limits and `lab.agree` requires the variants to reach the same
+        # optimum -- a shared automaton would quietly enforce one tenant limit on everybody.
+        limit = _consec_limit(instance, person)
+        if limit is None:
+            continue
+
+        # State `s` means "s consecutive days worked, ending here". Working from the last
+        # allowed state is what the rule forbids, so that transition simply does not exist.
+        transitions = []
+        for state in range(limit + 1):
+            transitions.append((state, 0, 0))
+            if state < limit:
+                transitions.append((state, 1, state + 1))
+
         worked = _worked_indicators(built, instance, employee)
         # A streak already past the limit before the horizon cannot be repaired by any
         # roster, so it is clamped rather than made infeasible -- the same clamp the
