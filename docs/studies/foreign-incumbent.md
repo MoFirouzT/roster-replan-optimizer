@@ -307,19 +307,60 @@ instance carries: `OPTIMAL` in milliseconds was a statement about the regime thi
 the objective it shipped*, and switching on rules a tenant may legitimately want is enough to leave
 it (`D-136`).
 
+## The quality comparison, and why its number is not a win
+
+    uv run python -m benchmarks.foreign --compare
+
+Their constraints as this project's rules, their objective as the model's objective, their coverage
+semantics — the ceiling relaxed through its own assumption literal, because their formulation prices
+overstaffing at 1 where `D-018` forbids it. Scored against their published optimum, at a 300-second
+budget:
+
+| instance | staff | weeks | published optimum | this project | ratio | status |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 14 | 2 | 828 | 719 | 0.87× | `FEASIBLE` |
+| 4 | 10 | 4 | 1,716 | 1,524 | 0.89× | `FEASIBLE` |
+| 6 | 18 | 4 | 1,950 | 2,167 | 1.11× | `FEASIBLE` |
+
+**Two of three are below a proved optimum, which is a red flag and not a result** (`D-137`). Their
+solutions are proven optimal under their own objective; a lower number means this comparison handed
+this project a freedom their solver did not have. It handed over two.
+
+**Days off are dropped, not translated**, which this study has recorded since `D-125` as an import
+decision and which turns out to be a quality-claim problem: **14, 20 and 36 constraints** on these
+three instances, every one honoured by their solver and ignored here.
+
+**The rest rule was three hours weaker, and that one is closed.** `as_rules` now takes their stated
+`MinRestTime` of 14 hours rather than imposing Belgium's 11. It moved instance 6 from 1.16× to 1.11×
+and left the other two unchanged — a small freedom, which is what leaves the dropped days off carrying
+the result.
+
+**The bias runs both ways and does not cancel.** Their values are proofs; all three of these are
+best efforts at a budget. That cuts against this project while the dropped days off cut for it, and
+two unmeasured biases in opposite directions are not a fair comparison.
+
+What the run *does* establish: this project's stack can express their problem and solve it, and the
+two implementations of their objective — one as CP-SAT terms, one as a scorer — agree on every case,
+asserted in the study rather than assumed.
+
+**What would make it fair is a day-based availability rule.** `R-AVAIL` is interval overlap by design
+and cannot say "no shift starting on this day" without the start-day collision `D-125` describes. Until
+one exists, this table is a number with a bias of known direction and unknown size.
+
 ## What this does not establish
 
-**Not yet a quality comparison.** A roster breaking 154 rest-block constraints can buy cover and
-request satisfaction with a schedule their solver was never permitted to return, so an objective
-value set beside theirs today would measure the freedom rather than the optimiser. Two rules encoded
-makes that gap smaller and does not close it: five constraints remain, and the comparison needs every
-one their solver had. That is now a decision resting on the table above rather than on caution.
+**Not a fair quality comparison.** The table above is a comparison and it is not yet a fair one: the
+dropped days off hand this project a freedom their solver did not have, and the missing proof of
+optimality takes one back. Both are named and only one is sized.
 
-That limit is now two steps narrower than it was. Their instances are **imported in full** (`D-132`)
-— every section and every column — and their objective is **implemented and checked** (`D-133`). What
-still separates this from a quality comparison is that their *constraints* are not encoded, which is
-the next section. The import also corrected the sentence this paragraph used to carry, which
-described their objective as
+This limit has moved three times and is worth reading as a sequence. It began as *"nothing about
+solution quality — none of their objective is imported"*. Their instances are now **imported in full**
+(`D-132`), their objective is **implemented and checked against 26 published values** (`D-133`), their
+constraints are **encoded as rules in both readings** (`D-135`, `D-136`), and the comparison **runs**
+(`D-137`). What is left is one import decision — days off — rather than a missing component.
+
+The import along the way also corrected the sentence this paragraph used to carry, which described
+their objective as
 "a weighted sum of soft preferences — shift-on and shift-off requests, weekend counts, minimum
 consecutive days off". **Only the first of those is in their objective.** Weekend counts and
 consecutive days off carry no weight in the `.ros` form and are hard constraints; their objective is

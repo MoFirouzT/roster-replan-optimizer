@@ -496,6 +496,67 @@ def test_their_constraints_are_satisfied_by_every_published_roster():
 
 
 @needs_data
+@pytest.mark.parametrize("number", (2, 4, 6))
+def test_their_constraints_translate_into_this_projects_rules(number):
+    """`as_rules` is a translation rather than an approximation (`D-137`), which is only true
+    because every one of their constraints has a registry entry now.
+
+    Asserted field by field rather than by solving: a solve would pass with any subset
+    translated, and the claim is that none is dropped.
+    """
+    instance, _, unencoded = foreign.load(number)
+    asked = foreign.as_rules(instance, unencoded)
+
+    for person, limit in zip(asked.employees, unencoded.limits):
+        assert person.max_weekends == limit.max_weekends
+        assert person.min_consecutive_days_off == limit.min_consecutive_days_off
+        assert person.min_consecutive_days_worked == limit.min_consecutive_shifts
+        assert person.max_consecutive_days == limit.max_consecutive_shifts
+        assert person.min_hours_this_period == limit.min_total_minutes / 60.0
+        assert len(person.max_shifts_per_type) == len(limit.max_shifts)
+
+    assert asked.params.weekend_days == frozenset(foreign.WEEKEND_DAYS)
+    assert len(asked.params.forbidden_successions) == sum(
+        len(blocked) for blocked in unencoded.cannot_follow.values()
+    )
+    # Their rest rule, not Belgium's: 11 hours where they wrote 14 is a freedom their solver
+    # did not have, and a comparison run on it would not be measuring the optimiser.
+    assert asked.params.min_rest_hours == unencoded.stated_rest_hours
+
+
+@needs_data
+def test_the_two_readings_of_their_objective_agree_on_a_real_instance():
+    """`score_their_objective` walks a roster; `_their_objective_terms` builds CP-SAT
+    expressions over the model's own shortfall and overage variables. They are two readings
+    and the comparison in `compare` asserts they agree — held here as well, so the claim is
+    in the suite rather than only in a study nobody runs by default.
+    """
+    from ortools.sat.python import cp_model
+
+    from roster_replan.model import build
+
+    instance, _, unencoded = foreign.load(2)
+    asked = foreign.as_rules(instance, unencoded)
+    built = build(asked)
+    built.model.minimize(sum(foreign._their_objective_terms(built, asked, unencoded)))
+    built.model.add_assumptions(
+        [lit for lit in built.literals if built.gates[lit.index].rule != "R-COVER"]
+    )
+
+    solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = 20.0
+    solver.parameters.num_search_workers = 1
+    solver.parameters.random_seed = 7
+    status = solver.solve(built.model)
+    assert status in (cp_model.OPTIMAL, cp_model.FEASIBLE)
+
+    roster = frozenset(key for key, var in built.x.items() if solver.value(var))
+    assert foreign.score_their_objective(roster, asked, unencoded) == round(
+        solver.objective_value
+    )
+
+
+@needs_data
 def test_the_dropped_days_off_survive_the_new_carrier():
     """`load`'s third member grew from a dict into an object, and callers read the dict."""
     _, _, unencoded = foreign.load(1)

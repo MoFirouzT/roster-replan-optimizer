@@ -3878,3 +3878,53 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   month should expect a gap rather than a proof.
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-17.
+
+## D-137 — The quality comparison exists, and its caveat is larger than its result
+
+- **Decision.** `foreign.compare` solves their instances with their constraints as this project's
+  rules, their objective as the model's objective, and the coverage ceiling relaxed through its
+  assumption literals — then scores the result against their published optimum. It runs, both
+  implementations of their objective agree on every case, and **its numbers are not a claim that this
+  solver is better.** The remaining unfairness is named and sized rather than worked around.
+- **Alternatives.** *Score a roster this model produced for its own objective*, which is what "compare
+  quality" sounds like and measures nothing — the number would say only that two objectives differ.
+  *Report 0.87× and 0.89× as wins.* *Withhold the comparison until it is fair*, which is defensible and
+  leaves the machinery unexercised and the gap unmeasured.
+- **Reason.** **Two of three came back below the published optimum, and that is a red flag rather than
+  a result.** 23 of their 24 solutions are proven optimal under their own objective, so a lower number
+  means this comparison granted a freedom their solver did not have. It granted two, both already
+  documented in this module and neither previously connected to a quality claim:
+
+  **Days off are dropped, not translated** (`D-125`). Theirs forbids an assignment *on* a day; this
+  project's `R-AVAIL` is interval overlap, and a night shift starting at 22:00 the evening before
+  spills into it. The importer drops them rather than approximating — and that is **14, 20 and 36
+  constraints** on the three instances compared, every one of which their solver honoured.
+
+  **The rest rule was three hours weaker.** That one could be closed and was: `as_rules` now takes
+  their stated `MinRestTime` of 14 hours instead of imposing Belgium's 11. It moved one instance from
+  1.16× to 1.11× and left the other two unchanged, which is a useful measurement in itself — the rest
+  freedom was small, so the days-off freedom is carrying the result.
+
+  **The unfairness runs the other way too, and it does not cancel.** Their published values are proved
+  optima; all three of these solves returned `FEASIBLE` at a 300-second budget, so this side is a
+  best effort against a proof. That biases against this project while the dropped days off bias for
+  it, and two biases of unknown size in opposite directions do not make a fair comparison.
+- **Consequences.** **What the comparison does establish** is worth separating from what it does not.
+  This project's stack can express their problem — seven constraint families, their objective, their
+  coverage semantics — and solve it to a feasible roster. And `_their_objective_terms` and
+  `score_their_objective` are two independent readings of the same objective that agree on every case,
+  asserted in the study rather than assumed, which is `rules.md`'s independence rule applied to
+  somebody else's objective.
+
+  **Relaxing the coverage ceiling used the assumption literals for their stated purpose.** Their
+  formulation prices overstaffing at 1; `D-018` makes this project's ceiling hard. Solving their
+  problem meant dropping exactly that gate from the assumption set and nothing else, which is
+  `rules.md`'s *"relaxation is explicit, per-instance and reportable, never hidden inside a weight"*
+  paying off in a place it was not written for.
+
+  **What would make the comparison fair is a day-based availability rule.** `R-AVAIL` is interval
+  overlap by design and cannot express "no shift starting on this day" without the start-day
+  attribution collision `D-125` records. A separate rule could, and until one exists this comparison
+  stays as reported: a number with a bias of known direction and unknown size.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.

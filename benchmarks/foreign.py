@@ -490,6 +490,52 @@ def _runs(days: list[int]) -> list[list[int]]:
     return runs
 
 
+def as_rules(instance: Instance, unencoded: Unencoded) -> Instance:
+    """Their per-employee constraints, expressed as this project's rules (`D-137`).
+
+    Every one of them has a registry entry now (`D-135`, `D-136`), so this is a translation
+    rather than an approximation — the first time anything in this module can say that.
+    `MaxConsecutiveShifts` lands on `R-CONSEC-DAYS`'s per-employee limit rather than on a
+    rule of its own, which is why there are seven constraints and six field names.
+    """
+    labels = {shift.label: index for index, shift in enumerate(instance.shift_types)}
+    people = []
+    for person, limit in zip(instance.employees, unencoded.limits):
+        caps = {labels[label]: cap for label, cap in limit.max_shifts.items() if label in labels}
+        people.append(
+            dataclasses.replace(
+                person,
+                max_weekends=limit.max_weekends,
+                min_consecutive_days_off=limit.min_consecutive_days_off,
+                min_consecutive_days_worked=limit.min_consecutive_shifts,
+                max_shifts_per_type=caps,
+                min_hours_this_period=limit.min_total_minutes / 60.0,
+                max_consecutive_days=limit.max_consecutive_shifts,
+            )
+        )
+
+    return dataclasses.replace(
+        instance,
+        employees=tuple(people),
+        params=dataclasses.replace(
+            instance.params,
+            weekend_days=frozenset(WEEKEND_DAYS),
+            forbidden_successions=frozenset(
+                (earlier, later)
+                for earlier, blocked in unencoded.cannot_follow.items()
+                for later in blocked
+            ),
+            # **Their rest rule, not this project's.** Everywhere else in this module the
+            # Belgian parameters are imposed deliberately, because measuring what a stricter
+            # jurisdiction does to a foreign roster is the point. Here the point is the
+            # opposite: a comparison against their published optimum has to run on their
+            # constraints, and 11 hours where they wrote 14 is a freedom their solver did not
+            # have (`D-137`).
+            min_rest_hours=unencoded.stated_rest_hours or instance.params.min_rest_hours,
+        ),
+    )
+
+
 def _cover(rows: list[str], index: dict[str, int]) -> tuple[dict, dict, dict]:
     """`SECTION_COVER`: the requirement, and the two weights their objective charges.
 
@@ -708,6 +754,103 @@ def study() -> None:
         )
 
 
+def compare(*, budget: float = 300.0) -> None:
+    """This project's solver on their problem, judged by their published optimum (`D-137`).
+
+    The comparison every earlier step was building towards, and it needs all three of them:
+    their constraints as rules (`D-135`, `D-136`), their objective as an expression, and a
+    published value to be judged against. Scoring a roster this model produced for *its own*
+    objective would have measured nothing — the number would say only that the two objectives
+    differ, which nobody doubted.
+
+    **Their formulation prices overstaffing and this project forbids it.** `D-018` makes the
+    coverage ceiling hard, so solving their problem exactly means relaxing that one rule —
+    and relaxing a named rule for a stated reason is precisely what the assumption literals
+    exist for (`rules.md`: *"relaxation is explicit, per-instance and reportable, never hidden
+    inside a weight"*). The `R-COVER` gates are dropped from the assumption set and nothing
+    else is, so the solve answers their question rather than a neighbouring one.
+    """
+    import time
+
+    from ortools.sat.python import cp_model
+
+    from roster_replan.model import build
+
+    print(
+        f"\n{'instance':>11} {'staff':>6} {'weeks':>6} {'published':>10} {'ours':>10} "
+        f"{'gap to best':>12} {'status':>10} {'search s':>9}"
+    )
+    for number in (2, 4, 6):
+        instance, published, unencoded = load(number)
+        asked = as_rules(instance, unencoded)
+        built = build(asked)
+
+        model = built.model
+        model.minimize(sum(_their_objective_terms(built, asked, unencoded)))
+
+        # Every gate except the coverage ceiling, which their objective prices instead.
+        assumptions = [
+            literal
+            for literal in built.literals
+            if built.gates[literal.index].rule != "R-COVER"
+        ]
+        model.add_assumptions(assumptions)
+
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = budget
+        solver.parameters.num_search_workers = 1
+        solver.parameters.random_seed = 7
+        started = time.perf_counter()
+        status = solver.solve(model)
+        elapsed = time.perf_counter() - started
+
+        best = solutions(number)[0].objective
+        if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+            print(
+                f"Instance{number:<3} {len(instance.employees):>6} {instance.days // 7:>6} "
+                f"{best:>10} {'-':>10} {'-':>12} {solver.status_name(status):>10} {elapsed:>9.1f}"
+            )
+            continue
+
+        roster = frozenset(key for key, var in built.x.items() if solver.value(var))
+        ours = score_their_objective(roster, asked, unencoded)
+        print(
+            f"Instance{number:<3} {len(instance.employees):>6} {instance.days // 7:>6} "
+            f"{best:>10} {ours:>10} {ours / best:>11.2f}x "
+            f"{solver.status_name(status):>10} {elapsed:>9.1f}"
+        )
+        # The scorer and the model must agree about what was optimised, or the number above
+        # is this project grading its own homework with a different pen.
+        assert ours == round(solver.objective_value), (
+            f"scorer says {ours}, model says {solver.objective_value}"
+        )
+
+
+def _their_objective_terms(built, instance: Instance, unencoded: Unencoded) -> list:
+    """Their objective as CP-SAT expressions, over the model's own variables.
+
+    The counterpart of `score_their_objective`, and deliberately not sharing code with it:
+    the assertion in `compare` that the two agree is only worth making because they are two
+    readings, which is `rules.md`'s independence rule applied to somebody else's objective.
+    """
+    terms = []
+    for slot, short in built.shortfall.items():
+        terms.append(unencoded.under_weight[slot] * short)
+    for slot, over in built.overage.items():
+        terms.append(unencoded.over_weight[slot] * over)
+
+    for request in unencoded.on_requests:
+        var = built.x.get((request.employee, request.day, request.shift))
+        # A request for a shift the presolve removed is unsatisfiable, and its weight is
+        # then a constant this objective still owes.
+        terms.append(request.weight * (1 - var) if var is not None else request.weight)
+    for request in unencoded.off_requests:
+        var = built.x.get((request.employee, request.day, request.shift))
+        if var is not None:
+            terms.append(request.weight * var)
+    return terms
+
+
 def scale(*, budget: float = 30.0) -> None:
     """How far does this model go, on instances nobody sized for it?
 
@@ -805,6 +948,7 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="re-download even if present")
     parser.add_argument("--study", action="store_true", help="run the replan comparison")
     parser.add_argument("--scale", action="store_true", help="how far the model goes")
+    parser.add_argument("--compare", action="store_true", help="this solver on their problem, against their published optimum")
     args = parser.parse_args()
 
     if args.fetch:
@@ -832,6 +976,8 @@ def main() -> int:
 
     if args.study:
         study()
+    if args.compare:
+        compare()
     if args.scale:
         scale()
     return 0

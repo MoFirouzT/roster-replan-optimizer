@@ -429,10 +429,10 @@ proved optimal and canonical within seconds.
 
 | | At the declaration | Now |
 | --- | --- | --- |
-| Tests | 567 | 929, of which 43 skip without fetched benchmark data |
+| Tests | 567 | 933, of which 45 skip without fetched benchmark data |
 | Mutants, each naming the layer that must catch it | 59 | 132 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 136, none open |
+| Decision records | 94, 2 open | 137, none open |
 | Studies, including nulls | 8 | 13 |
 | Python | ~12,000 lines | ~24,500 lines |
 

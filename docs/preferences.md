@@ -1,9 +1,13 @@
 # Preferences that reach past one week
 
-> **This is a survey, not a spec, and no decision is taken in it.** It catalogues what the two sides
-> of a roster actually want, sorts each item by the machinery it would need here, and names the
-> conflicts between them. Nothing below is implemented; anything that becomes implemented moves into
-> [`specs/replan.md`](specs/replan.md) with a record in [`decisions.md`](decisions.md).
+> **This is a survey, not a spec.** It catalogues what the two sides of a roster actually want, sorts
+> each item by the machinery it would need here, and names the conflicts between them.
+>
+> **Four of its items are no longer proposals.** `D-135` and `D-136` encoded E4, E7, E8's quick-return
+> half and E1's block half as rules — `R-MAX-WEEKENDS`, `R-MIN-DAYS-OFF`, `R-SUCCESSION`,
+> `R-MIN-BLOCK` — because the nurse-rostering benchmark set states them as *constraints* rather than
+> preferences (`D-132`), and this document had assumed the opposite. `rules.md` owns them now; the
+> entries below are kept as the survey that led there, and each says what shipped.
 >
 > It exists because the objective is defined inside one horizon. `replan.md` prices deviation from the
 > incumbent, and the incumbent is a roster for *this* week. Ask what a person's fourth week in a row
@@ -59,6 +63,10 @@ identically on disruption if neither deviated from its own incumbent.
 
 Needs: a shape carried across the boundary. **Class B.**
 
+**Half of it shipped as a rule.** `R-MIN-BLOCK` (`D-136`) sets a minimum length for a block of
+working days, which is the part of consistency that needs no memory. Holding the same *type* week
+after week still needs the shape, and still has nowhere to live.
+
 ### E2 — Day-pattern consistency
 
 Same *days*, for reasons outside work — childcare on Wednesdays, a course on Thursday evenings, a
@@ -96,6 +104,11 @@ rather than a shift, which matters for E5.
 Needs: nothing new, if a weekend is counted as shifts. A weekend indicator, if it is counted as a
 weekend. **Class A.**
 
+**Shipped as `R-MAX-WEEKENDS`** (`D-135`), and as a hard rule rather than the fairness term this
+entry proposed. It counts *weekends* rather than weekend shifts, which is the harder half of the
+choice above and the one this entry guessed would need new machinery — one boolean per
+(employee, week), which is less than it feared.
+
 ### E5 — Whole weekends
 
 Saturday off and Sunday on is not a weekend off. The preference is for the two days to move together —
@@ -124,6 +137,12 @@ is a preference a chained weekly solve systematically undercounts.
 
 Needs: consecutive-day-off indicators, and the boundary carried. **Class C.**
 
+**Shipped as `R-MIN-DAYS-OFF`** (`D-135`), and it needed neither. A forbidden pattern — worked, too
+few days off, worked — expresses it with no indicators and no carried boundary, because a stretch
+touching either end of the horizon is one the roster cannot be judged on anyway (`D-134`). The
+boundary case this entry worried about turns out to be the reason the rule is *cheaper* than
+expected, not dearer.
+
 ### E8 — Rotation direction, and quick returns
 
 Where shift types do change, the direction matters physiologically: forward rotation
@@ -137,6 +156,9 @@ sequence, including where the previous horizon left the person.
 
 Needs: a soft penalty on named shift-type pairs (cheap), plus a carried last shift type for direction.
 **Class A / B.**
+
+**The quick-return half shipped as `R-SUCCESSION`** (`D-136`) — hard rather than soft, over pairs the
+tenant names. The direction half is untouched and still needs the carried shape.
 
 ### E9 — Night load and recovery
 
