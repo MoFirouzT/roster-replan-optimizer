@@ -22,6 +22,8 @@ for. "Committed" here means fixed and diffable, which a module already is.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from roster_replan.domain import (
     Employee,
     Instance,
@@ -528,6 +530,79 @@ def _notice_on_the_band_boundary() -> Instance:
     )
 
 
+def _weekends_bind() -> Instance:
+    """Two weeks, one person, a weekend shift in each, and a limit of one weekend.
+
+    `R-MAX-WEEKENDS` counts *weeks holding a weekend assignment*, so the shape that
+    exercises it needs two weekends in the payload and cannot be built on a seven-day
+    horizon. Both shifts are coverable and only one may be taken, so the optimum has to
+    leave a shift short — which is what makes the rule visible to enumeration rather than
+    merely satisfied by accident.
+    """
+    return instance(
+        days=14,
+        employees=[person("Ana", max_weekends=1)],
+        open_shifts=(
+            OpenShift(day=5, shift=MORNING, required=1),
+            OpenShift(day=12, shift=MORNING, required=1),
+        ),
+        params=replace(BASE_PARAMS, weekend_days=frozenset({5, 6})),
+    )
+
+
+def _weekends_on_the_threshold() -> Instance:
+    """Both days of one weekend, against a limit of one. The boundary instance.
+
+    `weekends_bind` proves the rule exists; this proves it counts **weekends and not
+    weekend days**. Two assignments in one weekend is one weekend, so a reading that
+    counted days would refuse a roster this one must allow — and no instance with a single
+    shift per weekend can tell the two readings apart.
+    """
+    return instance(
+        days=14,
+        employees=[person("Ana", max_weekends=1)],
+        open_shifts=(
+            OpenShift(day=5, shift=MORNING, required=1),
+            OpenShift(day=6, shift=MORNING, required=1),
+        ),
+        params=replace(BASE_PARAMS, weekend_days=frozenset({5, 6})),
+    )
+
+
+def _days_off_come_in_blocks() -> Instance:
+    """One person, shifts on alternate days, and a two-day minimum between blocks.
+
+    Working every open shift leaves single days off at 1 and 3, which `R-MIN-DAYS-OFF`
+    forbids. Enumeration therefore has to choose which shift to drop, and the rule is what
+    decides it.
+    """
+    return instance(
+        employees=[person("Ana", min_consecutive_days_off=2)],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=2, shift=MORNING, required=1),
+            OpenShift(day=4, shift=MORNING, required=1),
+        ),
+    )
+
+
+def _days_off_at_the_horizon_edge_are_not_judged() -> Instance:
+    """The same rule where the only short stretch touches the horizon's end.
+
+    A stretch of days off running to either edge may continue outside the payload, so it is
+    not judged (`D-134`). Here day 6 is the single day off after the last shift, and a
+    reading without that latitude would forbid the full roster — the failure that flagged
+    every published roster in the benchmark set the rule came from.
+    """
+    return instance(
+        employees=[person("Ana", min_consecutive_days_off=2)],
+        open_shifts=(
+            OpenShift(day=0, shift=MORNING, required=1),
+            OpenShift(day=5, shift=MORNING, required=1),
+        ),
+    )
+
+
 MICRO_INSTANCES: dict[str, Instance] = {
     "cold_clean": _cold_clean(),
     "coverage_shortfall_forced": _coverage_shortfall_forced(),
@@ -558,6 +633,10 @@ MICRO_INSTANCES: dict[str, Instance] = {
     "move_pairs_within_a_day": _move_pairs_within_a_day(),
     "published_and_draft": _published_and_draft(),
     "notice_on_the_band_boundary": _notice_on_the_band_boundary(),
+    "weekends_bind": _weekends_bind(),
+    "weekends_on_the_threshold": _weekends_on_the_threshold(),
+    "days_off_come_in_blocks": _days_off_come_in_blocks(),
+    "days_off_at_the_horizon_edge_are_not_judged": _days_off_at_the_horizon_edge_are_not_judged(),
 }
 
 # Instances whose incumbent already breaks a rule, so a solve legitimately returns a core

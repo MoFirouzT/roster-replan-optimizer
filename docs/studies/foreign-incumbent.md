@@ -268,13 +268,19 @@ the same claim with a number on it, produced by somebody else's constraint set r
 introspection, and it ranks the survey's items by how badly each is currently ignored rather than by
 how plausible each sounded.
 
+**Two of the seven are now rules of this product** (`D-135`). `R-MAX-WEEKENDS` and `R-MIN-DAYS-OFF`
+are in `rules.md`'s registry, hard and optional, encoded in the model and the checker and carried into
+brute-force ground truth by four micro-instances. They were chosen as the two worst breaches and
+because between them they carry both encoding shapes the remaining five reuse — a count over weeks,
+and a forbidden pattern over a run.
+
 ## What this does not establish
 
 **Not yet a quality comparison.** A roster breaking 154 rest-block constraints can buy cover and
 request satisfaction with a schedule their solver was never permitted to return, so an objective
-value set beside theirs today would measure the freedom rather than the optimiser. The comparison
-needs those constraints encoded first, in both readings — which is now a decision resting on the
-table above rather than on caution.
+value set beside theirs today would measure the freedom rather than the optimiser. Two rules encoded
+makes that gap smaller and does not close it: five constraints remain, and the comparison needs every
+one their solver had. That is now a decision resting on the table above rather than on caution.
 
 That limit is now two steps narrower than it was. Their instances are **imported in full** (`D-132`)
 — every section and every column — and their objective is **implemented and checked** (`D-133`). What

@@ -36,6 +36,8 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | `R-MAX-PERIOD` | Hours left in the rolling reference period, over the whole horizon | hard, **optional** | hours, per employee | Arbeidswet art. 26bis §1; WTD art. 16(b), 19 |
 | `R-MAX-DAILY` | Maximum hours per day | hard | hours, per contract | Arbeidswet art. 19, 20, 20bis, 22 |
 | `R-CONSEC-DAYS` | Maximum consecutive working days | hard | days | **not statutory** — operational/CBA, see below |
+| `R-MAX-WEEKENDS` | Maximum weekends worked across the horizon | hard, **optional** | weekends, per employee | **not statutory** — operational/CBA (`D-135`) |
+| `R-MIN-DAYS-OFF` | Minimum length of a stretch of days off | hard, **optional** | days, per employee | **not statutory** — operational/CBA (`D-135`) |
 | `R-WEEKLY-REST` | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
 | `R-FLEXI-ELIG` | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1 |
 | `R-DIMONA-FLX` | `FLX` Dimona filing as an eligibility gate | hard, **resolved upstream** | filing state, per employee/day | NSSO Dimona instructions; Wet 16 Nov 2015 |
@@ -722,6 +724,67 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   the WTD rule would not.
 
 ---
+
+### `R-MAX-WEEKENDS` — weekends worked
+
+- **Statement.** An employee works at most a stated number of weekends across the horizon. A weekend
+  counts once however many of its days are worked.
+- **Predicate.** For every `e ∈ E` with a supplied limit, where `weekend(d) ⟺ d mod 7 ∈ weekend_days`:
+
+  ```
+  | { w : ∃ (d, s) ∈ O with week_of(d) = w ∧ weekend(d) ∧ x[e, d, s] = 1 } |  ≤  max_weekends[e]
+  ```
+
+- **Class.** Hard, and **optional** in `R-MAX-PERIOD`'s sense: absent means the caller is not asking
+  for it, which is ordinary rather than a defect. Hard rather than priced because the only formulation
+  measured against real data states it as a constraint (`D-132`), and because hard here does not mean
+  unrelaxable — the gate names it in a core, so a planner who must breach one is told which one.
+- **Parameters.** `max_weekends[e]`, per employee, caller-supplied. Per employee because the one
+  workforce this project has measured varies it from 1 to 3 inside a single team.
+
+  `weekend_days ⊆ {0…6}`, on `RuleParams`, positions within a week. **Caller-supplied and empty by
+  default**, and the emptiness is the point: this domain has no calendar, so `model.md` fixes that a
+  week is a position in the horizon and never a Monday. Which of its days are the weekend is a fact
+  only the caller holds, and an empty set switches the rule off (`D-135`).
+- **Why a count of weekends and not of weekend days.** Two Saturdays are two weekends and a
+  Saturday-Sunday pair is one. The rule people actually hold is about how many of their weekends are
+  taken, not how many days it cost — which is why this counts weeks and not assignments.
+- **Model encoding.** One boolean per (employee, week), forced up by any weekend assignment, summed
+  over weeks. The implication is needed in one direction only: the variable appears in a `≤`
+  constraint and nowhere else.
+- **Checker encoding.** Collect the distinct weeks holding a weekend assignment and compare the set's
+  size. Deliberately different arithmetic from the model's — a set rather than a sum of forced booleans.
+- **Explainer text.** `Ana works 3 weekends; 2 allowed.`
+- **Provenance.** Operational, or a CBA. Not statutory: Belgian law governs Sunday work
+  (`R-SUNDAY`) and weekly rest (`R-WEEKLY-REST`), neither of which is a budget of weekends.
+
+### `R-MIN-DAYS-OFF` — days off in blocks
+
+- **Statement.** A stretch of days off inside the horizon is at least a stated number of days long.
+- **Predicate.** For every `e ∈ E` with a supplied minimum, every gap length `L` from 1 to
+  `min_consecutive_days_off − 1`, and every day `d` with `d + L + 1 < days`:
+
+  ```
+  worked[e, d] − Σ_{j=1..L} worked[e, d+j] + worked[e, d+L+1]  ≤  1
+  ```
+
+  where `worked[e, d] ⟺ ∃ s : x[e, d, s] = 1`. The left side is 2 exactly on the pattern being
+  forbidden — worked, then `L` days off, then worked — and at most 1 on everything else.
+- **Class.** Hard and **optional**, on the same footing as `R-MAX-WEEKENDS`.
+- **Parameters.** `min_consecutive_days_off[e]`, per employee. A minimum of 1 forbids nothing, since
+  every gap between two worked days is at least one day long, and is treated as absent.
+- **Only interior stretches are judged, and that is a rule rather than a shortcut** (`D-134`). A
+  stretch of days off reaching either end of the horizon may continue outside it, and a roster cannot
+  be judged on days it does not contain. Applied without that latitude the rule failed **every one of
+  the 26 published rosters** in the benchmark set that supplied it — 26 rosters being wrong is not the
+  reading to prefer. `R-WEEKLY-REST` already takes the same view of its own edges.
+- **Model encoding.** The forbidden pattern above, one gated inequality per (employee, gap length,
+  start). The boundary latitude needs no special case: the pattern requires a worked day on both
+  sides, so an edge stretch is never matched.
+- **Checker encoding.** Walk the days off, measure each stretch, and skip those touching either end.
+  Here the latitude has to be stated, which is the usual asymmetry between the two readings.
+- **Explainer text.** `Bram gets 1 day off from day 4; 2 consecutive required.`
+- **Provenance.** Operational, or a CBA.
 
 ## Eligibility gates
 

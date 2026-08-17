@@ -3737,3 +3737,74 @@ narrowed from *this never happens* to *this does not happen in the regime we ser
   product enforces.
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-17.
+
+## D-135 — Two of their constraints become rules of this product, hard and optional
+
+- **Decision.** `R-MAX-WEEKENDS` and `R-MIN-DAYS-OFF` enter `rules.md`'s registry as **hard, optional**
+  operational rules, encoded in the model and the checker under the independence rule. Parameters are
+  per employee — `max_weekends`, `min_consecutive_days_off` — plus `RuleParams.weekend_days`, which is
+  caller-supplied and empty by default. Absent parameters mean the caller is not asking for the rule.
+  The remaining five constraints `D-134` measured are not encoded here.
+- **Alternatives.** *Benchmark-only encoding*, sufficient for the quality comparison and nothing else.
+  *Soft*, priced in the objective, which is what `docs/preferences.md` assumed these were. *All seven
+  at once*. *Derive the weekend from the clock* rather than asking for it.
+- **Reason.** **Building them benchmark-only would build them twice.** `D-134` measured that this
+  model breaks both of these on every case tried, and `preferences.md` ranks them E4 and E7 among the
+  things employees actually want. A tenant asking for either is asking for a rule, not for a benchmark
+  fixture.
+
+  **Hard rather than soft, and the reason is evidence rather than taste.** The only formulation
+  measured against real data states both as constraints carrying no weight (`D-132`). Soft would need
+  a weight scale this project has no evidence for and would extend `D-057`'s domination bound, and
+  `rules.md` warns where that ends: everything soft makes `checker_feasible` universally true and moves
+  every semantic claim into a weight nobody can falsify. Hard here does not mean unrelaxable — every
+  hard constraint is gated on an assumption literal, so a planner who must breach one gets a core
+  naming it rather than a silent price. Which they should be **per tenant** remains open, and the
+  classification test in `rules.md` is the thing that answers it.
+
+  **The weekend is asked for, never derived.** `domain.py` fixes that a week here is a position in the
+  horizon and never a Monday, and this project has no calendar anywhere. Computing which days are the
+  weekend would put one back, in the module that most carefully does without it. `weekend_days` empty
+  switches the rule off, which is also what a tenant with no weekend means.
+
+  **Two, not seven.** These two carry both encoding shapes the remaining five reuse — a count over
+  weeks, and a forbidden pattern over a run — so the next wave is arithmetic rather than design. They
+  are also the two worst breaches by a distance.
+- **Consequences.** **The quality comparison stays blocked until all seven are encoded.** A fair
+  comparison needs every constraint their solver had; with five missing, this model still buys cover
+  and requests with schedules theirs could not return. Encoding two makes the gap smaller and does not
+  close it, and saying so is the point of recording it here.
+
+  **`R-MIN-DAYS-OFF` inherits `D-134`'s boundary latitude as a specified rule**, not as an
+  implementation detail: only stretches interior to the horizon are judged. In the model this falls
+  out of the forbidden pattern needing a worked day on both sides; in the checker it has to be stated.
+  That asymmetry is exactly what the two readings exist to expose, so both are written from the spec
+  and neither from the other.
+
+  Both parameters are additive and default to absent, so every existing caller and scenario is
+  unaffected.
+
+  **Every `week` fingerprint moved and nothing else did**, which is `D-108`'s third pattern repeating:
+  a schema change, not a generator or solver one. Adding fields to `Employee` and `RuleParams` changes
+  the serialised payload for all 84 cases while every solved roster and every measured field — demand
+  ratio, slack, shortfall, damage — is identical, confirmed field by field before regenerating. Results
+  taken before this remain comparable, `GENERATOR_VERSION` stays at 1, and `benchmarks/manifest.json`
+  is regenerated with this record as its justification. `D-074`'s split is what makes that checkable in
+  a minute rather than arguable.
+
+  `prose.py` gains a clause for each rule, because `test_every_encoded_rule_can_be_explained_to_a_planner`
+  refuses a rule the explainer cannot put in a sentence — the registry and the planner-facing text are
+  not allowed to drift apart.
+
+  **Four micro-instances carry them into brute-force ground truth**, which is what makes the two
+  readings' agreement a proof rather than a hope: enumeration compares the model's optimum against
+  every legal roster, and both model-side mutants are caught there. `tests/golden.json` grows by four
+  entries and no committed value moves.
+
+  **The harness caught a mistake in its own use.** Two mutants were first written with two catcher
+  paths in one string; `catcher` is a single pytest target, so the run reported a collection error and
+  the mutants read as survivors. The note the report carries — *"the target failed without a test
+  failure"* — is what distinguished that from a real hole, and it is the third time a field added to
+  make the harness admit uncertainty has paid for itself (`D-112`, `D-130`).
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Date.** 2026-08-17.

@@ -59,6 +59,8 @@ RULE_TEXT: dict[str, str] = {
     "R-MAX-PERIOD": "have no hours left in the reference period",
     "R-MAX-DAILY": "would exceed their hours for the day",
     "R-CONSEC-DAYS": "would work too many consecutive days",
+    "R-MAX-WEEKENDS": "have already worked their allowed weekends",
+    "R-MIN-DAYS-OFF": "would be left too short a stretch of days off",
     "R-FLEXI-ELIG": "are not eligible for a flexi-job that day",
     "R-DIMONA-FLX": "have no Dimona filing for that day",
     "R-PIN-PAST": "are fixed by a shift that has already started",

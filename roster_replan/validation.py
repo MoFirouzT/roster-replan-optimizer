@@ -59,6 +59,7 @@ def validate_instance(instance: Instance) -> list[InputDefect]:
     defects += _employees(instance)
     defects += _skill_mix_provenance(instance)
     defects += _weight_domination(instance)
+    defects += _weekend_days(instance)
     return defects
 
 
@@ -369,3 +370,26 @@ def _skill_mix_provenance(instance: Instance) -> list[InputDefect]:
         for position, entry in enumerate(open_shift.skill_mix)
         if entry.hard and not entry.provenance.strip()
     ]
+
+
+# --- R-MAX-WEEKENDS's calendar ------------------------------------------------------
+# A day index outside a week is not a stricter weekend, it is a typo that switches the
+# rule off for the days it names. `weekend_days` is the one parameter in this payload a
+# caller states in a coordinate system they do not otherwise use, so it is checked rather
+# than trusted (`D-135`).
+
+
+def _weekend_days(instance: Instance) -> list[InputDefect]:
+    out = []
+    for day in sorted(instance.params.weekend_days):
+        if not 0 <= day < DAYS_PER_WEEK:
+            out.append(
+                InputDefect(
+                    field="params.weekend_days",
+                    message=f"weekend day {day} is not a position in a week, so it names "
+                    f"nothing and R-MAX-WEEKENDS would silently ignore it",
+                    observed=day,
+                    required=f"0 to {DAYS_PER_WEEK - 1}",
+                )
+            )
+    return out

@@ -125,6 +125,11 @@ class EmployeeIn(Strict):
     # caller can make. A budget nobody stated is not.
     unpopular_shifts_before_horizon: int = 0
 
+    # `R-MAX-WEEKENDS` and `R-MIN-DAYS-OFF`, optional in `R-MAX-PERIOD`'s sense: absent
+    # means the caller is not asking for the rule (`D-135`).
+    max_weekends: int | None = None
+    min_consecutive_days_off: int | None = None
+
     flexi_eligible: list[int] | None = None
     dimona_ok: list[int] | None = None
     hourly_rate: float | None = None
@@ -141,6 +146,11 @@ class RuleParamsIn(Strict):
     min_weekly_rest_hours: float
     min_period_hours: float
     max_consecutive_days: int | None
+
+    # Which positions in a week `R-MAX-WEEKENDS` counts. Empty switches it off, and it is
+    # asked for rather than derived because this domain has no calendar (`D-135`).
+    weekend_days: list[int] = Field(default_factory=list)
+
     derogation_basis: dict[str, str] = Field(default_factory=dict)
 
 
@@ -240,6 +250,8 @@ def to_domain(payload: InstanceIn) -> Instance:
                 ),
                 last_shift_end_before_horizon=e.last_shift_end_before_horizon,
                 unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,
+                max_weekends=e.max_weekends,
+                min_consecutive_days_off=e.min_consecutive_days_off,
                 flexi_eligible=(
                     None if e.flexi_eligible is None else frozenset(e.flexi_eligible)
                 ),
@@ -271,6 +283,7 @@ def to_domain(payload: InstanceIn) -> Instance:
             min_weekly_rest_hours=payload.params.min_weekly_rest_hours,
             min_period_hours=payload.params.min_period_hours,
             max_consecutive_days=payload.params.max_consecutive_days,
+            weekend_days=frozenset(payload.params.weekend_days),
             derogation_basis=dict(payload.params.derogation_basis),
         ),
         now=payload.now,
@@ -354,6 +367,8 @@ def from_domain(instance: Instance) -> InstanceIn:
                 ),
                 last_shift_end_before_horizon=e.last_shift_end_before_horizon,
                 unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,
+                max_weekends=e.max_weekends,
+                min_consecutive_days_off=e.min_consecutive_days_off,
                 flexi_eligible=(
                     None if e.flexi_eligible is None else sorted(e.flexi_eligible)
                 ),
@@ -385,6 +400,7 @@ def from_domain(instance: Instance) -> InstanceIn:
             min_weekly_rest_hours=instance.params.min_weekly_rest_hours,
             min_period_hours=instance.params.min_period_hours,
             max_consecutive_days=instance.params.max_consecutive_days,
+            weekend_days=sorted(instance.params.weekend_days),
             derogation_basis=dict(instance.params.derogation_basis),
         ),
         now=instance.now,

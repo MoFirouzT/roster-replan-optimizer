@@ -127,6 +127,7 @@ solve consumes them as opaque data.
 | `max_hours_this_week[e]` | hours, per employee | caller | `R-MAX-WEEKLY` |
 | `consecutive_days_worked_before_horizon[e]` | days, per employee | caller | `R-CONSEC-DAYS` |
 | `last_shift_end_before_horizon[e]` | hours (negative), per employee | caller | `R-REST-GAP`, `R-WEEKLY-REST` |
+| `unpopular_shifts_before_horizon[e]` | count, per employee | caller | the fairness term (`D-108`) |
 
 `max_hours_this_week[e]` is the reference-period budget described in
 [`rules.md`](rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget): the caller resolves
@@ -139,6 +140,24 @@ The other two exist for the same structural reason. A week boundary is an artifa
 not of the employee's working life — someone who worked the six days before Monday, or who finished
 a night shift at 07:00 on Monday, is constrained on Monday by history the horizon cannot see.
 Without these fields every horizon boundary silently resets the rules that span it.
+
+### Rule parameters a caller opts into
+
+Three fields switch a rule on rather than parameterising one that is always present. Absent means the
+caller is not asking for the rule, which is ordinary rather than a defect — `R-MAX-PERIOD` established
+the pattern (`D-123`) and `D-135` follows it.
+
+| Field | Type | Consumed by | Absent means |
+|---|---|---|---|
+| `max_hours_this_period[e]` | hours, per employee | `R-MAX-PERIOD` | nothing to add beyond the weekly ceiling |
+| `max_weekends[e]` | weekends, per employee | `R-MAX-WEEKENDS` | no weekend budget |
+| `min_consecutive_days_off[e]` | days, per employee | `R-MIN-DAYS-OFF` | no minimum; 1 is the same as absent |
+| `params.weekend_days` | day positions in a week | `R-MAX-WEEKENDS` | no weekend is defined, so the rule is off |
+
+`weekend_days` is the only parameter here stated in a coordinate system the caller does not otherwise
+use, and it is asked for rather than derived because **this domain has no calendar**: a week is a
+position in the horizon and never a Monday. Validation rejects a day outside `0…6` rather than
+silently ignoring it.
 
 **The checker verifies against the supplied values and never recomputes them.** A checker that
 derives its own budget from data it cannot see is testing the caller rather than the roster, and

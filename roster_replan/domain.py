@@ -126,6 +126,13 @@ class Employee:
     # carry history for `R-CONSEC-DAYS` and `R-REST-GAP` for the same reason.
     unpopular_shifts_before_horizon: int = 0
 
+    # `R-MAX-WEEKENDS` and `R-MIN-DAYS-OFF`, both optional in `R-MAX-PERIOD`'s sense
+    # (`D-135`): absent means the caller is not asking for the rule, which is ordinary
+    # rather than a defect. Per employee because that is how the one workforce this project
+    # has measured states them -- `MaxWeekends` varies 1 to 3 inside a single team.
+    max_weekends: int | None = None
+    min_consecutive_days_off: int | None = None
+
     # Eligibility gates, indexed by day: a Dimona may not cross a quarter boundary, so
     # one employee can be eligible on 30 June and not on 1 July inside one horizon.
     # None means "not supplied", which input validation rejects for a flexi contract --
@@ -257,6 +264,14 @@ class RuleParams:
     min_weekly_rest_hours: float
     min_period_hours: float
     max_consecutive_days: int | None
+
+    # Which positions in a week `R-MAX-WEEKENDS` counts -- day indices 0 to 6 from the
+    # week's start. Caller-supplied and empty by default, because **this domain has no
+    # calendar**: the module docstring above fixes that a week here is a position in the
+    # horizon and never a Monday, so which of its days are "the weekend" is a fact only the
+    # caller holds. Empty switches the rule off (`D-135`).
+    weekend_days: frozenset[int] = frozenset()
+
     derogation_basis: dict[str, str] = field(default_factory=dict)
 
 

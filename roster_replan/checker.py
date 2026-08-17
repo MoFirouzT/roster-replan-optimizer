@@ -22,7 +22,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from .domain import FLEXI, Employee, Instance, Interval, Roster
+from .domain import DAYS_PER_WEEK, FLEXI, Employee, Instance, Interval, Roster
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,6 +66,8 @@ def check(roster: Roster, instance: Instance) -> list[Violation]:
     violations += _max_period(roster, instance)
     violations += _max_daily(roster, instance)
     violations += _consec_days(roster, instance)
+    violations += _max_weekends(roster, instance)
+    violations += _min_days_off(roster, instance)
     return sorted(violations, key=lambda v: (v.rule, _nk(v.employee), _nk(v.day), _nk(v.shift)))
 
 
@@ -544,4 +546,84 @@ def _consec_days(roster: Roster, instance: Instance) -> list[Violation]:
                         required=limit,
                     )
                 )
+    return out
+
+
+# --- R-MAX-WEEKENDS -----------------------------------------------------------------
+# Count the distinct weeks in which the employee worked at least one weekend day, and
+# compare. Deliberately *not* the model's formulation: that one forces a boolean up per
+# week and sums it, this one collects the weeks into a set. Same rule, different arithmetic
+# -- which is the whole purpose of two readings.
+
+
+def _max_weekends(roster: Roster, instance: Instance) -> list[Violation]:
+    weekend = instance.params.weekend_days
+    if not weekend:
+        return []
+
+    out = []
+    for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
+        limit = instance.employees[employee].max_weekends
+        if limit is None:
+            continue
+
+        weeks = {
+            instance.week_of(day) for day, _ in shifts if day % DAYS_PER_WEEK in weekend
+        }
+        if len(weeks) > limit:
+            person = instance.employees[employee]
+            out.append(
+                Violation(
+                    rule="R-MAX-WEEKENDS",
+                    message=f"{person.name} works {len(weeks)} weekends; {limit} allowed",
+                    employee=employee,
+                    # The horizon's first day: the rule is a count over the whole payload,
+                    # and no single week is the one that broke it.
+                    day=0,
+                    observed=len(weeks),
+                    required=limit,
+                )
+            )
+    return out
+
+
+# --- R-MIN-DAYS-OFF -----------------------------------------------------------------
+# Walk the days off and measure each stretch, against the model's forbidden-pattern
+# encoding of the same rule.
+#
+# **Only interior stretches are judged** (`D-134`). A stretch reaching either end of the
+# horizon may continue outside it, and a roster cannot be judged on days it does not
+# contain. In the model this falls out of the pattern needing a worked day on both sides;
+# here it has to be said, which is the usual asymmetry between the two readings.
+
+
+def _min_days_off(roster: Roster, instance: Instance) -> list[Violation]:
+    out = []
+    for employee, shifts in enumerate(_by_employee(roster, len(instance.employees))):
+        minimum = instance.employees[employee].min_consecutive_days_off
+        if minimum is None or minimum < 2:
+            continue
+
+        worked = {day for day, _ in shifts}
+        start = None
+        for day in range(instance.days + 1):
+            off = day < instance.days and day not in worked
+            if off and start is None:
+                start = day
+            elif not off and start is not None:
+                length = day - start
+                if start > 0 and day < instance.days and length < minimum:
+                    person = instance.employees[employee]
+                    out.append(
+                        Violation(
+                            rule="R-MIN-DAYS-OFF",
+                            message=f"{person.name} gets {length} day(s) off from day "
+                            f"{start}; {minimum} consecutive required",
+                            employee=employee,
+                            day=start,
+                            observed=length,
+                            required=minimum,
+                        )
+                    )
+                start = None
     return out

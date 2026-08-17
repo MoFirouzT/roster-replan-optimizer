@@ -1092,6 +1092,50 @@ MUTANTS: tuple[Mutant, ...] = (
         "        last = None",
         "tests/test_studies.py",
     ),
+    # --- R-MAX-WEEKENDS and R-MIN-DAYS-OFF ------------------------------------------------
+    # Both rules are new and both are optional, which is the dangerous combination: a rule
+    # nobody's payload switches on is a rule no existing test can see fail (`D-135`). Each
+    # of these breaks one reading and must be caught by the layer holding the two together.
+    Mutant(
+        "model-weekends-counted-per-day-not-per-week",
+        "weekends",
+        MODEL,
+        "            model.add(worked_weekend[instance.week_of(day)] >= var)",
+        "            model.add(worked_weekend[day % instance.weeks] >= var)",
+        "tests/test_ground_truth.py",
+    ),
+    Mutant(
+        "checker-weekends-counts-days-not-weekends",
+        "weekends",
+        CHECKER,
+        "        weeks = {\n            instance.week_of(day) for day, _ in shifts if day % DAYS_PER_WEEK in weekend\n        }",
+        "        weeks = {\n            day for day, _ in shifts if day % DAYS_PER_WEEK in weekend\n        }",
+        "tests/test_weekends_and_days_off.py",
+    ),
+    Mutant(
+        "model-days-off-judges-the-horizon-edge",
+        "weekends",
+        MODEL,
+        "            for start in range(instance.days - gap - 1):",
+        "            for start in range(-1, instance.days - gap):",
+        "tests/test_ground_truth.py",
+    ),
+    Mutant(
+        "checker-days-off-judges-the-horizon-edge",
+        "weekends",
+        CHECKER,
+        "                if start > 0 and day < instance.days and length < minimum:",
+        "                if length < minimum:",
+        "tests/test_weekends_and_days_off.py",
+    ),
+    Mutant(
+        "checker-days-off-rule-is-inert",
+        "weekends",
+        CHECKER,
+        "        if minimum is None or minimum < 2:\n            continue\n\n        worked = {day for day, _ in shifts}",
+        "        if minimum is None or minimum < 3:\n            continue\n\n        worked = {day for day, _ in shifts}",
+        "tests/test_weekends_and_days_off.py",
+    ),
     # --- The foreign importer -----------------------------------------------------------
     # Every one of these is a silent misreading of somebody else's data: the parse succeeds,
     # the numbers look plausible, and what they mean is wrong. These three are mutated in the

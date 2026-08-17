@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from ortools.sat.python import cp_model
 
 from .disruption import fairness_terms, objective_terms
-from .domain import FLEXI, Instance, Roster
+from .domain import DAYS_PER_WEEK, FLEXI, Instance, Roster
 
 def _minutes(hours: float) -> int:
     return int(round(hours * 60))
@@ -183,6 +183,8 @@ def build(
         _consec_days_automaton(built, instance)
     else:
         _consec_days(built, instance)
+    _max_weekends(built, instance)
+    _min_days_off(built, instance)
     if symmetry:
         _break_symmetry(built, instance)
     return built
@@ -539,6 +541,77 @@ def _consec_days(built: Built, instance: Instance) -> None:
             # the checker names too -- the two readings must be comparable.
             literal = built.gate(model, Gate("R-CONSEC-DAYS", employee, max(0, start + limit)))
             model.add(sum(inside) <= allowance).only_enforce_if(literal)
+
+
+# --- R-MAX-WEEKENDS -----------------------------------------------------------------
+# One boolean per (employee, week) that is forced up by any weekend assignment, and a sum
+# over weeks. The implication is needed in **one direction only**: the variable appears in
+# a `<=` constraint and nowhere else, so nothing pushes it up except the assignments that
+# must, and nothing pushes it down that should not.
+#
+# Weeks come from `Instance.week_of`, so this counts the same weeks `R-MAX-WEEKLY` does.
+
+
+def _max_weekends(built: Built, instance: Instance) -> None:
+    weekend = instance.params.weekend_days
+    if not weekend:
+        return
+
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        if person.max_weekends is None:
+            continue
+
+        worked_weekend = {}
+        for week in range(instance.weeks):
+            indicator = model.new_bool_var(f"we_{employee}_{week}")
+            worked_weekend[week] = indicator
+
+        for (e, day, shift), var in built.x.items():
+            if e != employee or day % DAYS_PER_WEEK not in weekend:
+                continue
+            model.add(worked_weekend[instance.week_of(day)] >= var)
+
+        # Reported at the horizon's first day rather than at a week, because the rule is a
+        # count over the whole payload and no single week is the one that broke it.
+        literal = built.gate(model, Gate("R-MAX-WEEKENDS", employee, 0))
+        model.add(sum(worked_weekend.values()) <= person.max_weekends).only_enforce_if(literal)
+
+
+# --- R-MIN-DAYS-OFF -----------------------------------------------------------------
+# A forbidden pattern rather than a run-length count: for each interior stretch shorter
+# than the minimum, forbid `worked, off × L, worked`.
+#
+#     worked[d] − Σ_{j=1..L} worked[d+j] + worked[d+L+1]  ≤  1
+#
+# It is 2 exactly on the pattern being forbidden and at most 1 on everything else.
+#
+# **The boundary latitude falls out of the encoding rather than being special-cased**
+# (`D-134`): the pattern needs a worked day on *both* sides, so a stretch of days off
+# running to either end of the horizon is never matched. That is the right answer, because
+# such a stretch may continue outside the window — a roster cannot be judged on days it
+# does not contain, and `R-WEEKLY-REST` already takes the same view of its own edges.
+
+
+def _min_days_off(built: Built, instance: Instance) -> None:
+    model = built.model
+    for employee, person in enumerate(instance.employees):
+        minimum = person.min_consecutive_days_off
+        if minimum is None or minimum < 2:
+            # A minimum of one forbids nothing: every gap between two worked days is at
+            # least one day long by construction.
+            continue
+
+        worked = _worked_indicators(built, instance, employee)
+        for gap in range(1, minimum):
+            for start in range(instance.days - gap - 1):
+                inside = [worked[start + 1 + j] for j in range(gap)]
+                # Reported at the first day of the short stretch, which is the coordinate
+                # the checker names too -- the two readings must be comparable.
+                literal = built.gate(model, Gate("R-MIN-DAYS-OFF", employee, start + 1))
+                model.add(
+                    worked[start] - sum(inside) + worked[start + gap + 1] <= 1
+                ).only_enforce_if(literal)
 
 
 # --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------
