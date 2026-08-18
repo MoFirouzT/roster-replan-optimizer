@@ -141,6 +141,8 @@ def test_a_person_blocked_twice_is_counted_under_both_rules():
     )
 
     assert finding.by_rule() == {"R-AVAIL": 2, "R-MAX-WEEKLY": 1}
+    assert finding.by_employee() == {1: 1, 0: 2}
+    assert list(finding.by_employee()) == [1, 0]  # fewest blockers first
     assert finding.short == 2
 
 

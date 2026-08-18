@@ -85,6 +85,17 @@ class Shortfall:
             counts.update(set(entry.rules))
         return dict(counts.most_common())
 
+    def by_employee(self) -> dict[int, int]:
+        """How many rules block each excluded person, fewest first.
+
+        The rule count, not the identity of the rules: someone blocked by one rule is the
+        cheapest to relax, in the sense that overriding them needs one justification instead
+        of several. It is not a promise that overriding them clears the shortfall — the
+        solver would still have to re-optimize around whatever else the roster owes.
+        """
+        counts = {entry.employee: len(entry.rules) for entry in self.blocked}
+        return dict(sorted(counts.items(), key=lambda item: item[1]))
+
     def summary(self) -> str:
         """One line, in the shape `rules.md` asks for.
 

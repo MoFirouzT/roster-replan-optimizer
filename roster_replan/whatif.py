@@ -66,6 +66,12 @@ class Change:
         if self.kind == SET_WEEKLY_HOURS:
             who = "everyone" if self.employee is None else f"employee {self.employee}"
             return f"set {who}'s weekly hours to {self.weekly_hours}"
+        if self.kind == SET_DAILY_HOURS:
+            who = "everyone" if self.employee is None else f"employee {self.employee}"
+            return f"set {who}'s daily hours to {self.daily_hours}"
+        if self.kind == IGNORE_SKILL:
+            skills = ", ".join(self.skills)
+            return f"ignore that employee {self.employee} lacks the skill(s) {skills}"
         if self.kind == SET_REQUIRED:
             return f"set day {self.day} shift {self.shift} to {self.required} staff"
         if self.kind == RELAX_RULE:
@@ -80,10 +86,19 @@ class Change:
 
 ADD_EMPLOYEE = "add_employee"
 SET_WEEKLY_HOURS = "set_weekly_hours"
+SET_DAILY_HOURS = "set_daily_hours"
+IGNORE_SKILL = "ignore_skill"
 SET_REQUIRED = "set_required"
 RELAX_RULE = "relax_rule"
 
-KINDS = (ADD_EMPLOYEE, SET_WEEKLY_HOURS, SET_REQUIRED, RELAX_RULE)
+KINDS = (
+    ADD_EMPLOYEE,
+    SET_WEEKLY_HOURS,
+    SET_DAILY_HOURS,
+    IGNORE_SKILL,
+    SET_REQUIRED,
+    RELAX_RULE,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,6 +194,34 @@ def apply(instance: Instance, change: Change) -> Instance:
             ),
         )
 
+    if change.kind == SET_DAILY_HOURS:
+        return dataclasses.replace(
+            instance,
+            employees=tuple(
+                dataclasses.replace(person, max_daily_hours=change.daily_hours)
+                if change.employee is None or index == change.employee
+                else person
+                for index, person in enumerate(instance.employees)
+            ),
+        )
+
+    if change.kind == IGNORE_SKILL:
+        # This does not teach the employee anything, and nothing here reaches the real
+        # `instance` passed in — `dataclasses.replace` returns a new, throwaway copy, solved
+        # only inside this one hypothetical. It answers *would the shortfall close if this
+        # requirement did not apply to this one person*, not *give them the skill*.
+        if change.employee is None:
+            raise ValueError("ignore_skill requires an employee")
+        return dataclasses.replace(
+            instance,
+            employees=tuple(
+                dataclasses.replace(person, skills=person.skills | frozenset(change.skills))
+                if index == change.employee
+                else person
+                for index, person in enumerate(instance.employees)
+            ),
+        )
+
     if change.kind == SET_REQUIRED:
         return dataclasses.replace(
             instance,
@@ -263,3 +306,78 @@ def _missing(roster, instance: Instance, day: int, shift: int) -> int:
         o.required for o in instance.open_shifts if (o.day, o.shift) == (day, shift)
     )
     return max(0, required - sum(1 for _, d, s in roster if (d, s) == (day, shift)))
+
+
+@dataclass(frozen=True, slots=True)
+class Recommendation:
+    """One candidate for closing a shortfall, and what it would cost.
+
+    Nothing here has happened — `recommend` only ran `compare` against a throwaway instance
+    for each candidate. Acting on a recommendation is a separate, later step: publishing it
+    is a caller's decision, not this module's.
+    """
+
+    employee: int
+    action: str
+    disruption_delta: int
+
+
+def recommend(
+    instance: Instance,
+    shortfall: Shortfall,
+    *,
+    seed: int = 7,
+    time_limit: float = 30.0,
+) -> tuple[Recommendation, ...]:
+    """Rank the people closest to filling one shortfall by what ignoring their one blocker
+    would actually cost, confirmed by solving rather than assumed from the rule count.
+
+    Restricted to people blocked by exactly one rule: `by_employee()` already says these are
+    the cheapest to ask, in the sense of needing one override instead of several, and a
+    person with two or more blockers cannot be tested by relaxing only one of them. Only
+    rules with a `Change` kind can be tested at all — R-SKILL, R-MAX-DAILY and R-MAX-WEEKLY
+    today; R-AVAIL and the rest are not offered until `whatif.py` can express them.
+
+    Every candidate is a fresh, disposable instance solved independently — the incumbent
+    roster and every employee's real record are exactly as they were before this ran.
+    """
+    shift_type = instance.shift_types[shortfall.shift]
+    open_shift = next(
+        o for o in instance.open_shifts if (o.day, o.shift) == (shortfall.day, shortfall.shift)
+    )
+
+    results = []
+    for blocked in shortfall.blocked:
+        if len(blocked.rules) != 1:
+            continue
+        rule = blocked.rules[0]
+        employee = instance.employees[blocked.employee]
+
+        if rule == "R-SKILL":
+            missing = open_shift.required_skills - employee.skills
+            change = Change(kind=IGNORE_SKILL, employee=blocked.employee, skills=tuple(missing))
+            action = f"ignore {', '.join(sorted(missing))} skill"
+        elif rule == "R-MAX-WEEKLY":
+            raised = (employee.max_hours_this_week or 0.0) + shift_type.span_hours
+            change = Change(kind=SET_WEEKLY_HOURS, employee=blocked.employee, weekly_hours=raised)
+            action = f"raise weekly-hours cap by {shift_type.span_hours:g}h"
+        elif rule == "R-MAX-DAILY":
+            raised = (employee.max_daily_hours or 0.0) + shift_type.span_hours
+            change = Change(kind=SET_DAILY_HOURS, employee=blocked.employee, daily_hours=raised)
+            action = f"raise daily-hours cap by {shift_type.span_hours:g}h"
+        else:
+            continue
+
+        comparison = compare(instance, (change,), seed=seed, time_limit=time_limit)
+        if comparison.refused or comparison.shortfall_delta >= 0:
+            continue
+
+        results.append(
+            Recommendation(
+                employee=blocked.employee,
+                action=action,
+                disruption_delta=comparison.disruption_delta,
+            )
+        )
+
+    return tuple(sorted(results, key=lambda r: (r.disruption_delta, r.employee)))

@@ -34,6 +34,8 @@ Records leave this table as they are written. What remains here is what is still
 
 | ID | Decision | Tier |
 | --- | --- | --- |
+| — | A `whatif.Change` kind for every hard rule an employee's own data can carry — availability, weekend cap, days off, period hours, shift-type cap, consecutive-days-worked, flexi/dimona eligibility — not only skills and daily/weekly hours. `whatif.recommend()` (quickstart.md) already ranks people blocked by these and would test them the same way it tests R-SKILL, R-MAX-DAILY and R-MAX-WEEKLY today, but it cannot yet build a `Change` for the rest | T4 |
+| — | A priority order across rule *kinds*, for the case `recommend()`'s disruption sort cannot reach: two candidates it cannot test against each other because one's rule has no `Change` kind yet, or a candidate whose rule is statutory (R-REST-GAP) rather than operational, where the cheaper disruption number is not the only thing that should decide which ask is preferable | T4 |
 
 ---
 

@@ -2,7 +2,7 @@
 
 ```bash
 uv sync
-uv run python -m roster_replan.demo scenarios/saturday_sick_call.json --weekday-of-day-zero 0
+uv run python -m roster_replan.demo scenarios/saturday_sick_call.json
 ```
 
 This prints:
@@ -25,41 +25,24 @@ Sat 15:00-23:00 (E) is 1 short of its 3 required staff.
   4 of the 12 staff are absent or unavailable then (R-AVAIL).
   4 of the 12 staff would exceed their hours for the day (R-MAX-DAILY).
   E01, E05 and E08 would exceed their hours for the week (R-MAX-WEEKLY).
+
+Cheapest single overrides that would fill Sat 15:00-23:00 (E):
+  E05  raise weekly-hours cap by 8h     disruption +40
+  E09  ignore kitchen skill             disruption +40
+  E06  ignore kitchen skill             disruption +40
 ```
 
-The scenario file is the real wire format, so it doubles as the worked example of what a caller
-sends. The shortfall is the honest outcome: E02 called in sick and **nobody could legally replace
-them** — the explanation says why, person by person, and every line is derived rather than phrased
-by a model.
+The scenario file is the real wire format, so it doubles as the worked example of what a caller sends.
+The shortfall is the honest outcome:
+E02 called in sick and **nobody could legally replace them**; the explanation says why, person by person, and every line is derived rather than phrased by a model.
+
+> **The recommendation list ranks who is closest, then checks the ranking by solving.**
+> `Shortfall.by_employee()` sorts the excluded staff by how many hard rules block each one, fewest first is just a hint, since a single blocker is cheaper to override than several, not a guarantee that overriding it actually works.
+> `whatif.recommend()` checks each single-blocker candidate by re-solving a disposable copy of the instance and keeps only the ones that close the shift.
+> Nothing is applied:
+> the real instance and roster are untouched, and *ignoring* a rule for one solve is not the same as changing that employee's real record.
 
 This is one scenario, not the 84-case benchmark set. That reproduction is in
 [`benchmarks.md`](benchmarks.md).
 
-## Running the suite
-
-The suite and the import contracts are the two things CI runs on every push:
-
-```bash
-uv run pytest -q          # 766 tests, about a minute
-uv run lint-imports       # the 10 contracts that carry the independence rule
-```
-
-CI runs the first with `-m "not machine"`, which drops the three timing guards calibrated to this
-hardware ([`D-114`](decisions.md)). Everything else runs everywhere, including the benchmark
-manifest's solved half — that one was deselected too until the optimum became canonical and stopped
-carrying the build that produced it ([`D-119`](decisions.md), [`D-121`](decisions.md)).
-
-## The one script that costs money
-
-Everything above — and the whole test suite — runs with no API key. One script does not:
-
-```bash
-cp .env.example .env          # paste a key into it; .env is gitignored
-uv sync --extra nl
-uv run python -m benchmarks.nl_eval --free-form -k rest-plain   # one call, a few cents
-uv run python -m benchmarks.nl_eval                             # 18 calls, well under a dollar
-```
-
-That is the natural-language parse measured against text its author did not render
-([`D-102`](decisions.md)). It is a script rather than a test because it costs money and because a
-result that depends on a model does not belong in a suite that must be reproducible.
+To run the test suite or contribute, see [`development.md`](development.md).

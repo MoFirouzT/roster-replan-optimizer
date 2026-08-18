@@ -28,6 +28,7 @@ from .explain import explain
 from .ladder import answer
 from .prose import render_all, slot
 from .service.contracts import ReplanRequest, to_domain
+from .whatif import recommend
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -36,8 +37,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--weekday-of-day-zero",
         type=int,
-        default=None,
-        help="0 for Monday. Without it, days are printed by index — the domain has no calendar",
+        default=0,
+        help="0 for Monday, the default here. The domain has no calendar, so this is the demo's "
+        "own assumption, not a fact `prose.py` knows on its own",
     )
     parser.add_argument("--budget-seconds", type=float, default=30.0)
     args = parser.parse_args(argv)
@@ -74,14 +76,28 @@ def main(argv: list[str] | None = None) -> int:
             where = slot(instance, day, shift, weekday_of_day_zero=args.weekday_of_day_zero)
             print(f"  {action} {instance.employees[employee].name}  {where}")
 
+    findings = explain(result.roster, instance)
+
     print()
-    print(
-        render_all(
-            explain(result.roster, instance),
-            instance,
-            weekday_of_day_zero=args.weekday_of_day_zero,
+    print(render_all(findings, instance, weekday_of_day_zero=args.weekday_of_day_zero))
+
+    # A recommendation list, not a change: `recommend` only solves throwaway instances, so
+    # nothing printed here has been applied to the roster or to any employee's real record.
+    for finding in findings:
+        if not finding.short:
+            continue
+        recommendations = recommend(
+            instance, finding, seed=request.seed, time_limit=args.budget_seconds
         )
-    )
+        if not recommendations:
+            continue
+        where = slot(
+            instance, finding.day, finding.shift, weekday_of_day_zero=args.weekday_of_day_zero
+        )
+        print(f"\nCheapest single overrides that would fill {where}:")
+        for rec in recommendations:
+            name = instance.employees[rec.employee].name
+            print(f"  {name:<4} {rec.action:<32} disruption {rec.disruption_delta:+d}")
 
     if result.violations:
         # Only reachable on the `incumbent` rung, where returning a broken roster is the

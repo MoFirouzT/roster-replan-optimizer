@@ -220,7 +220,8 @@ docs/
   preferences.md            what employees and employers want past one week — a survey, nothing implemented
   studies/                  analyses, nulls, rejected alternatives + index
   benchmarks.md             results and method
-  quickstart.md             demo output, suite commands, the one script that costs money
+  quickstart.md             demo run and what it prints
+  development.md            suite commands, the one script that costs money
 scenarios/                  demo data — domain specificity lives here, not in the code
 ```
 

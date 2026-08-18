@@ -28,11 +28,11 @@ SCENARIO = pathlib.Path(__file__).resolve().parent.parent / "scenarios" / (
 
 
 def test_the_readme_command_runs(capsys):
-    assert main([str(SCENARIO), "--weekday-of-day-zero", "0"]) == 0
+    assert main([str(SCENARIO)]) == 0
 
     printed = capsys.readouterr().out
     assert "proven optimal" in printed
-    assert "Sat" in printed, "a calendar was supplied, so days should be named"
+    assert "Sat" in printed, "the demo defaults to a Monday day zero, so days should be named"
     assert "short of its" in printed, "the explanation should reach the output"
 
 
@@ -41,14 +41,14 @@ def test_a_missing_payload_fails_cleanly(capsys):
     assert "no such payload" in capsys.readouterr().err
 
 
-def test_without_a_calendar_days_are_printed_by_index(capsys):
-    main([str(SCENARIO)])
+def test_a_different_weekday_of_day_zero_overrides_the_default(capsys):
+    """`prose.py` still refuses to invent a weekday on its own — see
+    `test_no_weekday_without_a_calendar` in `test_prose.py` — but the demo's own default
+    (`day 0 == Monday`) can be overridden by a caller who knows better."""
+    main([str(SCENARIO), "--weekday-of-day-zero", "1"])
     printed = capsys.readouterr().out
 
-    assert "day 5" in printed
-    assert "Sat" not in printed, (
-        "no calendar was supplied, so a weekday would be invented — see prose.py"
-    )
+    assert "Sun" in printed, "day 5 is a Sunday when day zero is a Tuesday"
 
 
 def test_the_committed_scenario_still_matches_the_generator():
