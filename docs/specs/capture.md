@@ -37,7 +37,7 @@ The adapter between them is a component like any other and is round-trip tested:
 `normalize(raw)` followed by `denormalize` must reproduce the raw payload up to documented,
 enumerated losses.
 
-**"Raw" is not "verbatim", and the difference is deliberate** (`D-016`). An earlier version of this
+**"Raw" is not "verbatim", and the difference is deliberate** ([`D-016`](../decisions.md#d-016)). An earlier version of this
 section said verbatim, which cannot hold: pseudonymisation happens *before* anything is written, so
 identifiers are already surrogates in the raw layer by the time it exists. Pseudonymisation is
 therefore the first of the adapter's enumerated losses rather than a mismatch to be discovered by the
@@ -57,11 +57,11 @@ it locates named individuals at specific places and times.
 - Names, contact details and national registry numbers are never written.
 - **Absence reasons are dropped.** Only the availability bit is retained.
 
-The last one is the load-bearing one (`D-016`). A sick call is health data under GDPR Article 9,
+The last one is the load-bearing one ([`D-016`](../decisions.md#d-016)). A sick call is health data under GDPR Article 9,
 carrying obligations that a benchmark corpus has no business taking on. The optimiser never needed
 the reason — `R-AVAIL` reads an interval, not a cause — so discarding it costs the model nothing and
 removes the entire category from scope. It is cheap only because the domain model was built without
-it: `D-020` already separates what befell someone from what they declared, and neither carries a
+it: [`D-020`](../decisions.md#d-020) already separates what befell someone from what they declared, and neither carries a
 reason.
 
 **The residual exposure is stated rather than implied.** Surrogate keys are *stable* by design, or a
@@ -100,7 +100,7 @@ instances and loses catastrophically on ten is not a substitute, and an average 
 
 ## The bar, stated before measuring
 
-A success criterion written after the numbers arrive is not a criterion (`D-017`).
+A success criterion written after the numbers arrive is not a criterion ([`D-017`](../decisions.md#d-017)).
 The following is fixed in advance of the first replay and is changed only through a `decisions.md`
 entry, never in response to a result.
 

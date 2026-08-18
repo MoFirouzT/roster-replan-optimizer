@@ -1,20 +1,20 @@
 # Priced rules against structural ones
 
-**Question.** [`D-002`](../decisions.md) encodes hard rules as constraints rather than as large
+**Question.** [`D-002`](../decisions.md#d-002) encodes hard rules as constraints rather than as large
 penalties, on the grounds that *a penalised legal rule produces a roster that is cheaply illegal*.
-[`D-003`](../decisions.md) leans on the same sentence to justify the independent checker, and
+[`D-003`](../decisions.md#d-003) leans on the same sentence to justify the independent checker, and
 [`validation.md`](../specs/validation.md) states it a third time. Three records rest on the claim and
 none of them measured it. So: measure it.
 
 **Answer.** **It depends entirely on the instance, and the easy distribution gives the wrong answer.**
 On the committed set there *is* a setting that is both safe and near-optimal — 0 illegal rosters in 14
 cases, within 38.6 of the optimum — which taken alone would read as a partial falsification of
-`D-002`. On the one genuinely hard instance this project has (`D-127`), **no setting works at all**:
+[`D-002`](../decisions.md#d-002). On the one genuinely hard instance this project has ([`D-127`](../decisions.md#d-127)), **no setting works at all**:
 every weight is either illegal or leaves shifts unstaffed, and the best legal answer is 500× worse
 than the proven optimum while still failing to staff the week.
 
 The mechanism is the finding. Raising the price of a rule does not buy legality plus quality — it buys
-legality **by refusing to staff**, because `R-COVER`'s floor is soft (`D-018`) and is therefore the
+legality **by refusing to staff**, because `R-COVER`'s floor is soft ([`D-018`](../decisions.md#d-018)) and is therefore the
 one exit a penalised search can always afford.
 
     uv run python -m benchmarks.anneal_study --set committed
@@ -27,7 +27,7 @@ encoding, geometric cooling, moves being add / drop / reassign / swap. Every har
 `hard_weight` instead of prohibited. There is no repair step and no feasibility gate.
 
 It lives in `benchmarks/` and not on the product path, which is the `benchmarks/milp.py` precedent
-(`D-001`), and an import-linter contract holds it solver-free the way `repair.py` is held — a rival
+([`D-001`](../decisions.md#d-001)), and an import-linter contract holds it solver-free the way `repair.py` is held — a rival
 that can reach the model is not a rival, and a module whose whole point is having no hard-constraint
 guarantee must not be able to borrow one.
 
@@ -49,16 +49,16 @@ this Python rather than the method class. Seconds are recorded and are labelled 
 
 The alternative was an incremental evaluator, and it was refused rather than skipped: one fast enough
 to compete would have to encode which rules are per-employee and which are per-slot, which is rule
-structure living outside `checker.py` — the shared-assumption failure mode `D-111` and `D-123` were
+structure living outside `checker.py` — the shared-assumption failure mode [`D-111`](../decisions.md#d-111) and [`D-123`](../decisions.md#d-123) were
 both written about.
 
-**The weight is swept across five decades**, because `D-002`'s claim is not that some particular
+**The weight is swept across five decades**, because [`D-002`](../decisions.md#d-002)'s claim is not that some particular
 weight is too small. It is that no weight is both safe and effective, and only a surface can answer
 that.
 
 ## The committed set: a penalty engine that works, if you tune it
 
-Fourteen cases, one per class, named rather than sliced (`D-107`). `illegal` counts rosters carrying
+Fourteen cases, one per class, named rather than sliced ([`D-107`](../decisions.md#d-107)). `illegal` counts rosters carrying
 any hard violation; `new` counts those where the search *created* one; `unrepaired` counts those where
 it simply left the damage it was handed.
 
@@ -76,7 +76,7 @@ it simply left the damage it was handed.
 **The characteristic failure is doing nothing.** At weight 1, ten of the fourteen illegal rosters
 introduced no new violation at all — they returned the incumbent essentially untouched, absence and
 all. The cheapest way out of a priced rule is to decline to repair it, which is a quieter failure than
-the rule-breaking `D-002` describes and a worse one to detect.
+the rule-breaking [`D-002`](../decisions.md#d-002) describes and a worse one to detect.
 
 **Thirteen of fourteen illegal rosters score better than the proven optimum** on the shared D2
 yardstick. A results table showing the objective column ranks the unsafe method first in 93% of cases,
@@ -87,13 +87,13 @@ and only the violations column dissents. This is why `methods.Outcome` carries `
 freezes, and the gap is 35,836 at the largest budget with 2 of 14 matching.
 
 **And there is a sweet spot**: weight 1,000,000 at 100,000 evaluations is 0/14 illegal and within 38.6
-of the optimum, matching it outright on 11 of 14. On this distribution, `D-002`'s claim does not hold
+of the optimum, matching it outright on 11 of 14. On this distribution, [`D-002`](../decisions.md#d-002)'s claim does not hold
 in its strong form.
 
 ## Instance 8: no setting works
 
 Foreign instance 8 — 30 employees over 4 weeks, the first genuinely hard search this project has seen
-(`D-127`). The exact model proves optimality in **5.74 s** at disruption **210**, fully staffed. The
+([`D-127`](../decisions.md#d-127)). The exact model proves optimality in **5.74 s** at disruption **210**, fully staffed. The
 published incumbent arrives carrying 5 hard violations of its own, so `new` is reported separately.
 
 | weight | evals | hard violations | new | slots left unstaffed | disruption |
@@ -113,7 +113,7 @@ it stops breaking rules and starts leaving holes: 1 unstaffed slot at the best s
 dearest.
 
 **The exit is the soft floor.** `R-COVER`'s floor is the one deliberate soft exception in this model
-(`D-018`, priced in `D-047`), so a shortfall is expensive but never prohibited. As the price of hard
+([`D-018`](../decisions.md#d-018), priced in [`D-047`](../decisions.md#d-047)), so a shortfall is expensive but never prohibited. As the price of hard
 rules rises, the search discovers that not staffing is the affordable way to be legal. Nothing told it
 to do that; it is what pricing legality means.
 
@@ -144,10 +144,10 @@ one above it: no budget in the sweep reaches a legal, fully-staffed roster at al
 
 ## What this changes
 
-**`D-002` and `D-003` are confirmed, and narrowly.** Had this been run only on the committed set, the
+**[`D-002`](../decisions.md#d-002) and [`D-003`](../decisions.md#d-003) are confirmed, and narrowly.** Had this been run only on the committed set, the
 honest report would have been *a tuned penalty engine is safe and near-optimal here*, which is true and
-does not transfer. The distribution that produced that answer is the one `D-105` swept without finding
-anything hard and `D-127` showed cannot produce a hard instance.
+does not transfer. The distribution that produced that answer is the one [`D-105`](../decisions.md#d-105) swept without finding
+anything hard and [`D-127`](../decisions.md#d-127) showed cannot produce a hard instance.
 
 **The independent checker is load-bearing rather than a nice-to-have, and now there is a number for
 it.** A penalty formulation returned an illegal roster in 100% of committed cases at low weight and in
@@ -156,7 +156,7 @@ committed cases. Nothing inside such a search can report that; only a reading th
 
 **The anytime argument for a metaheuristic is not made here.** Instance 8 is where an exact method is
 slowest, and it is still 500× better at 1/40th the search time. Instance 23 — the 8-million-variable
-case where the exact model returns no roster — is **not** the counter-example it looks like: `D-127`
+case where the exact model returns no roster — is **not** the counter-example it looks like: [`D-127`](../decisions.md#d-127)
 records that its failure is 527 seconds of *model construction*, not search, so a comparison there
 measures Python object building rather than either method.
 
@@ -176,7 +176,7 @@ since the exact formulation needs no such number.
 
 ## Notes
 
-`D-128` records the decision. The runner writes
+[`D-128`](../decisions.md#d-128) records the decision. The runner writes
 [`benchmarks/anneal-results.json`](../../benchmarks/anneal-results.json) and
 `anneal-results-foreign8.json`.
 
@@ -188,6 +188,6 @@ that now live in this document. `run.py` drops the roster from `results.json` on
 the case name and the seed reproduce it. Rerun with `--trace` to regenerate them.
 
 Two defects were found in this study's own harness before it produced a number, and both are recorded
-in `D-128` because each would have produced a study whose every figure computed and meant nothing: a
+in [`D-128`](../decisions.md#d-128) because each would have produced a study whose every figure computed and meant nothing: a
 feasibility gate that survived the first test suite, and a summary that counted an untouched damaged
 incumbent as a clean run.

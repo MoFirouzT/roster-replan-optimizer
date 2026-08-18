@@ -1,6 +1,6 @@
 # Validation
 
-Two independent layers, often confused, with different jobs (`D-040`):
+Two independent layers, often confused, with different jobs ([`D-040`](../decisions.md#d-040)):
 
 - **Input validation** — is this payload well-formed and lawful *as a request*? Runs before any solve.
 - **The checker** — does this roster satisfy the rules? Runs on every solution the suite produces.
@@ -21,7 +21,7 @@ What lands here, and why each is *not* a roster property:
 |---|---|
 | `R-MIN-SHIFT` — every shift type meets the minimum period | No reachable roster can violate it; the catalogue either does or does not. See `rules.md` |
 | `max_hours_this_week[e]` within the absolute weekly ceiling | A too-large budget is a bad payload. Reporting it as `R-MAX-WEEKLY` blames the solver for the caller's arithmetic |
-| The horizon is a week or less, or a whole number of weeks | `D-110`, narrowed by `D-111`, retired by `D-113`. A horizon ending part-way through a week leaves a stub `R-WEEKLY-REST` cannot be satisfied inside, so the solve is infeasible for a week that is mostly not in the payload. No roster fixes it |
+| The horizon is a week or less, or a whole number of weeks | [`D-110`](../decisions.md#d-110), narrowed by [`D-111`](../decisions.md#d-111), retired by [`D-113`](../decisions.md#d-113). A horizon ending part-way through a week leaves a stub `R-WEEKLY-REST` cannot be satisfied inside, so the solve is infeasible for a week that is mostly not in the payload. No roster fixes it |
 | `max_daily_hours[e]` within the lawful derogation ladder | Same shape: the ceiling is a property of the contract, not of the assignment |
 | A derogated parameter carries a non-empty `derogation_basis` | A legality claim with no source is the thing `rules.md` exists to prevent |
 | A legal `R-SKILL-MIX` entry carries a provenance string | As above, per entry |
@@ -29,7 +29,7 @@ What lands here, and why each is *not* a roster property:
 | `flexi_eligible` / `dimona_ok` present for every flexi employee | Absence must never default to `true`; that would invent an eligibility the NSSO did not grant |
 | Every rule parameter is supplied explicitly | The independence rule forbids central defaults for rule thresholds |
 | Horizon begins at or after `now` on a cold solve | Otherwise `R-PIN-PAST` has past shifts and no incumbent to pin them to |
-| `shortfall_weight` dominates what one unstaffed shift can save | A weight scale that lets the optimiser buy stability by understaffing is an ordering error, not a preference. `D-057` derives the bound; `D-108` extends it to the fairness term, which pays for an empty shift the same way |
+| `shortfall_weight` dominates what one unstaffed shift can save | A weight scale that lets the optimiser buy stability by understaffing is an ordering error, not a preference. [`D-057`](../decisions.md#d-057) derives the bound; [`D-108`](../decisions.md#d-108) extends it to the fairness term, which pays for an empty shift the same way |
 
 `InputDefect` carries the offending field path, the observed value, and the constraint it broke. It is a
 distinct type from `Violation`: the two are never mixed in one list, because they have different
@@ -40,7 +40,7 @@ audiences — a caller fixes a defect, a planner reads a violation.
 `check(roster, instance) -> list[Violation]`. Plain Python. **Imports no solver.** Stateless.
 
 A second reading of [`rules.md`](rules.md), written without reference to the model implementation
-(`D-003`).
+([`D-003`](../decisions.md#d-003)).
 Shares the payload schema and the stated conventions with the model, and **shares no rule predicate or
 threshold** — see [the independence rule](rules.md#independence-rule) for exactly where that line falls
 and why it is not "shares no code". Enforced by an import-linter contract in CI, plus a review
@@ -61,7 +61,7 @@ still carry violations. The checker reports them, flagged `soft`, and does not t
 This changes what the differential harness may assert. `checker_feasible` is nearly always true once a
 coverage shortfall is representable — the empty roster satisfies every hard rule — so an
 `is_feasible ⟺ is_feasible` assertion would be vacuous. **The harness compares violation sets**
-(`D-041`).
+([`D-041`](../decisions.md#d-041)).
 
 ### What the checker must not do
 
@@ -82,17 +82,17 @@ other than the roster:
 | Layer | Asserts |
 |---|---|
 | Input validation | Malformed payloads rejected with the right field path; a valid payload produces no defects |
-| Brute force **(a)** (`D-004`, `D-042`) | N≤6, 3 days, ≤2 shift types: enumerate every roster, `checker` hard-feasible set **equals** model feasible set |
+| Brute force **(a)** ([`D-004`](../decisions.md#d-004), [`D-042`](../decisions.md#d-042)) | N≤6, 3 days, ≤2 shift types: enumerate every roster, `checker` hard-feasible set **equals** model feasible set |
 | Brute force **(b)** | Same instances: solver objective **equals** enumerated optimum, for every metric D0–D4. The enumeration is scored by `scoring.py`, never by the model |
 | Differential | Random rosters (mostly infeasible): `checker_violations(r)` **equals** `model_violations(r)`, as sets of `(rule, coordinates)`; mismatch prints the rule ID |
 | Property | Idempotent replan on a no-change input, and a fixed point under repetition · identical output under a fixed seed, and one optimum across seeds · monotone objective under rule relaxation · past shifts never modified, including when changing them would help |
 | Metamorphic | Employee relabelling leaves the objective invariant; day permutation leaves it invariant **only on a day-decoupled cold instance** — see below |
 | Golden | Committed scenarios with committed objective values; a diff fails CI until a `decisions.md` entry justifies it |
 
-**Suite-wide invariant** (`D-063`). Every test that produces a solution asserts zero **hard** checker
+**Suite-wide invariant** ([`D-063`](../decisions.md#d-063)). Every test that produces a solution asserts zero **hard** checker
 violations on it, and that the solve reached `OPTIMAL`. Soft violations are recorded, not asserted away.
 
-**Every layer above is checked by mutation** (`D-077`), in `tests/mutation.py`. Each mutant names the
+**Every layer above is checked by mutation** ([`D-077`](../decisions.md#d-077)), in `tests/mutation.py`. Each mutant names the
 layer whose job it is to object, so the harness answers *can this layer see this defect* rather than
 the weaker *does anything fail*. A layer without a mutant is a layer nobody has shown to work.
 
@@ -101,7 +101,7 @@ directly opts out, and should have a reason to. The `OPTIMAL` half matters more 
 comparing objectives across relaxations or against enumeration is meaningless on a time-limited
 `FEASIBLE`, and the failure would read as a wrong objective rather than as a truncated search.
 
-### Brute force lands in two stages (`D-042`)
+### Brute force lands in two stages ([`D-042`](../decisions.md#d-042))
 
 The gate in `PLAN.md` reads "solver objective equals enumerated optimum", which needs an objective — and
 the disruption metric is specified late in T1. As written the gate depended on an artifact scheduled
@@ -118,7 +118,7 @@ same reason stage (a) needs one of the rules: an enumeration that asks the model
 proves only that the model agrees with itself. `scoring.py` evaluates `replan.md` directly and is
 forbidden by contract from importing the model's encoding.
 
-**Stage (b) needs an instance whose incumbent contains a presolved-away pair** (`D-058`), and did not have one at
+**Stage (b) needs an instance whose incumbent contains a presolved-away pair** ([`D-058`](../decisions.md#d-058)), and did not have one at
 first. Because presolve removes ineligible pairs, an employee who *became* unavailable has no variable —
 so the drop that the replan exists to perform was invisible to the objective, and the model understated
 it. Every micro-instance happened to have a clean incumbent, so the layer passed while the bug was live.
@@ -128,18 +128,18 @@ structures its instances contain.
 ### The instance set, and how its gaps were found
 
 Twenty-nine committed micro-instances in `tests/micro_instances.py` — Python constructors rather than a
-serialised format, because a schema and a loader are T2's problem (`D-064`). Each exercises a *structure* rather
+serialised format, because a schema and a loader are T2's problem ([`D-064`](../decisions.md#d-064)). Each exercises a *structure* rather
 than looking realistic, with `employees × open_shifts ≤ 10` so enumeration stays affordable. The bound is
 asserted rather than reviewed: an oversized instance would not fail, it would only make the suite slow,
 and a slow enumeration layer is one that eventually gets deleted instead of fixed.
 
-Every instance runs on a **seven-day horizon** even where two shifts are open (`D-065`). `R-WEEKLY-REST` requires
+Every instance runs on a **seven-day horizon** even where two shifts are open ([`D-065`](../decisions.md#d-065)). `R-WEEKLY-REST` requires
 its 35-hour window to fall inside the horizon, so on a three-day instance the rule binds everywhere for a
 reason that belongs to the horizon rather than the roster. Lowering the parameter instead would demand a
 derogation basis — and inventing a legal citation to quiet the validator is precisely the dishonesty the
 rule registry exists to prevent. Enumeration cost does not depend on `days`, so the long horizon is free.
 
-**Threshold instances exist because mutation testing found the set blind without them** (`D-066`). The three main
+**Threshold instances exist because mutation testing found the set blind without them** ([`D-066`](../decisions.md#d-066)). The three main
 shift types sit on an eight-hour grid, so every gap they can produce is 0, 8 or 16 hours — and a rest
 threshold of 9 hours is indistinguishable from 11. Lowering `min_rest_hours` in the model passed all 82
 ground-truth tests. Probing each rule threshold in turn found the same blindness in the weekly budget and
@@ -166,7 +166,7 @@ Regenerate deliberately, and justify the diff:
 uv run python -m tests.golden --write
 ```
 
-**Rosters are recorded only where the optimum is unique** (`D-067`), which enumeration settles at generation time.
+**Rosters are recorded only where the optimum is unique** ([`D-067`](../decisions.md#d-067)), which enumeration settles at generation time.
 Interchangeable employees create ties, and a tied optimum's roster is a function of solver version and
 search order rather than of the specification — committing one would produce failures that are not
 defects, and would train everyone to regenerate without reading the diff.
@@ -186,7 +186,7 @@ Random roster generation should be biased toward *nearly* feasible rosters. Unif
 violate `R-COVER` immediately and never exercise the interesting rules, so generate by perturbing solved
 rosters: swap two assignments, move one shift, drop a person.
 
-### Day permutation is conditional, and the condition is not small (`D-061`)
+### Day permutation is conditional, and the condition is not small ([`D-061`](../decisions.md#d-061))
 
 This table previously claimed day permutation "stays structure-consistent" without qualification. **That
 is false**, and three separate couplings make it so:
@@ -204,7 +204,7 @@ The negative case is also committed: one employee and two *adjacent* days with `
 must leave a shift unstaffed, while the same two shifts moved apart are both coverable. That test exists
 so the preconditions above cannot later be dropped as apparent boilerplate.
 
-### Relaxation monotonicity excludes coverage (`D-062`)
+### Relaxation monotonicity excludes coverage ([`D-062`](../decisions.md#d-062))
 
 Relaxing a *rule* expands the feasible set without touching the objective function, so the optimum can
 only improve or hold. Relaxing **coverage** is different: it changes the objective itself through the
@@ -219,12 +219,12 @@ The two readings do not report at identical granularity everywhere, and pretendi
 either weaken the harness to rule-level or produce failures that are not defects. Both narrowings are
 recorded here with their cost, and neither may be widened without a `decisions.md` entry.
 
-**`R-CONSEC-DAYS` is compared at `(rule, employee)`, dropping the day** (`D-046`). The checker names the first
+**`R-CONSEC-DAYS` is compared at `(rule, employee)`, dropping the day** ([`D-046`](../decisions.md#d-046)). The checker names the first
 breaching day of a run; the model gates every sliding window that breaches, so a long run produces one
 finding on one side and several on the other. *Cost:* a day-coordinate error in this one rule is not
 caught by the harness.
 
-**Rosters that assign a presolved-away pair are compared on eligibility findings only** (`D-045`). This is the
+**Rosters that assign a presolved-away pair are compared on eligibility findings only** ([`D-045`](../decisions.md#d-045)). This is the
 larger of the two and it took a failing test to state correctly. Presolve *removes* ineligible pairs, so
 such an assignment is not representable in the model at all — and the consequence is broader than
 coverage. The model cannot count that body toward headcount, toward the employee's weekly or daily

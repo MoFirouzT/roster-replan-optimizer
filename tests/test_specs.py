@@ -61,7 +61,9 @@ def registry() -> set[str]:
     """Rule IDs from the registry table in `rules.md`."""
     ids = set()
     for line in _text(SPECS / "rules.md").splitlines():
-        match = re.match(r"\|\s*`(R-[A-Z-]+)`\s*\|", line)
+        # The ID cell links to the rule's own section where one exists, and is bare
+        # where the rule is declared but not specified -- accept both shapes.
+        match = re.match(r"\|\s*\[?`(R-[A-Z-]+)`\]?(?:\([^)]*\))?\s*\|", line)
         if match:
             ids.add(match.group(1))
     assert ids, "no rule IDs parsed from the registry -- the table shape changed"
@@ -181,3 +183,113 @@ def test_every_relative_link_resolves():
                 broken.setdefault(str(path.relative_to(ROOT)), []).append(target)
 
     assert not broken, f"broken relative links: {broken}"
+
+
+# --- Anchors and fragments ----------------------------------------------------------
+
+
+def _slug(heading: str) -> str:
+    """GitHub's heading slug, near enough for link checking.
+
+    Lowercase, drop everything that is not a word character, a space or a hyphen, then
+    hyphenate the spaces. Backticks, em-dashes and bracketed status markers all vanish,
+    which is what makes a generated slug fragile enough to be worth pinning with an
+    explicit `<a id>` wherever a link has to survive a title edit.
+    """
+    text = re.sub(r"[^\w\s-]", "", heading.strip().lower())
+    return re.sub(r"\s", "-", text)
+
+
+def _anchors(path: pathlib.Path) -> set[str]:
+    text = _text(path)
+    explicit = set(re.findall(r'<a id="([^"]+)"></a>', text))
+    headings = {_slug(m) for m in re.findall(r"^#{1,6} (.+)$", text, re.MULTILINE)}
+    return explicit | headings
+
+
+def test_every_record_has_an_anchor():
+    """`D-0NN` is cited over 800 times in the docs and every citation is a link.
+
+    A generated slug moves when a title is edited, so each record carries an explicit
+    anchor and the links point at that.
+    """
+    text = _text(DOCS / "decisions.md")
+    missing = [
+        ident
+        for ident in re.findall(r"^## (D-(?:\d+))", text, re.MULTILINE)
+        if f'<a id="{ident.lower()}"></a>' not in text
+    ]
+    assert not missing, f"records with no anchor: {missing}"
+
+
+def test_every_fragment_link_resolves():
+    """`test_every_relative_link_resolves` drops the fragment; this is the other half.
+
+    A link to `decisions.md#d-119` that lands at the top of a 4,000-line file is a
+    reference the reader has to finish by hand, which is the failure this whole
+    cross-reference scheme exists to remove.
+    """
+    broken: dict[str, list[str]] = {}
+    cache: dict[pathlib.Path, set[str]] = {}
+
+    for path in MARKDOWN:
+        if not path.exists():
+            continue
+        for target in re.findall(r"\]\(([^)]+)\)", _text(path)):
+            if target.startswith(("http://", "https://", "mailto:")) or "#" not in target:
+                continue
+            filename, fragment = target.split("#", 1)
+            resolved = (path.parent / filename).resolve() if filename else path
+            if not resolved.exists() or resolved.suffix != ".md":
+                continue
+            if resolved not in cache:
+                cache[resolved] = _anchors(resolved)
+            if fragment not in cache[resolved]:
+                broken.setdefault(str(path.relative_to(ROOT)), []).append(target)
+
+    assert not broken, f"links to anchors that do not exist: {broken}"
+
+
+# --- The studies index against the studies -------------------------------------------
+
+
+def test_the_studies_index_and_the_studies_agree():
+    """A row with no file sends the reader nowhere; a file with no row cannot be found.
+
+    Both existed: `reproducibility.md`, `warm-start.md` and `time-budget.md` were indexed
+    for months as plain text, and `README.md` named the first as the one thing to read.
+    """
+    index = _text(DOCS / "studies" / "README.md")
+    linked = set(re.findall(r"\[`([a-z-]+\.md)`\]\(\1\)", index))
+    present = {p.name for p in (DOCS / "studies").glob("*.md")} - {"README.md"}
+
+    assert not (linked - present), f"indexed studies with no file: {sorted(linked - present)}"
+    assert not (present - linked), f"studies missing from the index: {sorted(present - linked)}"
+
+
+# --- The record budget ---------------------------------------------------------------
+
+RECORD_CAP = 340
+
+
+def test_no_record_exceeds_the_word_cap():
+    """`decisions.md` states a 300-word budget and a 340-word cap; this is the cap.
+
+    The file reached a 343-word mean without one, because a record that restates its own
+    study reads like diligence while it is being written. The cap is set where editing the
+    thirty longest records actually landed them -- between 259 and 332 words -- rather than
+    at a round number that would force the argument out of a record and into nothing.
+    """
+    text = _text(DOCS / "decisions.md")
+    records = re.findall(r"^## D-\d+ — .+?(?=^<a id=\"d-|\Z)", text, re.MULTILINE | re.DOTALL)
+    assert records, "no records parsed -- the heading or anchor shape changed"
+
+    over = {
+        re.match(r"^## (D-\d+)", record).group(1): len(record.split())
+        for record in records
+        if len(record.split()) > RECORD_CAP
+    }
+    assert not over, (
+        f"{len(over)} records over the {RECORD_CAP}-word cap "
+        f"(move the analysis to the study): {dict(sorted(over.items(), key=lambda kv: -kv[1]))}"
+    )

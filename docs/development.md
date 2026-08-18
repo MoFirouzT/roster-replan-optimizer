@@ -13,9 +13,9 @@ uv run lint-imports       # the 11 contracts that carry the independence rule
 ```
 
 CI runs the first with `-m "not machine"`, which drops the three timing guards calibrated to this
-hardware ([`D-114`](decisions.md)). Everything else runs everywhere, including the benchmark
+hardware ([`D-114`](decisions.md#d-114)). Everything else runs everywhere, including the benchmark
 manifest's solved half — that one was deselected too until the optimum became canonical and stopped
-carrying the build that produced it ([`D-119`](decisions.md), [`D-121`](decisions.md)).
+carrying the build that produced it ([`D-119`](decisions.md#d-119), [`D-121`](decisions.md#d-121)).
 
 ## The one script that costs money
 
@@ -29,7 +29,7 @@ uv run python -m benchmarks.nl_eval                             # 18 calls, well
 ```
 
 That is the natural-language parse measured against text its author did not render
-([`D-102`](decisions.md)). It is a script rather than a test because it costs money and because a
+([`D-102`](decisions.md#d-102)). It is a script rather than a test because it costs money and because a
 result that depends on a model does not belong in a suite that must be reproducible.
 
 ## What the model is trusted to do, on a manager's own words
@@ -92,7 +92,7 @@ exactly the failure `profile.py` exists to catch before it reaches a Saturday ro
 `min_rest_hours` is a single week-wide figure — there is nowhere in the schema to write a
 day-scoped carve-out. Run twice, the model handled that clause two different ways: once by naming
 the contradiction explicitly in `unclear`, once by dropping the clause without comment. Neither run
-wrote an unlawful figure or invented a field the schema does not have — which is `D-101`'s
+wrote an unlawful figure or invented a field the schema does not have — which is [`D-101`](decisions.md#d-101)'s
 confinement argument holding on live, unscripted text, even though the two runs disagree on how
 loudly to say so.
 

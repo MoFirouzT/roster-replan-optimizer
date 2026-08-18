@@ -53,28 +53,23 @@ The benchmarks measure the two effects separately and confirm the split.
 
 ## Reading guide
 
-**Ten minutes, in reading order.** [`docs/quickstart.md`](docs/quickstart.md) for a demo run and what
-it prints, then [`benchmarks.md`](docs/benchmarks.md) for what was measured and against what,
-[`studies/README.md`](docs/studies/README.md) for the eight levers and the five that lost,
-[`specs/validation.md`](docs/specs/validation.md) for how a legality claim is made true rather than
-assumed, [`specs/rules.md`](docs/specs/rules.md) for the full rule registry, and
-[`finish.md`](docs/finish.md) for what did not ship.
+**Start at [`docs/README.md`](docs/README.md)** — four reading paths, from a five-minute skim to the
+forty-five-minute one through the model. For the shape of the model on one page, go straight to
+[`docs/formulation.md`](docs/formulation.md).
 
 **If you only read one thing, make it a place the project was wrong.** The optimum was
-[degenerate](docs/decisions.md) and nobody noticed until a CI runner disagreed with a laptop; the
+[degenerate](docs/decisions.md#d-119) and nobody noticed until a CI runner disagreed with a laptop; the
 [horizon rejection](docs/studies/horizon.md) in the spec was upheld on evidence that contradicted
-both reasons it gave; and the [mutation harness](docs/decisions.md) reported `clean` three times
+both reasons it gave; and the [mutation harness](docs/decisions.md#d-139) reported `clean` three times
 while a defect sat in the working tree.
 
 ---
 
 ## Results
 
-**The disruption metric.** On the 72 of 84 cases where every shift could still be covered before the
-disruption hit, swapping a cost objective for a disruption objective, against an otherwise identical
-cold re-solve, cuts the disruption score (a weighted count of changed shifts) from 307 to 65. The
-average number of people whose shifts moved falls from 12.4 to 2.4. Full definition of the score and
-the method behind these numbers: [`docs/specs/replan.md`](docs/specs/replan.md) and
+**The disruption metric.** Swapping a cost objective for a disruption objective, against an otherwise
+identical cold re-solve, is what produces the result below. Full definition of the score and the method
+behind it: [`docs/specs/replan.md`](docs/specs/replan.md) and
 [`docs/benchmarks.md`](docs/benchmarks.md).
 
 See it on one case (this is one scenario, not the 84-case set below; full reproduction is in
@@ -113,7 +108,7 @@ leave a shift uncovered.
 
 That tie rate is a property of where the set samples, not of greedy: on a slack week greedy ties every
 seed, and on a stretched one it loses half of them. The set now samples the middle of the coverage
-axis as well as its ends (`D-105`).
+axis as well as its ends ([`D-105`](docs/decisions.md#d-105)).
 
 The frontier is coverage, not cost: with a flat rate and a hard coverage ceiling, every fully staffed
 roster costs the same paid hours, so the cost axis collapses. See
@@ -133,97 +128,20 @@ Solver objectives are held against exhaustively enumerated optima on committed m
 
 The reproducibility claim carried a silent bug of its own: the optimum was degenerate, and which
 roster came back was decided by the solver binary rather than the specification, without any test
-noticing. That finding and its fix are indexed as a study: [`docs/studies/README.md`](docs/studies/README.md) (`D-119`, `D-121`).
+noticing. That finding and its fix are indexed as a study: [`docs/studies/README.md`](docs/studies/README.md) ([`D-119`](docs/decisions.md#d-119), [`D-121`](docs/decisions.md#d-121)).
 
 Test layers, invariants and the harness design: [`docs/specs/validation.md`](docs/specs/validation.md).
 
 ---
 
-## Architecture
+## How it fits together
 
-```text
-                     NL config request
-                            │
-                   ┌────────▼─────────┐
-                   │  profile builder │  LLM parse → schema validation →
-                   │   (out of path)  │  contradiction check → feasibility probe
-                   └────────┬─────────┘
-                            │ typed profile (rejected if any stage fails)
-   POST /solve ──► queue ──►│
-   GET  /solve/{id}         ▼
-   DELETE /solve/{id}   ┌───────────────┐     ┌──────────────┐
-                        │ solver service│────►│   checker    │
-                        │   (CP-SAT)    │     │ (no solver)  │
-                        │   stateless   │◄────│  independent │
-                        └───────┬───────┘     └──────────────┘
-                                │ solution + status + gap + telemetry
-                                ▼
-                        explainer (minimal core → rule IDs → prose)
-```
+The solver service is **stateless** and **async by construction**; the LLM never sits in the solve
+path, and policy is a document rather than code. A fallback ladder — exact → time-boxed with a
+reported gap → greedy repair → last known good — means the service never returns nothing.
 
-- **The solver service is stateless**:
-  payload in, payload out, no database reads.
-  Every solve's input, profile version and seed are persisted by the caller, so any roster produced in production can be reproduced offline — **on any machine, not just the one that produced it**.
-  That is a repaired claim rather than an assumed one: the optimal value is pinned and a canonical criterion picks one point on the optimal face ([`D-119`](docs/decisions.md)), and CI proves it on a different ortools build from the one every committed artifact was recorded with ([`D-121`](docs/decisions.md)).
-- **Async by construction.**
-  Solves take real time;
-  synchronous HTTP breaks on timeouts, retry storms and the absence of cancellation.
-- **The LLM never sits in the solve path.**
-  It produces only artifacts a deterministic layer can reject:
-  candidate configs (validated, then feasibility-probed) and prose renderings of conflicts
-  the solver already proved.
-- **Policy is a document, not code.**
-  A tenant's rules live in a profile from day one. Across thousands of small tenants the bottleneck
-  is configuration work, not solve time; the one large instance this project tried tells the
-  opposite story ([`foreign-incumbent.md`](docs/studies/foreign-incumbent.md), ~8M variables, 527 s
-  to build).
-- **Fallback ladder**:
-  exact → time-boxed with reported gap → greedy repair → last known good.
-  The service never returns nothing.
-
----
-
-## Repository map
-
-```text
-README.md                   this file
-docs/finish.md              the finish declaration — what shipped, what did not
-docs/archive/PLAN.md        tiers and sequencing (archived, not maintained)
-roster_replan/
-  model.py                  CP-SAT formulation
-  checker.py                independent legality verification — imports no solver
-  repair.py                 greedy repair — solver-free, by contract
-  ladder.py                 exact → time-boxed → greedy → last known good
-  explain.py                why a shift is short — answers from the checker, not the model
-  prose.py                  findings in planner language, and the bound on what may be claimed
-  core.py                   minimal infeasibility cores
-  whatif.py                 re-solve under a hypothetical change
-  profile.py                profile document, contradictions, feasibility probe
-  nl.py                     English → candidate profile — the only stage that needs a model
-  compiled.py               per-tenant model cache
-  service/                  async job API, contracts, and the tool surface
-tests/
-  test_ground_truth.py      exhaustive ground truth on micro-instances
-  test_differential.py      model ⟺ checker
-  test_properties.py        invariants
-  test_golden.py            committed scenarios and objective values
-  test_specs.py             the checkable half of "all specs true"
-  mutation.py               deliberate defects, each naming the layer that must catch it
-benchmarks/
-  generator.py              seeded instance generator
-  manifest.json             the committed set, as seeds and fingerprints
-  milp.py                   the MILP formulation, for D-001
-  nl_eval.py                the parse against free-form text — needs a key, so not in the suite
-docs/
-  specs/                    rules.md · model.md · replan.md · validation.md · config.md · service.md · capture.md
-  decisions.md              what was chosen, what was rejected, why
-  preferences.md            what employees and employers want past one week — a survey, nothing implemented
-  studies/                  analyses, nulls, rejected alternatives + index
-  benchmarks.md             results and method
-  quickstart.md             demo run and what it prints
-  development.md            suite commands, the one script that costs money
-scenarios/                  demo data — domain specificity lives here, not in the code
-```
+The diagram, the reasoning behind each of those, and the repository map are in
+[`docs/README.md`](docs/README.md#how-it-fits-together).
 
 ---
 

@@ -62,12 +62,12 @@ that ever appears is D0/D1/D2 against D3/D4 — never within a side:
 | `headline/0` | D0, D1, D2, D3, D4 (32 profiles) | D3, D4 (8 profiles) |
 | `busy/0` | D0, D1, D2, D3, D4 (36 profiles) | D3, D4 (4 profiles) |
 
-That is exactly what `D-085`, `D-106` and `D-120` report — *"only D0/D1/D2 against D3/D4;
+That is exactly what [`D-085`](../decisions.md#d-085), [`D-106`](../decisions.md#d-106) and [`D-120`](../decisions.md#d-120) report — *"only D0/D1/D2 against D3/D4;
 within each side nothing separates them"* — arrived at from the weights rather than from the
 metrics, and it says why: the factors distinguishing D1 and D2 from D0 cannot reach the argmin.
 
-**`D-083` said it first and nobody read it this way.** Solver-free greedy repair, which has no
-objective at all, ties the optimum on **71 of 84** committed cases (`D-105`). A method that
+**[`D-083`](../decisions.md#d-083) said it first and nobody read it this way.** Solver-free greedy repair, which has no
+objective at all, ties the optimum on **71 of 84** committed cases ([`D-105`](../decisions.md#d-105)). A method that
 cannot read a weight reaching the optimum 85% of the time *is* the statement that weights do
 not pick the roster here. The premise of this study was already falsified by a measurement in
 this repo, and connecting them took running the sweep.
@@ -111,9 +111,9 @@ is not a limit of the effort spent — it is what inverse optimization returns, 
 estimator reporting a point estimate of a weight would be reporting its prior.
 
 Two further non-identifiabilities are structural rather than distributional and were not worth
-measuring separately: `shortfall_weight` must clear the domination bound (`D-057`), above which
+measuring separately: `shortfall_weight` must clear the domination bound ([`D-057`](../decisions.md#d-057)), above which
 every value behaves identically, so only *that it clears the bound* is observable; and
-`cost_weight` ships at 0 (`D-050`), so the cost term is absent rather than unlearnable.
+`cost_weight` ships at 0 ([`D-050`](../decisions.md#d-050)), so the cost term is absent rather than unlearnable.
 
 ## What this does not establish
 
@@ -121,7 +121,7 @@ every value behaves identically, so only *that it clears the bound* is observabl
 could in principle be jointly identifiable while none is marginally so — though a roster
 identical across a 1000× range of `published_weight` makes that implausible for that weight.
 
-**One seed per class.** Fourteen cases, named rather than sliced (`D-107`). The greedy result
+**One seed per class.** Fourteen cases, named rather than sliced ([`D-107`](../decisions.md#d-107)). The greedy result
 this leans on is measured over all 84.
 
 **Nothing about real planners.** The premise this study set out to test is that *published*
@@ -129,12 +129,12 @@ rosters encode preferences. What it shows is that on rosters **this model produc
 weights leave no trace. A published roster made by a human is a different object, and
 [`benchmarks.md`](../benchmarks.md)'s standing gap — the incumbent is solved by the system
 under test — is exactly the gap that would have to close before the original question could be
-asked properly. `D-125`'s foreign rosters are the nearest thing available and were not swept
+asked properly. [`D-125`](../decisions.md#d-125)'s foreign rosters are the nearest thing available and were not swept
 here.
 
 ## Notes
 
-`D-129` records the decision. No committed artifact: the whole grid regenerates in about
+[`D-129`](../decisions.md#d-129) records the decision. No committed artifact: the whole grid regenerates in about
 eleven seconds, so a JSON file would be a copy of these tables that nothing reads and nothing
 keeps honest. `tests/test_weights.py` guards the finding, and its load-bearing test is
 `forced_choice` rather than the null — a probe that cannot see a weight makes every zero above

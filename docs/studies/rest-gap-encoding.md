@@ -1,6 +1,6 @@
 # `R-REST-GAP`: pairwise inequalities against `no_overlap`
 
-**Question.** [`rules.md`](../specs/rules.md#r-rest-gap--minimum-rest-between-shifts) encodes the rest
+**Question.** [`rules.md`](../specs/rules.md#rule-r-rest-gap) encodes the rest
 gap as one inequality per conflicting pair, and defers the alternative — one optional interval per
 (employee, shift instance) inflated by `min_rest_hours`, under a single `add_no_overlap` per employee
 — to a T2 study, with the words *"measured there, not assumed here"*.
@@ -50,7 +50,7 @@ the total flips. Which side wins is therefore a property of the instance rather 
 which is the strongest reason not to adopt it: a lever that helps or hurts depending on the workload
 cannot be reasoned about at the call site.
 
-**That margin narrowed after this study was run.** Memoising `Instance.window` (`D-092`) took about
+**That margin narrowed after this study was run.** Memoising `Instance.window` ([`D-092`](../decisions.md#d-092)) took about
 20% off build time, so the build-side saving this encoding trades for shrank from ~0.8 ms to ~0.6 ms
 against an unchanged ~0.5 ms of search lost. The conclusion is unchanged and the reason for it is
 stronger: the two sides are now closer still, so which one wins depends even more on the workload.
@@ -72,7 +72,7 @@ needs.
 
 ## The reporting cost, which decides it
 
-Identical to the automaton's (`D-088`). A `no_overlap` covers an employee's whole week, so its
+Identical to the automaton's ([`D-088`](../decisions.md#d-088)). A `no_overlap` covers an employee's whole week, so its
 assumption literal can say only *this employee's week has a rest violation somewhere*. The pairwise
 encoding names the **second slot of the offending pair** — the coordinate `checker.py` reports and
 `violations()` matches on.
@@ -82,4 +82,4 @@ worth stating once: **global constraints aggregate, and this model's gates are p
 encoding that replaces many local constraints with one global one necessarily coarsens what a failure
 can be attributed to. That is a real cost in a project whose T4 deliverable is an explainer.
 
-**Rejected at a one-week horizon** (`D-089`). Revisit with the horizon, not with tenant size.
+**Rejected at a one-week horizon** ([`D-089`](../decisions.md#d-089)). Revisit with the horizon, not with tenant size.

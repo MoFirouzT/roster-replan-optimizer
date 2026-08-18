@@ -2,8 +2,8 @@
 
 > **Status: reconciled with `model.py` and `domain.py`.** Index sets, decision variables, the gate
 > mechanism, presolve, symmetry and the payload schema describe what is built, and the four encoding
-> questions this file deferred to T2 are now measured rather than assumed — presolve (`D-045`),
-> symmetry (`D-087`), the `regular` automaton (`D-088`) and pattern variables (`D-009`), each with a
+> questions this file deferred to T2 are now measured rather than assumed — presolve ([`D-045`](../decisions.md#d-045)),
+> symmetry ([`D-087`](../decisions.md#d-087)), the `regular` automaton ([`D-088`](../decisions.md#d-088)) and pattern variables ([`D-009`](../decisions.md#d-009)), each with a
 > study in [`docs/studies/`](../studies/README.md). Presolve was confirmed; the other three
 > alternatives lost, two of them to this file's own stated suspicions.
 >
@@ -22,7 +22,7 @@ and the payload schema are settled and in use.
 |---|---|---|
 | `E`, `e` | index set | Employees in the tenant |
 | `D`, `d` | index set | Days in the horizon, `0`-indexed from its start |
-| `W`, `w` | index set | **Weeks in the horizon** — seven days from its start, the last clipped to it. `week(d) = d // 7` (`D-111`) |
+| `W`, `w` | index set | **Weeks in the horizon** — seven days from its start, the last clipped to it. `week(d) = d // 7` ([`D-111`](../decisions.md#d-111)) |
 | `T`, `s` | index set | Shift types (a start time and a length, per tenant) |
 | `O ⊆ D × T` | index set | **Open shift instances** — the `(d, s)` pairs with `req[d, s] > 0` |
 | `K`, `k` | index set | Skills |
@@ -73,11 +73,11 @@ exactly as the other begins do not overlap.
 [`roster_replan/domain.py`](../../roster_replan/domain.py) is the normative schema; this section
 describes it. It is the **only** module the model and the checker may both import, and what it may
 hold is fixed by the [independence rule](rules.md#independence-rule): data containers and the stated
-conventions, no rule predicate and no rule threshold (`D-038`, `D-039`).
+conventions, no rule predicate and no rule threshold ([`D-038`](../decisions.md#d-038), [`D-039`](../decisions.md#d-039)).
 
 The wire format landed with the service:
 [`service.md#contracts`](service.md#contracts-built) and `roster_replan/service/contracts.py`. It is
-a **separate schema** rather than a serialisation of this one (`D-090`), so what follows stays the
+a **separate schema** rather than a serialisation of this one ([`D-090`](../decisions.md#d-090)), so what follows stays the
 in-process schema and is free to change without breaking a caller. The two are held together by a
 round-trip identity test rather than by convention.
 
@@ -96,11 +96,11 @@ that reads as `Interval(6.0, 12.0)` rather than as a date.
 | Container | Carries |
 | --- | --- |
 | `Instance` | `days`, `shift_types`, `employees`, `open_shifts`, `params`, and the replan inputs `now`, `incumbent`, `published_through`, `disruption` |
-| `ShiftType` | `label`, `start_hour` (within its day), `span_hours`, `break_hours`; `work_hours` derived (`D-037`) |
+| `ShiftType` | `label`, `start_hour` (within its day), `span_hours`, `break_hours`; `work_hours` derived ([`D-037`](../decisions.md#d-037)) |
 | `OpenShift` | `day`, `shift`, `required`, `required_skills`, `skill_mix` — the `(d, s)` pairs that make up `O` |
-| `Employee` | `name`, `contract`, `skills`, `absences`, `unavailability` (`D-020`), the caller-computed quantities below, the per-day eligibility gates (`D-032`), and `hourly_rate` |
-| `SkillMixEntry` | `skill`, `minimum`, `hard`, `provenance` — class declared per entry (`D-025`) |
-| `RuleParams` | Every rule threshold, supplied explicitly with no defaults (`D-039`), plus `derogation_basis` |
+| `Employee` | `name`, `contract`, `skills`, `absences`, `unavailability` ([`D-020`](../decisions.md#d-020)), the caller-computed quantities below, the per-day eligibility gates ([`D-032`](../decisions.md#d-032)), and `hourly_rate` |
+| `SkillMixEntry` | `skill`, `minimum`, `hard`, `provenance` — class declared per entry ([`D-025`](../decisions.md#d-025)) |
+| `RuleParams` | Every rule threshold, supplied explicitly with no defaults ([`D-039`](../decisions.md#d-039)), plus `derogation_basis` |
 | `Disruption` | Objective parameters; [`replan.md`](replan.md) owns their semantics |
 | `NoticeBand` | `within_hours`, `multiplier` — tested in order, last one unbounded |
 
@@ -113,7 +113,7 @@ The roster itself is a `frozenset` of `(employee, day, shift)` triples: the assi
 a payload that omits one where a rule needs it, rather than substituting anything.
 
 The failure mode this avoids is specific. A defaulted `max_hours_this_week` is the per-week ceiling
-`D-014` exists to reject. An empty `flexi_eligible` would *deny* eligibility where the caller merely
+[`D-014`](../decisions.md#d-014) exists to reject. An empty `flexi_eligible` would *deny* eligibility where the caller merely
 forgot to say, which is a different answer wearing the same shape. Neither is detectable downstream,
 because both produce a perfectly plausible roster.
 
@@ -127,14 +127,14 @@ solve consumes them as opaque data.
 | `max_hours_this_week[e]` | hours, per employee | caller | `R-MAX-WEEKLY` |
 | `consecutive_days_worked_before_horizon[e]` | days, per employee | caller | `R-CONSEC-DAYS` |
 | `last_shift_end_before_horizon[e]` | hours (negative), per employee | caller | `R-REST-GAP`, `R-WEEKLY-REST` |
-| `unpopular_shifts_before_horizon[e]` | count, per employee | caller | the fairness term (`D-108`) |
+| `unpopular_shifts_before_horizon[e]` | count, per employee | caller | the fairness term ([`D-108`](../decisions.md#d-108)) |
 
 `max_hours_this_week[e]` is the reference-period budget described in
 [`rules.md`](rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget): the caller resolves
 the rolling quarter or year into a single number so the solve horizon can stay at one week. It is a
-week's hours and binds in **every** week of the horizon (`D-111`), which is the same constraint while
+week's hours and binds in **every** week of the horizon ([`D-111`](../decisions.md#d-111)), which is the same constraint while
 the horizon is one week and a different one after that. A per-week ceiling that varies by week is not
-expressible in one number and is the payload change `D-111` defers.
+expressible in one number and is the payload change [`D-111`](../decisions.md#d-111) defers.
 
 The other two exist for the same structural reason. A week boundary is an artifact of the payload,
 not of the employee's working life — someone who worked the six days before Monday, or who finished
@@ -145,7 +145,7 @@ Without these fields every horizon boundary silently resets the rules that span 
 
 Three fields switch a rule on rather than parameterising one that is always present. Absent means the
 caller is not asking for the rule, which is ordinary rather than a defect — `R-MAX-PERIOD` established
-the pattern (`D-123`) and `D-135` follows it.
+the pattern ([`D-123`](../decisions.md#d-123)) and [`D-135`](../decisions.md#d-135) follows it.
 
 | Field | Type | Consumed by | Absent means |
 |---|---|---|---|
@@ -175,20 +175,20 @@ the rules need:
 | `o[d, s]` | `0..` | `R-COVER` overage, gated to zero |
 | `v[d, s, k]` | `0..m` | `R-SKILL-MIX` shortfall, soft entries only |
 | `w[e, d]` | bool | worked-day indicator, reified for `R-CONSEC-DAYS` |
-| `r[e, w, j]` | bool | `R-WEEKLY-REST` candidate-window selector, per week (`D-111`) |
+| `r[e, w, j]` | bool | `R-WEEKLY-REST` candidate-window selector, per week ([`D-111`](../decisions.md#d-111)) |
 
 **A variable exists** for every eligible pair, and additionally for any pair the incumbent assigned,
-eligible or not (`D-058`). Without that second case an already-illegal past cannot be represented and
+eligible or not ([`D-058`](../decisions.md#d-058)). Without that second case an already-illegal past cannot be represented and
 "the past itself is illegal" becomes indistinguishable from a clean solve — and, just as important, a
 deviation from the incumbent becomes uncountable, so the objective silently understates the cost of
 exactly the change the replan exists to make. Such a pair is still ineligible: the exclusion becomes a
-*gated* `x = 0` rather than an outright fixing (`D-059`), so a roster assigning it is reported rather
+*gated* `x = 0` rather than an outright fixing ([`D-059`](../decisions.md#d-059)), so a roster assigning it is reported rather
 than merely rejected.
 
 **Durations are carried in minutes.** CP-SAT is integral and `work_hours` is not. The conversion is
 arithmetic rather than a rule threshold, so it lives in the model rather than in the shared schema.
 
-- **Rejected, measured** (`D-009`): pattern/column variables. Built in full and compared, not
+- **Rejected, measured** ([`D-009`](../decisions.md#d-009)): pattern/column variables. Built in full and compared, not
   estimated — see [`studies/pattern-encoding.md`](../studies/pattern-encoding.md). They tie on a
   replan, where the pinned past leaves only 36–122 legal patterns for a whole tenant, and fail to
   prove optimality within 30 seconds on a cold week where the assignment model takes 20 milliseconds.
@@ -203,20 +203,20 @@ rule, and are deliberately not restated here. This section owns only what cuts a
 
 ### Assumption literals
 
-**Every hard constraint instance is gated on an assumption literal** (`D-002`). Not decoration — three
+**Every hard constraint instance is gated on an assumption literal** ([`D-002`](../decisions.md#d-002)). Not decoration — three
 separate things depend on it:
 
 1. A failed solve returns the conflicting rule instances rather than a bare `INFEASIBLE`.
 2. The differential harness needs the model to *report* violations, not merely refuse rosters. With all
    assignments fixed, each gate can be true exactly when its constraint holds, so **maximising the
-   number of true gates leaves precisely the violated constraints false** (`D-044`) — one solve
+   number of true gates leaves precisely the violated constraints false** ([`D-044`](../decisions.md#d-044)) — one solve
    enumerates them all, where a core would explain one conflict and hide the rest.
 3. The *monotone objective under relaxation* property test needs relaxation to be expressible.
 
 `R-COVER`'s ceiling is gated as `o[d, s] == 0` rather than folded into the slack's domain, so that an
-overstaffed roster can be reported instead of silently rejected (`D-043`).
+overstaffed roster can be reported instead of silently rejected ([`D-043`](../decisions.md#d-043)).
 
-**Sufficient, not minimal** (`D-048`). CP-SAT returns a set of assumptions that explains the infeasibility, with
+**Sufficient, not minimal** ([`D-048`](../decisions.md#d-048)). CP-SAT returns a set of assumptions that explains the infeasibility, with
 no guarantee it is the smallest. T4's explainer is specified against a *minimal* core, which needs
 iterative deletion on top — solve, drop a gate, re-solve, keep what stays necessary. That reduction
 belongs with the explainer; the gap is recorded here so it is not discovered there.
@@ -229,7 +229,7 @@ and is the textbook choice, which is exactly why it is a **T2 study rather than 
 seven-day horizon the window count is trivially small, and the study should confirm the automaton wins
 rather than take it on faith.
 
-**It does not win** (`D-088`). At this horizon the window count is not merely small, it is **one**, so
+**It does not win** ([`D-088`](../decisions.md#d-088)). At this horizon the window count is not merely small, it is **one**, so
 the automaton competes against a single linear inequality over seven booleans and is 19% slower to
 search on 28 of 28 cases. It also gates only per employee, where the window encoding names the day the
 streak breached — the coordinate the checker reports and `violations()` matches on. Kept behind
@@ -249,15 +249,15 @@ Eliminate them before the solver sees them.
 
 **Measured: a quarter of the model, 28% off build time and 14% off search, on 28 of 28 paired cases**
 ([`studies/presolve.md`](../studies/presolve.md)). Free, as claimed — the exclusion table is computed
-either way because the reasons have to be retained (`D-045`). Not "the largest single win", which was
-the earlier wording: build time dominates search at these sizes (`D-081`), and this takes a quarter
-off the larger half. The largest single win is memoising `Instance.window` (`D-092`) — *not* caching
-the compiled model, which was the obvious candidate and hits 0 of 144 replan solves (`D-093`).
+either way because the reasons have to be retained ([`D-045`](../decisions.md#d-045)). Not "the largest single win", which was
+the earlier wording: build time dominates search at these sizes ([`D-081`](../decisions.md#d-081)), and this takes a quarter
+off the larger half. The largest single win is memoising `Instance.window` ([`D-092`](../decisions.md#d-092)) — *not* caching
+the compiled model, which was the obvious candidate and hits 0 of 144 replan solves ([`D-093`](../decisions.md#d-093)).
 
 `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX` are enforced *entirely* this way — by removing
 variables, not by adding rows.
 
-**The exclusion reasons must be retained** (`D-045`). A removed pair can never be reported by a constraint that
+**The exclusion reasons must be retained** ([`D-045`](../decisions.md#d-045)). A removed pair can never be reported by a constraint that
 does not exist, so presolve keeps a map from excluded pair to the rules that excluded it. Without it an
 assignment to an ineligible person would be invisible rather than rejected.
 
@@ -272,7 +272,7 @@ Interchangeable employees create exponentially many equivalent solutions. Lexico
 constraints, and the interaction with the disruption objective (which partially breaks symmetry on
 its own — quantify this rather than assuming it).
 
-**Not implemented, and now measured rather than assumed** (`D-087`). Across 24 committed cases there
+**Not implemented, and now measured rather than assumed** ([`D-087`](../decisions.md#d-087)). Across 24 committed cases there
 are **3** interchangeable employees in total, in one case — so lexicographic ordering costs about 4% of
 build time and returns a coin flip on search.
 

@@ -57,9 +57,9 @@ breached the limit — the same coordinate `checker.py` reports. That matters be
 The automaton's case is a longer horizon. At a four-week reference period the window count per
 employee grows with the horizon while the automaton stays one constraint with a slightly larger state
 space, and the comparison should reverse. That is not hypothetical for this domain — Belgian
-reference-period arithmetic is exactly a multi-week rule (`D-014`, `D-033`) — but it is not the model
+reference-period arithmetic is exactly a multi-week rule ([`D-014`](../decisions.md#d-014), [`D-033`](../decisions.md#d-033)) — but it is not the model
 this project ships, which is a one-week horizon.
 
 **Rejected at this horizon, and the condition for revisiting is a horizon longer than about two
-weeks** (`D-088`). `R-WEEKLY-REST` is not a candidate either way: it is a rule about a continuous
+weeks** ([`D-088`](../decisions.md#d-088)). `R-WEEKLY-REST` is not a candidate either way: it is a rule about a continuous
 35-hour free run measured in hours, and a day-level automaton cannot express it.

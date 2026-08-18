@@ -1,13 +1,13 @@
 # CP-SAT against MILP
 
-**Question.** `D-001` — *CP-SAT over MILP* — was the one T1 record still owed, and
+**Question.** [`D-001`](../decisions.md#d-001) — *CP-SAT over MILP* — was the one T1 record still owed, and
 [`decisions.md`](../decisions.md) said why it stayed owed: no spec argued it, so it could not be
 written without inventing a rationale nobody had. This is the comparison that was needed instead.
 
 **Answer.** **CP-SAT is not the faster solver here, and the record now says so.** SCIP proves the same
 optimum faster on **24 of 24** cases — 38% faster than the shipped configuration. CP-SAT ships anyway,
 for three capabilities the project already depends on and MILP cannot supply. The honest form of
-`D-001` is *chosen for the assumption literals, at a measured cost of about 1.3 ms per solve*, not
+[`D-001`](../decisions.md#d-001) is *chosen for the assumption literals, at a measured cost of about 1.3 ms per solve*, not
 *chosen because it is better at scheduling*.
 
     uv run python -m benchmarks.milp
@@ -30,13 +30,13 @@ read. That makes the MILP a third reading of `rules.md` alongside the model and 
 | CBC | 3.21 ms | 11/24 — a coin flip |
 
 **The gates cost 21% of CP-SAT's search time**, and half of its variables. Every hard constraint
-instance carries an assumption literal (`D-002`), so the shipped model holds 534 gate literals against
+instance carries an assumption literal ([`D-002`](../decisions.md#d-002)), so the shipped model holds 534 gate literals against
 183 assignment variables on `headline/0`. SCIP is given no such burden — and still wins 24/24 against
 the *ungated* model, so the gap is not merely the reporting apparatus. On this problem, at this size,
 branch-and-cut is simply faster.
 
 **In end-to-end terms the difference is small.** 1.3 ms against a build that costs about 5 ms
-regardless of backend (`D-092`), so the solver choice moves roughly 15% of a request and the Python
+regardless of backend ([`D-092`](../decisions.md#d-092)), so the solver choice moves roughly 15% of a request and the Python
 model construction moves more.
 
 ## What MILP cannot do, which is the actual reason
@@ -44,21 +44,21 @@ model construction moves more.
 Three capabilities, each already load-bearing:
 
 **Assumption literals, and therefore infeasibility cores.** CP-SAT returns the rule instances in
-conflict when a solve fails (`D-048`), which is exactly what T4's explainer consumes and what `D-013`
+conflict when a solve fails ([`D-048`](../decisions.md#d-048)), which is exactly what T4's explainer consumes and what [`D-013`](../decisions.md#d-013)
 insists must come from the solver rather than from an LLM. MILP has no assumption mechanism; an IIS is
 a different object with different guarantees and is not exposed through `pywraplp` at all.
 
 **`violations()`, the differential harness's reporting surface.** With every assignment fixed,
 maximising the number of true gate literals leaves precisely the violated constraints false, so one
-solve enumerates every violation (`D-044`). This trick *is* the assumption mechanism. Without it the
+solve enumerates every violation ([`D-044`](../decisions.md#d-044)). This trick *is* the assumption mechanism. Without it the
 model can only refuse a roster, and comparing "refuses" against the checker's violation set is the
-vacuous comparison `D-065` rejects.
+vacuous comparison [`D-065`](../decisions.md#d-065) rejects.
 
 **Non-linear expressiveness.** D3 and D4 pair a drop with an add through `min(drops, adds)`.
 `add_min_equality` states it; MILP needs auxiliary binaries and big-M per (employee, day).
 `benchmarks/milp.py` **refuses** D3 and D4 rather than comparing a linearised approximation and
 calling it the same problem. The `regular` automaton and `no_overlap` are in the same category —
-rejected on their merits (`D-088`, `D-089`), but they were available to reject.
+rejected on their merits ([`D-088`](../decisions.md#d-088), [`D-089`](../decisions.md#d-089)), but they were available to reject.
 
 ## The finding that would bite hardest on a switch
 
@@ -66,7 +66,7 @@ rejected on their merits (`D-088`, `D-089`), but they were available to reject.
 
 `pywraplp` defaults `RELATIVE_MIP_GAP` to `1e-4`. That is a *relative* tolerance, and this objective
 is not on a scale where that is small: `shortfall_weight` is 100,000 so that coverage dominates
-disruption (`D-057`), so any roster leaving one shift unstaffed scores in the hundreds of thousands —
+disruption ([`D-057`](../decisions.md#d-057)), so any roster leaving one shift unstaffed scores in the hundreds of thousands —
 and `1e-4` of that is an absolute slack of about **30 disruption points**, roughly ten changed shifts.
 
 At the default, SCIP returned a roster scoring 300003 and **reported it `OPTIMAL`** while 300001 was

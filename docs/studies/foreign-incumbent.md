@@ -17,7 +17,7 @@ about 5×. Two things came with it that the synthetic set could not have shown: 
 rosters have a past this model calls illegal**, and a defect in the canonical optimum that appeared
 within minutes of first contact.
 
-> **Re-measured on named incumbents** (`D-133`). This study originally reported 10× to 27× over five
+> **Re-measured on named incumbents** ([`D-133`](../decisions.md#d-133)). This study originally reported 10× to 27× over five
 > instances, on whichever published solution `glob` happened to return — which was a **non-best**
 > solution on 8 of the 13 and depended on directory order, so the incumbent was a property of the
 > machine. `load` now takes the best published solution by their own objective. Three instances have
@@ -37,7 +37,7 @@ project does not implement is exactly what the generator cannot make.
 **The site states no licence, no copyright and no terms**, which means default copyright rather than
 public domain. So nothing is redistributed: `benchmarks/foreign.json` commits the URLs and their
 SHA-256, the data is fetched on demand and verified against them, and a mismatch deletes the file
-rather than proceeding (`D-125`). It is `D-073`'s pattern — the benchmark manifest already commits
+rather than proceeding ([`D-125`](../decisions.md#d-125)). It is [`D-073`](../decisions.md#d-073)'s pattern — the benchmark manifest already commits
 fingerprints instead of payloads — and it keeps `README.md`'s *all data committed here is synthetic*
 true.
 
@@ -52,7 +52,7 @@ The first import reported **0 of 24 rosters legal**, and both reasons were mine.
 **A weekly rate they never stated.** Their staff records carry `MaxTotalMinutes` over the horizon and
 no weekly figure, so the first version derived one by division. That flat average forbids precisely
 the uneven spending a pool permits, and it accounted for 60-80% of every reported violation. It is
-`D-123`'s finding arriving from outside: their rosters spend a quarter unevenly because they may, and
+[`D-123`](../decisions.md#d-123)'s finding arriving from outside: their rosters spend a quarter unevenly because they may, and
 a rate invented from a pool calls that illegal. `MaxTotalMinutes` is `max_hours_this_period` and
 nothing else.
 
@@ -62,7 +62,7 @@ overlap, and a night shift starting at 22:00 the evening before spills six hours
 convention `rules.md` fixes, colliding with a naive translation.
 
 They were dropped for that reason until the collision became a rule of its own. **`R-DAY-OFF`
-(`D-142`) is the day-indexed reading**, and the import is now a translation rather than an omission —
+([`D-142`](../decisions.md#d-142)) is the day-indexed reading**, and the import is now a translation rather than an omission —
 confirmed the way the objective was: their published rosters honour all 70 granted days off across
 the three compared instances, zero violations, where the interval reading flagged every night shift
 before one.
@@ -70,7 +70,7 @@ before one.
 With both corrected, **70 genuine hard violations across 6,363 assignments — 1.10%** on the best
 published solution of each instance.
 
-That figure was 55 across 6,361 when the incumbent was whichever `glob` returned (`D-133`). Almost
+That figure was 55 across 6,361 when the incumbent was whichever `glob` returned ([`D-133`](../decisions.md#d-133)). Almost
 the same number of assignments, 27% more violations — but **there is no consistent direction**
 between a better and a worse published roster: the same count over each instance's *worst* published
 solution is 73, and per instance it moves both ways. What the old number measured was a particular
@@ -81,17 +81,17 @@ arbitrary sample, and what replaces it is a named one.
 | rule | why it fires |
 | --- | --- |
 | `R-WEEKLY-REST` | 35 uninterrupted hours a week. Their model has no weekly rest rule at all |
-| `R-COVER` (hard) | overstaffing. They price it softly; `D-018` makes the ceiling hard |
+| `R-COVER` (hard) | overstaffing. They price it softly; [`D-018`](../decisions.md#d-018) makes the ceiling hard |
 | `R-MAX-WEEKLY` | one instance exceeds even the 50h absolute ceiling in a single week |
 
 None of these is a defect in their rosters. They are lawful under the rules they were built for, and
 this is what it looks like when a roster meets a jurisdiction it was not written for — which is the
 situation a real deployment is in.
 
-Two of those rows are no longer read off the rosters alone (`D-132`). *"They price it softly"* is now
+Two of those rows are no longer read off the rosters alone ([`D-132`](../decisions.md#d-132)). *"They price it softly"* is now
 their own number: the imported cover weights are **100 for one position short and 1 for one over**, on
 every slot of every instance, so overstaffing is the cheapest thing their objective can buy and
-`D-018`'s hard ceiling is what turns it into a violation. And the rule that is **not** in the table is
+[`D-018`](../decisions.md#d-018)'s hard ceiling is what turns it into a violation. And the rule that is **not** in the table is
 the informative one — `R-REST-GAP` fires nowhere, because their own `MinRestTime` of 14 hours is
 stricter than the 11 imposed on them. An empty column that is explained is worth more than a full one
 that is not.
@@ -113,7 +113,7 @@ is wider on the larger instances because a cold re-solve of a four-week roster r
 assignments to absorb one absence, where a week for twelve reshuffles twelve. The direction of the
 effect is the same on every case and its size is a property of the instance.
 
-**The spread is much wider than the old sample suggested**, and that is the substance of `D-133`'s
+**The spread is much wider than the old sample suggested**, and that is the substance of [`D-133`](../decisions.md#d-133)'s
 re-measurement rather than a detail of it. Instance 4 repairs at 4.6× — below the committed set's
 average, and below anything the previous five-instance table contained. A claim quoted as a range is
 only as good as the sample the range came from, and this one's sample was chosen by directory order.
@@ -139,10 +139,10 @@ The ladder's `incumbent` rung exists for exactly this and now has evidence rathe
 
 ## The defect this found in a fix made the same day
 
-Canonicalising the optimum (`D-119`) added a second solve phase and asserted that it could not fail:
+Canonicalising the optimum ([`D-119`](../decisions.md#d-119)) added a second solve phase and asserted that it could not fail:
 *the phase-one solution satisfies every constraint here, including the pin*. True of feasibility, and
 silent about proving a criterion optimal over a face with millions of points. Instance 10 — 40
-employees, four weeks — raised that assertion on first contact (`D-126`).
+employees, four weeks — raised that assertion on first contact ([`D-126`](../decisions.md#d-126)).
 
 Two defects, not one. Phase two could exceed the caller's budget, because it was given a fresh copy
 of `max_time_in_seconds` rather than what remained; and when it could not finish, the answer was an
@@ -154,7 +154,7 @@ finishes in milliseconds. That is the argument for foreign data in one sentence.
 
 ## How far the model goes
 
-Every performance number in this repo is measured on 8-25 employees over one week, and `D-104`
+Every performance number in this repo is measured on 8-25 employees over one week, and [`D-104`](../decisions.md#d-104)
 retired LNS on the grounds that nothing ever fails to prove optimality. Both are statements about a
 distribution this project generated for itself. These instances run to 150 employees over 52 weeks
 and were built by other people for other purposes, which is the only way to find where the model
@@ -176,16 +176,16 @@ regime the service is actually for.
 **The search is genuinely hard here, for the first time in this project.** Instance 8 takes **7.71
 seconds** of search to prove optimality, against a committed-set maximum of **15.4 ms** across all
 2,268 runs. That is a factor of 500, and it is the answer to the standing objection that nothing in
-this repo is ever hard. `D-104` retired LNS because every solve returned `OPTIMAL` in milliseconds;
+this repo is ever hard. [`D-104`](../decisions.md#d-104) retired LNS because every solve returned `OPTIMAL` in milliseconds;
 that reasoning is now bounded by a distribution rather than general, and instance 23 is a case where
 the search returns nothing at all.
 
 **The binding constraint is model construction, not search.** At every size, building the CP-SAT model
 in Python costs more than searching it — 9 seconds at 910k variables, 45 at 1.1M, 67 at 1.5M, and
 **527 seconds at 8M**. Instance 23 spends nearly nine minutes constructing a model the solver then
-fails to crack in its budget. `D-081` separated the two clocks because build dominated at one week
+fails to crack in its budget. [`D-081`](../decisions.md#d-081) separated the two clocks because build dominated at one week
 for 12 people; it still dominates at 52 weeks for 100, by a wider margin and for the same reason.
-That makes `D-092`'s memoisation — the largest single win in the solve path, found by profiling the
+That makes [`D-092`](../decisions.md#d-092)'s memoisation — the largest single win in the solve path, found by profiling the
 builder rather than the solver — the correctly aimed piece of work at both ends of the scale.
 
 **Instance 24 was abandoned.** 150 employees, 52 weeks, 32 shift types — after roughly forty
@@ -206,7 +206,7 @@ The archives state each published solution's objective value **in its file name*
 and not one this project can quietly adjust to make an implementation look right.
 
 `foreign.score_their_objective` implements their objective and reproduces **all 26 published values
-across all 13 instances, exactly** (`D-133`). Their whole objective is:
+across all 13 instances, exactly** ([`D-133`](../decisions.md#d-133)). Their whole objective is:
 
 ```
 Σ_slots  under_weight × max(0, required − assigned)  +  over_weight × max(0, assigned − required)
@@ -216,7 +216,7 @@ across all 13 instances, exactly** (`D-133`). Their whole objective is:
 
 **The brevity is the finding.** Twenty-six exact matches with no weekend term, no consecutive-days
 term and no sequence term is proof that those are constraints in their formulation rather than
-objective components — the same conclusion `D-132` drew from reading which elements carry a `weight`
+objective components — the same conclusion [`D-132`](../decisions.md#d-132) drew from reading which elements carry a `weight`
 attribute, now settled arithmetically. A missing term would have to show up as a shortfall on at
 least one of the 26, and none does.
 
@@ -228,7 +228,7 @@ somebody else published.
 
 Their objective can now score any roster, including this project's. Running that comparison today
 would flatter this side, and `foreign.their_violations` measures by how much rather than leaving it
-as a caution (`D-134`).
+as a caution ([`D-134`](../decisions.md#d-134)).
 
 It is **one reading, in `benchmarks/`, with no rule IDs** — a rule this product enforces costs two
 independent readings, and the question in front of these is not how to encode them but whether they
@@ -273,7 +273,7 @@ the same claim with a number on it, produced by somebody else's constraint set r
 introspection, and it ranks the survey's items by how badly each is currently ignored rather than by
 how plausible each sounded.
 
-**All seven are now rules of this product** (`D-135`, `D-136`), hard and optional, encoded in the
+**All seven are now rules of this product** ([`D-135`](../decisions.md#d-135), [`D-136`](../decisions.md#d-136)), hard and optional, encoded in the
 model and the checker and carried into brute-force ground truth by nine micro-instances.
 `MaxConsecutiveShifts` is the exception that proves the shape: it got no rule ID, because
 `R-CONSEC-DAYS` already states that predicate and only needed a per-employee limit.
@@ -298,19 +298,19 @@ here.** Measured against the same instances solved without them, at a 120-second
 
 **Instance 2 is the only clean before-and-after**, and it is a real degradation: optimality proved in
 58 seconds becomes a feasible roster with a gap. Instances 4 and 6 were already consuming the whole
-budget *without* the rules — reported `OPTIMAL` because the proof lands in phase one and `D-119`'s
+budget *without* the rules — reported `OPTIMAL` because the proof lands in phase one and [`D-119`](../decisions.md#d-119)'s
 canonicalising phase spends what is left — so they cannot carry a claim about the rules' cost either
 way. The first draft of this paragraph said these instances proved optimality "in single-digit
-seconds", which is `D-127`'s figure for a different instance under a different measurement, and the
+seconds", which is [`D-127`](../decisions.md#d-127)'s figure for a different instance under a different measurement, and the
 numbers above contradict it.
 
 What the variable counts do support on all three is the size: **45% to 55% more variables**, which is
 the seven rules' encoding rather than an interaction with anything.
 
-So the claim `D-104` and `D-127` have been narrowing narrows once more, and only by as much as one
+So the claim [`D-104`](../decisions.md#d-104) and [`D-127`](../decisions.md#d-127) have been narrowing narrows once more, and only by as much as one
 instance carries: `OPTIMAL` in milliseconds was a statement about the regime this project serves *with
 the objective it shipped*, and switching on rules a tenant may legitimately want is enough to leave
-it (`D-136`).
+it ([`D-136`](../decisions.md#d-136)).
 
 ## The quality comparison, and why its number is not a win
 
@@ -318,7 +318,7 @@ it (`D-136`).
 
 Their constraints as this project's rules, their objective as the model's objective, their coverage
 semantics — the ceiling relaxed through its own assumption literal, because their formulation prices
-overstaffing at 1 where `D-018` forbids it. Scored against their published optimum, at a 300-second
+overstaffing at 1 where [`D-018`](../decisions.md#d-018) forbids it. Scored against their published optimum, at a 300-second
 budget:
 
 | instance | staff | weeks | published optimum | this project | ratio | status |
@@ -328,18 +328,18 @@ budget:
 | 6 | 18 | 4 | 1,950 | 2,470 | 1.27× | `FEASIBLE` |
 
 **Nothing is below a proved optimum, which is the first sign this comparison is sound.** It was not
-always so, and the way it changed is the substance of `D-142`.
+always so, and the way it changed is the substance of [`D-142`](../decisions.md#d-142).
 
 The first run of this table read **0.87×, 0.89× and 1.11×** — two of three *beating* solutions proven
 optimal under their own objective, which is impossible on a fair comparison and was correctly read as
-a red flag rather than a result (`D-137`). Two freedoms were behind it, both already documented in the
+a red flag rather than a result ([`D-137`](../decisions.md#d-137)). Two freedoms were behind it, both already documented in the
 importer and neither previously connected to a quality claim.
 
 **The rest rule was three hours weaker**, and closing it moved one instance from 1.16× to 1.11× and
 left the others alone — so it was not what carried the result.
 
-**Days off were dropped, not translated**, which this study recorded from `D-125` as an import
-decision: 14, 20 and 36 constraints their solver honoured and this one ignored. `R-DAY-OFF` (`D-142`)
+**Days off were dropped, not translated**, which this study recorded from [`D-125`](../decisions.md#d-125) as an import
+decision: 14, 20 and 36 constraints their solver honoured and this one ignored. `R-DAY-OFF` ([`D-142`](../decisions.md#d-142))
 makes them expressible, and closing that freedom is what moved every row — 0.87× to 1.00×, 0.89× to
 1.06×, 1.11× to 1.27×. **The entire apparent win was bought with days off other people's rosters had
 to respect.**
@@ -357,7 +357,7 @@ two implementations of their objective — one as CP-SAT terms, one as a scorer 
 asserted in the study rather than assumed.
 
 **What would make it fair is a day-based availability rule.** `R-AVAIL` is interval overlap by design
-and cannot say "no shift starting on this day" without the start-day collision `D-125` describes. Until
+and cannot say "no shift starting on this day" without the start-day collision [`D-125`](../decisions.md#d-125) describes. Until
 one exists, this table is a number with a bias of known direction and unknown size.
 
 ## What this does not establish
@@ -368,9 +368,9 @@ optimality takes one back. Both are named and only one is sized.
 
 This limit has moved three times and is worth reading as a sequence. It began as *"nothing about
 solution quality — none of their objective is imported"*. Their instances are now **imported in full**
-(`D-132`), their objective is **implemented and checked against 26 published values** (`D-133`), their
-constraints are **encoded as rules in both readings** (`D-135`, `D-136`), and the comparison **runs**
-(`D-137`). What is left is one import decision — days off — rather than a missing component.
+([`D-132`](../decisions.md#d-132)), their objective is **implemented and checked against 26 published values** ([`D-133`](../decisions.md#d-133)), their
+constraints are **encoded as rules in both readings** ([`D-135`](../decisions.md#d-135), [`D-136`](../decisions.md#d-136)), and the comparison **runs**
+([`D-137`](../decisions.md#d-137)). What is left is one import decision — days off — rather than a missing component.
 
 The import along the way also corrected the sentence this paragraph used to carry, which described
 their objective as
@@ -394,6 +394,6 @@ incumbent is no longer *always* this project's own output, which was the sharpes
 objection.
 
 **Three comparisons.** The instances with a clean past are the ones that could be measured, and on
-named incumbents there are three of them rather than five (`D-133`). A range quoted from three cases
+named incumbents there are three of them rather than five ([`D-133`](../decisions.md#d-133)). A range quoted from three cases
 is a range with three points in it, and the honest reading of 4.6× to 37× is that the effect is
 large and its size is not characterised.

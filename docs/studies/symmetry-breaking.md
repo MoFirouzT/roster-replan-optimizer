@@ -56,7 +56,7 @@ a claim about rostering in general.
 
 Every quantity is trivially worse and none by 2%, which is exactly what "no symmetry to exploit"
 looks like: the orbit search runs, finds nothing, and the constraint it would have added is never
-added. Re-measured after `D-092`; the verdict was identical before it.
+added. Re-measured after [`D-092`](../decisions.md#d-092); the verdict was identical before it.
 
 **On a workforce built to be interchangeable** — `identical_workforce`, 8 to 16 employees with
 identical skills, contracts, budgets and no unavailability, solved cold:
@@ -83,4 +83,4 @@ employee a different budget and a different availability pattern.
 
 The condition under which this would be revisited is now stated rather than left to judgement: a
 tenant profile with a substantial group of employees identical in contract, skills, budget and
-availability. `D-087` records it.
+availability. [`D-087`](../decisions.md#d-087) records it.

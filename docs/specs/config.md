@@ -12,12 +12,12 @@ document, never code. Across thousands of small tenants, configuration work is t
 does not scale; a code change per tenant is not a product.
 
 `profile.Profile` carries the shift catalogue, the rule parameters, the objective weights, the fairness
-declaration — which shifts nobody wants, which is policy and cannot be derived (`D-108`) — and which
+declaration — which shifts nobody wants, which is policy and cannot be derived ([`D-108`](../decisions.md#d-108)) — and which
 profile-gated rules are enabled. `version` travels with every solve, alongside the input and the seed,
 which is what `PLAN.md`'s replay requirement actually needs.
 
 The fairness declaration sits beside the shift catalogue because it is a set of indices into it
-(`D-131`). Separated, it would be a set of numbers whose meaning depends on whichever week it was
+([`D-131`](../decisions.md#d-131)). Separated, it would be a set of numbers whose meaning depends on whichever week it was
 applied to.
 
 **Enabling an optional rule is currently a defect, not a courtesy.** All five profile-gated rules are
@@ -31,10 +31,10 @@ Four stages. Each rejects into the previous. The LLM is confined to stage 1.
 
 1. **Parse** `[built]` — natural-language policy description → candidate profile in the schema.
 
-   **The schema is the confinement, and it is the schema the API compiles** (`D-101`). `StatedPolicy`
+   **The schema is the confinement, and it is the schema the API compiles** ([`D-101`](../decisions.md#d-101)). `StatedPolicy`
    carries only what a tenant would say — a rest gap, a shortest shift, how much worse a change at
-   short notice is. It has no field for `shortfall_weight`, whose scale `D-057` bounds, and none for
-   `enabled_optional_rules`, which `D-099` makes a defect: a rule the model cannot state is a rule it
+   short notice is. It has no field for `shortfall_weight`, whose scale [`D-057`](../decisions.md#d-057) bounds, and none for
+   `enabled_optional_rules`, which [`D-099`](../decisions.md#d-099) makes a defect: a rule the model cannot state is a rule it
    cannot break. Fields are designed against the compiled schema rather than the Python type,
    because an open mapping compiles to an object that can hold nothing.
 
@@ -69,7 +69,7 @@ Config errors are caught at configuration time, not at 9am on a Saturday.
 
 **Eval `[built, run]`:** `benchmarks/nl_eval.py` — **18/18 on three consecutive runs**, after 16/18
 and one correction to this spec's own schema ([`studies/nl-parse.md`](../studies/nl-parse.md),
-`D-103`). It costs API calls, so
+[`D-103`](../decisions.md#d-103)). It costs API calls, so
 it is a script rather than part of the suite, and it comes in two halves that are reported
 separately because they are worth different things.
 
@@ -83,9 +83,9 @@ only adds *can the model read it back*.
 
 The **free-form** half is the one that means something. Its cases are written as a tenant would say
 it, in English and Dutch, and each case declares the **whole** expected payload — so the eval scores
-what the parse invented as well as what it found (`D-102`). Four cases state no policy at all: they
+what the parse invented as well as what it found ([`D-102`](../decisions.md#d-102)). Four cases state no policy at all: they
 ask for an objective weight, for an unencoded optional rule, and once in the imperative voice of an
-instruction rather than a description. `D-101` argues the schema makes those impossible rather than
+instruction rather than a description. [`D-101`](../decisions.md#d-101) argues the schema makes those impossible rather than
 discouraged; those cases put the argument to the model.
 
 **Guardrails.** The LLM sits outside the solver service; the stateless payload-in/payload-out
@@ -95,4 +95,4 @@ the response, since structured outputs leave no separate raw text that could dis
 Storing them is the caller's, as accepting a candidate is. Deterministic profile editing works fully
 with no LLM available — the NL
 layer is an accelerator, never a dependency, and that is an import-linter contract rather than a
-promise (`D-101`): no deterministic module may reach `roster_replan.nl` or `anthropic`.
+promise ([`D-101`](../decisions.md#d-101)): no deterministic module may reach `roster_replan.nl` or `anthropic`.

@@ -2,16 +2,16 @@
 
 **Question.** [`replan.md`](../specs/replan.md) defines five metrics, ships D2, and asserts that the
 fact they produce different rosters is the deliverable rather than a problem to settle. This study
-tests that, and tests the constraint `D-060` puts on it: that they can only diverge where there is
+tests that, and tests the constraint [`D-060`](../decisions.md#d-060) puts on it: that they can only diverge where there is
 slack.
 
 **Answer.** Yes, on 10 of the 84 committed cases — and where they diverge, they diverge severely:
 each metric scores the other's answer at roughly double its own optimum. But the divergence is
 **entirely between D0/D1/D2 on one side and D3/D4 on the other**. Within each side, nothing separates
-them on this instance set. `D-060` survives as a mechanism and fails as a test, because the quantity
+them on this instance set. [`D-060`](../decisions.md#d-060) survives as a mechanism and fails as a test, because the quantity
 it was going to be tested against turns out to be the wrong one.
 
-> **Re-measured after `D-119`, and the rate moved a long way: 26 of 84 became 10 of 84** (`D-120`).
+> **Re-measured after [`D-119`](../decisions.md#d-119), and the rate moved a long way: 26 of 84 became 10 of 84** ([`D-120`](../decisions.md#d-120)).
 > Nothing about the method changed and nothing about it could — `metrics.py` builds its own models
 > and never calls `model.solve`, so canonicalising the optimum cannot reach it. **The instances
 > changed.** A canonical incumbent is a different published roster, so the event lands on a different
@@ -70,7 +70,7 @@ its own optimum. They disagree symmetrically and badly.
 
 Zero in all six ordered pairs. Publication weighting and notice weighting change *nothing* about
 which roster is optimal here, and the reason is structural rather than lucky: the whole week is
-published (`D-051`), and a disruption damages a **specific slot**, so every candidate repair changes
+published ([`D-051`](../decisions.md#d-051)), and a disruption damages a **specific slot**, so every candidate repair changes
 that same slot. `P × N` is then a constant factor multiplying every option equally, and a constant
 factor cannot reorder anything.
 
@@ -95,7 +95,7 @@ Anything claiming D4 behaves well is claiming it from the micro-instances, not f
 which is worth something, since that example was invented at spec time to argue the metrics *could*
 differ, and here it arises on its own from a seeded generator.
 
-This derivation was originally written against `early-notice/1`, whose divergence `D-119` removed
+This derivation was originally written against `early-notice/1`, whose divergence [`D-119`](../decisions.md#d-119) removed
 along with the rest of the old instances. **Seed 0 reproduces every number in the table below
 exactly** — the same two-against-four slots, the same 20/240 and 40/120. That is the more useful
 fact than either seed: the divergence is a property of the *class*, not of the one instance the study
@@ -120,9 +120,9 @@ This is the whole claim of the five-metric design in one case. D2 minimises how 
 touched. D3 minimises how much anyone's life changes, and will touch twice as many people to avoid
 calling one person in on a day off. Neither is the correct answer to a question the data can settle.
 
-## `D-060`: right mechanism, wrong instrument
+## [`D-060`](../decisions.md#d-060): right mechanism, wrong instrument
 
-`D-060` says divergence requires slack — a tightly covered week has one legal repair, so every metric
+[`D-060`](../decisions.md#d-060) says divergence requires slack — a tightly covered week has one legal repair, so every metric
 returns it. The class breakdown supports the mechanism cleanly at one end:
 
 | class | D2/D3 conflict |
@@ -135,14 +135,14 @@ returns it. The class breakdown supports the mechanism cleanly at one end:
 headcount is a pure call-in with nothing to pair it against, so D3 has no move available and agrees
 with D2 by default.
 
-**`tight` now diverges once, and that is the clean `0/6` the previous run reported gone** (`D-120`).
-It is not a refutation of `D-060` so much as a demotion of this table: a class name is a *target*
+**`tight` now diverges once, and that is the clean `0/6` the previous run reported gone** ([`D-120`](../decisions.md#d-120)).
+It is not a refutation of [`D-060`](../decisions.md#d-060) so much as a demotion of this table: a class name is a *target*
 demand ratio, and what decides divergence is the room at the slot the event actually damaged. The
 repair-slack table below says that far more sharply than this one now does.
 
-### The coverage axis, now that it has five points (`D-106`)
+### The coverage axis, now that it has five points ([`D-106`](../decisions.md#d-106))
 
-Until `D-105` widened the set this class breakdown held **one** class at the tight end, and a single
+Until [`D-105`](../decisions.md#d-105) widened the set this class breakdown held **one** class at the tight end, and a single
 zero cannot distinguish *tightness* from something peculiar to that class. There are now five points
 on the axis, and they make a shape:
 
@@ -154,7 +154,7 @@ on the axis, and they make a shape:
 | 0.90 | `tight` | 1/6 |
 | 0.95 | `overloaded` | **0/6** |
 
-Two things follow, and neither is what the first run of this table reported (`D-120`).
+Two things follow, and neither is what the first run of this table reported ([`D-120`](../decisions.md#d-120)).
 
 **The curve is gone.** Divergence used to rise to 4/6 at 0.70 and fall to zero by 0.90; it is now
 flat at one case across the middle three and zero at both ends. Whatever shape the coverage axis has,
@@ -162,8 +162,8 @@ this set at this rate cannot resolve it — six cases per point and ten conflict
 enough to draw a curve through, and the previous run drew one anyway.
 
 **Both ends still suppress divergence, and for the two different reasons already given.** `overloaded`
-at 0.95 has one legal repair, which is `D-060`'s mechanism. `loose` at 0.35 has the opposite problem
-and it is `D-071`'s: low demand is expressed by opening **fewer shift instances**, not by thinning a
+at 0.95 has one legal repair, which is [`D-060`](../decisions.md#d-060)'s mechanism. `loose` at 0.35 has the opposite problem
+and it is [`D-071`](../decisions.md#d-071)'s: low demand is expressed by opening **fewer shift instances**, not by thinning a
 full grid, so a loose week has fewer shifts on the damaged day for D3 to move somebody into.
 Divergence needs slack *and* somewhere to put people, and the loose end runs out of the second while
 gaining the first.
@@ -187,7 +187,7 @@ slot** (`metrics.repair_slack`), the picture improves but does not become a law:
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | conflict | 0/1 | 0/2 | 0/1 | 0/9 | 0/10 | 0/7 | 0/10 | 0/4 | **10/40** |
 
-**This is the sharpest the study has ever been, and it got sharper by accident** (`D-120`). Every one
+**This is the sharpest the study has ever been, and it got sharper by accident** ([`D-120`](../decisions.md#d-120)). Every one
 of the ten divergences sits in the top bucket and every other bucket is a clean zero — where the
 previous instance set scattered conflicts across six of eight buckets. Read as a necessary condition
 it is now exact on this set: **no case with fewer than six spare eligible people at the damaged slot
@@ -198,11 +198,11 @@ and the worked example above names it — D3 diverges from D2 only when a **move
 another open shift on the same day that a rostered person could be shifted to. That is a property of
 the damaged *day*, not of the week and not of the slot, and the committed set does not vary it, so
 this study can report the correlation and not a clean law. A generator axis over same-day shift
-availability is the honest way to close it, and it is named in `D-085` rather than bolted on here.
+availability is the honest way to close it, and it is named in [`D-085`](../decisions.md#d-085) rather than bolted on here.
 
 ## What this changes
 
-Nothing about the shipped default. D2 remains the shipped metric under `D-006`, and this study
+Nothing about the shipped default. D2 remains the shipped metric under [`D-006`](../decisions.md#d-006), and this study
 strengthens rather than weakens that: D2 is indistinguishable from D0 and D1 on this distribution, so
 the simplest of the three that prices what planners react to is the right one to carry.
 

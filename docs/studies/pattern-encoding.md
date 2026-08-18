@@ -1,13 +1,13 @@
 # Pattern/column variables against assignment booleans
 
 **Question.** [`model.md`](../specs/model.md) calls pattern variables "dramatically stronger
-formulations, evaluated as a T2 study at these instance sizes", and `D-009` has been open since T1.
+formulations, evaluated as a T2 study at these instance sizes", and [`D-009`](../decisions.md#d-009) has been open since T1.
 
 **Answer.** Competitive on a replan, catastrophic on a cold week. Enumerating patterns and solving
 takes about the same total time as the assignment model when most of the horizon is pinned — and on a
 cold week it **fails to prove optimality within 30 seconds on 5 of 6 cases** (re-verified over the
-widened set — `D-107`), against roughly 20
-milliseconds for the assignment model. `D-009` closes in favour of assignment booleans, and not
+widened set — [`D-107`](../decisions.md#d-107)), against roughly 20
+milliseconds for the assignment model. [`D-009`](../decisions.md#d-009) closes in favour of assignment booleans, and not
 narrowly.
 
     uv run python -m benchmarks.studies --only patterns
@@ -89,4 +89,4 @@ period the enumeration is `4^28` rather than `4^7`, so explicit enumeration gets
 The regime where patterns win is one where each employee has few legal patterns and coverage is the
 hard part — which is the replan case, which the assignment model already handles in 10 milliseconds.
 
-**`D-009` closes: assignment booleans, measured, not assumed.**
+**[`D-009`](../decisions.md#d-009) closes: assignment booleans, measured, not assumed.**

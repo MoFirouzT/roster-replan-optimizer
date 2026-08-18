@@ -8,7 +8,7 @@ rejects extending the solve horizon to the reference period in one sentence:
 > service is built around.
 
 Nothing measured that. It was the last major rejection in this project standing on an assertion, and
-it could not be measured until `D-111` scoped the week rules to the week and `D-113` let a longer
+it could not be measured until [`D-111`](../decisions.md#d-111) scoped the week rules to the week and [`D-113`](../decisions.md#d-113) let a longer
 horizon through validation at all.
 
 **Answer. The rejection holds, and both reasons given for it are wrong.** Instance size grows
@@ -16,7 +16,7 @@ horizon through validation at all.
 What actually justifies the rejection is the half the sentence never mentions: a longer horizon
 **buys nothing**. Four weeks solved at once and four weeks solved one at a time reach *identical
 coverage* on every case tried, at both ends of the tightness axis. Nor does the pooled
-reference-period budget the spec is really about, once it is expressible at all (`D-123`): the
+reference-period budget the spec is really about, once it is expressible at all ([`D-123`](../decisions.md#d-123)): the
 freedom to spend a quarter unevenly is used by four to nine employees per case and converts into no
 staffed shift anywhere.
 
@@ -32,7 +32,7 @@ Generated replan scenarios at `demand_ratio` 0.70, 12 employees, median of three
 | 14 | 42 | 2,056 | 2,720 | 12.3 | 23.6 |
 | 28 | 84 | 4,058 | 5,376 | 29.5 | 77.0 |
 
-*(Re-measured after `D-119`. Search now includes the canonicalising second phase, which is
+*(Re-measured after [`D-119`](../decisions.md#d-119). Search now includes the canonicalising second phase, which is
 why one week reads 5.7 ms where this table first reported 3.5 — and why the crossover it
 identifies has moved from between one week and two to **at** one week.)*
 
@@ -42,15 +42,15 @@ week away — and nothing else aggregates across the horizon either. "An order o
 a growth this model does not have.
 
 **Search is not linear.** It grows 13.5× over the same range against build's 5.5×, and grew 23× on
-the pre-`D-119` measurement of the same table. That is the real cost of a longer horizon, and it is
+the pre-[`D-119`](../decisions.md#d-119) measurement of the same table. That is the real cost of a longer horizon, and it is
 in the term the rejection did not name.
 
-**`D-081`'s premise is gone at every horizon here.** When this study first ran, build cost more than
+**[`D-081`](../decisions.md#d-081)'s premise is gone at every horizon here.** When this study first ran, build cost more than
 search at seven days (5.4 against 3.5) and the two crossed over somewhere between one week and two.
-Canonicalising the optimum (`D-119`) added a second search phase and moved the crossover to **one
+Canonicalising the optimum ([`D-119`](../decisions.md#d-119)) added a second search phase and moved the crossover to **one
 week**: build 5.4 against search 5.7, and by four weeks search costs more than twice what build does.
 That premise is why the two clocks are reported separately, why the compiled-model cache was worth
-trying (`D-093`), and why memoising `Instance.window` was the largest single win (`D-092`). None of
+trying ([`D-093`](../decisions.md#d-093)), and why memoising `Instance.window` was the largest single win ([`D-092`](../decisions.md#d-092)). None of
 those decisions reverses, and none of them can now be *argued* the way it originally was.
 
 ## What it buys
@@ -81,13 +81,13 @@ already tell them to: `last_shift_end_before_horizon` and
 almost no coupling between its blocks does not need to see them together.
 
 **The timing comparison did not survive canonicalisation, and the coverage one did.** Before
-`D-119` the single solve was uniformly the slower arm under pressure — 239 to 555 ms against 94 to
+[`D-119`](../decisions.md#d-119) the single solve was uniformly the slower arm under pressure — 239 to 555 ms against 94 to
 166 ms. With a canonical second phase on every proved optimum the two arms swap places case by case
 (1563 ms chained against 631 ms single on one seed, 169 ms against 1604 ms on another), because the
 chained arm pays that phase four times and the single arm once. **No timing claim survives that**, and
 the honest position is that this study no longer measures which arm is faster. What it still measures,
 unchanged and on every case, is that neither finds coverage the other misses. The tight setting is
-sampled for `D-105`'s reason: on a slack month both methods staff everything and the comparison
+sampled for [`D-105`](../decisions.md#d-105)'s reason: on a slack month both methods staff everything and the comparison
 cannot say anything.
 
 ## Why the chained arm is a fair comparison, and how that is checked
@@ -106,7 +106,7 @@ asserts it in the suite as well, and a mutant that drops the carried shift-end i
 
 The two arms above hold the same weekly ceiling, so what they compare is horizon *length*. The
 approximation the spec describes is a different thing, and it took a payload change to ask about it
-(`D-123`): a caller resolves a rolling quarter into one weekly number, and what that destroys is the
+([`D-123`](../decisions.md#d-123)): a caller resolves a rolling quarter into one weekly number, and what that destroys is the
 freedom to spend it **unevenly** — 45 hours this week against 31 next, inside one quarterly total.
 
 `R-MAX-PERIOD` makes the pool expressible alongside the rate. Both arms below are given the same
@@ -147,6 +147,6 @@ over; not a distribution.
 objective they are compared under has no term spanning weeks — so this study measures that a longer
 horizon buys no *coverage* under the shipped objective, which is narrower than "buys nothing". Every
 cross-week preference in [`../preferences.md`](../preferences.md) is exactly such a term, and the
-fairness term that does span weeks could not have shown up here either: `D-108` records that the
+fairness term that does span weeks could not have shown up here either: [`D-108`](../decisions.md#d-108) records that the
 committed set cannot exercise it, because its evenings need a scarce skill. Reopening the question
 means adding a term that needs two weeks and re-measuring, not re-timing this solve.

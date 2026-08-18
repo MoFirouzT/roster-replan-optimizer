@@ -56,7 +56,9 @@ def test_every_encoded_rule_can_be_explained_to_a_planner():
     registry = {
         match.group(1)
         for line in _text(SPECS / "rules.md").splitlines()
-        if (match := re.match(r"\|\s*`(R-[A-Z-]+)`\s*\|", line))
+        # The registry's ID cell links to the rule's section where one exists and is bare
+        # where the rule is declared but unspecified -- accept both shapes.
+        if (match := re.match(r"\|\s*\[?`(R-[A-Z-]+)`\]?(?:\([^)]*\))?\s*\|", line))
     }
     missing = (registry - UNENCODED) - set(RULE_TEXT)
     assert not missing, f"encoded rules with no planner-facing sentence: {sorted(missing)}"
@@ -66,7 +68,9 @@ def test_no_sentence_names_a_rule_the_registry_does_not_have():
     registry = {
         match.group(1)
         for line in _text(SPECS / "rules.md").splitlines()
-        if (match := re.match(r"\|\s*`(R-[A-Z-]+)`\s*\|", line))
+        # The registry's ID cell links to the rule's section where one exists and is bare
+        # where the rule is declared but unspecified -- accept both shapes.
+        if (match := re.match(r"\|\s*\[?`(R-[A-Z-]+)`\]?(?:\([^)]*\))?\s*\|", line))
     }
     unknown = set(RULE_TEXT) - registry
     assert not unknown, f"sentences for rules absent from the registry: {sorted(unknown)}"

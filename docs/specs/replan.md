@@ -4,19 +4,19 @@ The objective. [`rules.md`](rules.md) owns what is *legal*; this file owns what 
 
 > **Status: D0–D4 defined and measured, D2 shipped.** The comparison the file called for is in
 > [`studies/disruption-metrics.md`](../studies/disruption-metrics.md), and warm starting is measured
-> under `D-082`.
+> under [`D-082`](../decisions.md#d-082).
 >
 > **T2 closes without the wage data**, so the two remaining `[TODO]`s stand and their owner has moved:
 > the cost model is still a flat rate, and the exchange rate is still uncalibrated. Neither can be
 > settled from first principles, and the corpus that would settle them is
 > [`capture.md`](capture.md)'s. `benchmarks.md` reports the consequence rather than working around it —
 > with a flat rate and a hard coverage ceiling every fully staffed roster costs the same, so the cost
-> axis of the frontier collapses and `D-050`'s sweep has nothing to trace yet.
+> axis of the frontier collapses and [`D-050`](../decisions.md#d-050)'s sweep has nothing to trace yet.
 
 ## What disruption is a function of
 
 Disruption compares the roster being produced against the one people were already told about
-(`D-005`). It is a function of three things, and forgetting the third is the usual mistake:
+([`D-005`](../decisions.md#d-005)). It is a function of three things, and forgetting the third is the usual mistake:
 
 1. **The incumbent** `x̄` — what the roster was.
 2. **The publication state** — how much of it people actually know. An unpublished draft can be
@@ -39,7 +39,7 @@ the whole plan for that slot, including its emptiness.
 
 `published_through` — hours from the horizon start, supplied by the caller, exactly parallel to `now`
 and on the same scale as every other time quantity (see [`model.md`](model.md#input-contract)). A slot
-`(d, s)` is published iff `start(d, s) < published_through` (`D-051`). One number, easy for a caller to get right, and it
+`(d, s)` is published iff `start(d, s) < published_through` ([`D-051`](../decisions.md#d-051)). One number, easy for a caller to get right, and it
 matches the dominant real pattern: *"the schedule is out through Sunday the 14th."*
 
 **Limitation, stated:** a wave-published roster — some shifts announced, others held back within the
@@ -58,7 +58,7 @@ study exists to show it rather than to assert it.
 > so `P × N` is a constant factor across every candidate repair and a constant factor reorders nothing
 > — the weights need a choice of *which* slot to disturb, which these scenarios never offer. D3 and D4
 > agree because the concentration penalty needs two events on one person, and median damage is one
-> assignment (`D-086`).
+> assignment ([`D-086`](../decisions.md#d-086)).
 
 > **They only diverge where there is slack, and this constrains T2's generator.** On a tightly covered
 > instance there is exactly one legal repair, so every metric returns it and the choice of metric is
@@ -67,7 +67,7 @@ study exists to show it rather than to assert it.
 > parameter is not one knob among several; it is the one that decides whether the study can see anything
 > at all.
 >
-> **Necessary, and not sufficient** (`D-060`). The mechanism held — the `tight` class diverges on 0 of
+> **Necessary, and not sufficient** ([`D-060`](../decisions.md#d-060)). The mechanism held — the `tight` class diverges on 0 of
 > 6 cases — but slack alone does not predict divergence, and the week-level minimum slot slack the
 > instance set records predicts it not at all. What D3 additionally needs is a *move* to be available:
 > another open shift on the same day that a rostered person could be shifted to. That is a property of
@@ -83,7 +83,7 @@ study exists to show it rather than to assert it.
 |---|---|---|
 | D0 | Count of changed assignments | rejected — a published cancellation and an unpublished move score alike |
 | D1 | D0 weighted by publication state | superseded |
-| D2 | D1 × notice multiplier, with a step at 24h | **shipped default** (`D-006`) |
+| D2 | D1 × notice multiplier, with a step at 24h | **shipped default** ([`D-006`](../decisions.md#d-006)) |
 | D3 | D2 with paired changes recognised as one move, priced by change type | configurable |
 | D4 | D3 + convex per-employee concentration penalty | configurable |
 
@@ -109,7 +109,7 @@ P(d, s) = published_weight   if start(d, s) < published_through
           draft_weight       otherwise
 ```
 
-`draft_weight` is small but **not zero** (`D-052`). Zero would leave the optimiser indifferent among draft
+`draft_weight` is small but **not zero** ([`D-052`](../decisions.md#d-052)). Zero would leave the optimiser indifferent among draft
 rosters, and indifference costs two things worth keeping: stable output across runs, and a warm start
 that resembles its hint. A small weight buys both and distorts nothing, because the number of
 assignments is pinned by coverage rather than chosen freely.
@@ -133,7 +133,7 @@ correct and worth stating: golden tests must therefore pin `now`, not only the i
 
 ### D3 — change type, and moves counted once
 
-D0–D2 all count a moved shift twice — once as a drop, once as an add (`D-053`). To the person it
+D0–D2 all count a moved shift twice — once as a drop, once as an add ([`D-053`](../decisions.md#d-053)). To the person it
 happened to it is one event:
 *"your Saturday moved from the morning to the evening."* D3 is the definition that notices.
 
@@ -155,7 +155,7 @@ falsifiable claim in this file. T2's capture-and-replay work can test it directl
 resolving real disruptions reveal which trade they actually make. If the corpus contradicts the
 ordering, the ordering changes and this paragraph becomes a `decisions.md` entry.
 
-**Simplification, stated** (`D-054`). `P` and `N` are evaluated per **day** here rather than per slot,
+**Simplification, stated** ([`D-054`](../decisions.md#d-054)). `P` and `N` are evaluated per **day** here rather than per slot,
 read from the day's **anchor slot** — its earliest *open* shift. A change is communicated about a day, and pairing
 drops with adds requires a common granularity.
 
@@ -168,7 +168,7 @@ is not a nice-to-have here — it is what makes the two readings comparable at a
 The cost is that a move from an early shift to a late one inside a long day is priced by the day's
 earliest notice rather than by the affected shift's.
 
-**`extend` is not in D3, and cannot be** (`D-056`). The outline listed extending a shift as a change type; with
+**`extend` is not in D3, and cannot be** ([`D-056`](../decisions.md#d-056)). The outline listed extending a shift as a change type; with
 fixed shift instances a shift's boundaries are data, so there is no roster the model can express in
 which one is extended. It becomes representable in T5's generation mode and is a change type only there.
 
@@ -185,7 +185,7 @@ D4       = D3 + concentration_weight × Σ_e f(events_e)
 `f` is convex with escalating marginal cost — `f(0)=0, f(1)=1, f(2)=3, f(3)=6`, the triangular numbers,
 so the *n*-th change to one person costs *n*.
 
-**Encoding** (`D-055`). A convex piecewise-linear function of an integer variable needs no piecewise
+**Encoding** ([`D-055`](../decisions.md#d-055)). A convex piecewise-linear function of an integer variable needs no piecewise
 machinery when it is being minimised: introduce `t_e` and lower-bound it by every segment's line.
 
 ```
@@ -200,7 +200,7 @@ everything below the maximum.
 
 ## Trading disruption against cost and coverage
 
-**Decision: weighted, not lexicographic** (`D-049`) — and the reason is that the frontier is the
+**Decision: weighted, not lexicographic** ([`D-049`](../decisions.md#d-049)) — and the reason is that the frontier is the
 deliverable.
 
 Lexicographic ordering (feasibility → disruption → cost) guarantees disruption is never traded away, but
@@ -210,7 +210,7 @@ disruption/cost Pareto frontier to a single point, and that frontier is the head
 objective.
 
 So the objective is a weighted sum, and the exchange rate `cost_weight` is **swept** to trace the
-frontier rather than fixed by assertion (`D-050`). The honest claim is not "here is the correct exchange rate" but
+frontier rather than fixed by assertion ([`D-050`](../decisions.md#d-050)). The honest claim is not "here is the correct exchange rate" but
 *"we cannot know your exchange rate; here is the frontier, and here is our default and why."*
 
 ### The four levels, and why only two of them trade
@@ -222,7 +222,7 @@ frontier rather than fixed by assertion (`D-050`). The honest claim is not "here
 | Disruption | D2 by default |
 | Cost | Traded against disruption at `cost_weight` |
 
-### The domination bound is derivable, not chosen (`D-057`)
+### The domination bound is derivable, not chosen ([`D-057`](../decisions.md#d-057))
 
 Understaffing reduces disruption: an unstaffed shift is a shift nobody was moved onto. So if the
 shortfall weight is too low, **the optimiser buys stability by leaving shifts empty** — a failure mode
@@ -263,12 +263,12 @@ but blunt, and the frontier's cost axis should be read as *paid hours* rather th
 **And `cost_weight` ships at `0`**, so the term is not merely blunt — it is switched off, and the
 shipped objective is pure disruption. That is the right default while the cost model is a placeholder:
 a weight on a number that cannot tell two equal-hours rosters apart would add noise and no signal. T2
-sweeps it (`D-050`), which is when the cost axis starts to mean anything.
+sweeps it ([`D-050`](../decisions.md#d-050)), which is when the cost axis starts to mean anything.
 
 ## Understaffing: hard or soft
 
-Settled in [`rules.md`](rules.md#r-cover--coverage): **hard ceiling, soft floor**, ratified under
-`D-008` — a hard floor cannot answer 16 of the 72 committed cases, eight of them weeks that were
+Settled in [`rules.md`](rules.md#rule-r-cover): **hard ceiling, soft floor**, ratified under
+[`D-008`](../decisions.md#d-008) — a hard floor cannot answer 16 of the 72 committed cases, eight of them weeks that were
 fully staffable until the disruption. The consequence for this file is the domination bound above, and one more worth naming: with a
 soft floor, coverage has been *priced against stability*. That is a real choice. A planner who would
 always rather be short than move someone is expressing an exchange rate, and this model lets them
@@ -287,12 +287,12 @@ though the shipped replan passes the same roster to both. Fusing them would make
 impossible to take: solving with the objective and without the hint is precisely the baseline that
 separates the two effects.
 
-**Measured, and it is not a null** (`D-082`). A warm-started replan is faster than a cold
+**Measured, and it is not a null** ([`D-082`](../decisions.md#d-082)). A warm-started replan is faster than a cold
 *cost-objective* solve for two independent reasons — the hint, and the fact that a disruption
 objective has its optimum near the incumbent — so only the cold *disruption-objective* baseline can
 tell them apart. Paired on case and solver seed across the committed set, the hint reduces CP-SAT's
 search time on 662 of 756 runs, median paired ratio 0.906 — reproducing the study's 0.907 on 201 of
-216, before `D-105` widened the set.
+216, before [`D-105`](../decisions.md#d-105) widened the set.
 
 **And it is small.** That is 9% of a 3 ms search, invisible in end-to-end latency because building
 the model costs about 5 ms. The objective is what carries the result: it cuts mean disruption from
@@ -308,7 +308,7 @@ a cold solve. `tests/test_generation.py` holds the claim at the solver, the ladd
 because "one formulation" is a statement about the product surface as much as about `solve`.
 
 The argument for the degeneracy was originally derived and is now measured, and the two disagree in a
-way worth keeping visible (`D-109`).
+way worth keeping visible ([`D-109`](../decisions.md#d-109)).
 
 **Derived:** with `x̄ = ∅` every assignment is an add on an unpublished slot, so every change carries
 `draft_weight`, the number of changes equals the number of assignments, and coverage pins that.
@@ -327,7 +327,7 @@ still prices the missing coverage — the narrower true statement is that the do
 work *on the disruption axis* of a cold solve.
 
 **What ranks a cold roster is therefore the tie-breaker.** Disruption is flat and `cost_weight` ships
-at `0` (`D-050`), so the peak-workload term is the entire objective — measurably, not in principle:
+at `0` ([`D-050`](../decisions.md#d-050)), so the peak-workload term is the entire objective — measurably, not in principle:
 on a cold week its value *is* the objective value. The spec used to say generation "reduces to cost";
 it reduces to cost only once there is wage data, and today it reduces to the term beneath it.
 
@@ -339,15 +339,15 @@ The fairness model is the next section.
 
 `PLAN.md` scoped this as *"fairness objectives beyond disruption concentration"*, and the word
 **beyond** is doing the work. This repo already had two things called fairness and this is neither of
-them: `D-091`'s round-robin is fairness between *tenants in the queue*, and D4's concentration spreads
+them: [`D-091`](../decisions.md#d-091)'s round-robin is fairness between *tenants in the queue*, and D4's concentration spreads
 *changes* across people. Both are about the replan. This one is about the roster — who ends up working
-the shifts nobody wants, over time (`D-108`).
+the shifts nobody wants, over time ([`D-108`](../decisions.md#d-108)).
 
 **Unpopularity is declared, not derived.** Which shifts are unpopular is a social fact about a tenant,
 not a property this system can compute: a late shift is a burden in one restaurant and the sought-after
 one in another. The profile names them — `Profile.fairness`, carried onto the week by `applied_to`,
 the same way it names everything else that is policy rather than law — and the request carries the
-per-employee history the balance is struck over (`D-131`).
+per-employee history the balance is struck over ([`D-131`](../decisions.md#d-131)).
 
 **The balance is rolling, so it needs history the horizon does not contain.** One week cannot be fair
 on its own — somebody has to work Saturday. Each employee therefore carries the count they have already
@@ -361,7 +361,7 @@ g(n)        = max_k ( k·n − k(k−1)/2 )       for k = 1 … fairness_tiers
 ```
 
 `g` is D4's triangular escalation applied to a different quantity, and it is encoded the same way — one
-variable per employee, lower-bounded by every segment's line (`D-055`). Convex rather than a
+variable per employee, lower-bounded by every segment's line ([`D-055`](../decisions.md#d-055)). Convex rather than a
 `max − min` range term for the reason D4 gives: a range term is the `tiers = 1` case and is blind to
 everything between the extremes, so it equalises the two ends and ignores everybody in the middle.
 
@@ -374,14 +374,14 @@ exceeds `fairness_tiers` sits in the linear region where the term no longer dist
 window long enough to push everybody past it therefore switches fairness off while appearing to be
 configured. The window and the tier count have to be chosen together, and `profile.remarks` says so
 when the supplied priors already reach the tiers — a **remark rather than a defect**, because the
-request is lawful and the tenant may have meant the window (`D-131`). It is reported at configuration
+request is lawful and the tenant may have meant the window ([`D-131`](../decisions.md#d-131)). It is reported at configuration
 time by the stage that exists for rules which are valid and cannot bind, not by `validation.py`, whose
 findings reject a request.
 
 ### Fairness makes understaffing attractive, and the bound has to grow
 
 An unstaffed unpopular shift is one nobody's count went up for, so fairness — like disruption before it
-(`D-057`) — pays for coverage failures. The domination bound extends rather than being re-derived:
+([`D-057`](../decisions.md#d-057)) — pays for coverage failures. The domination bound extends rather than being re-derived:
 
 ```
 shortfall_weight  >  max_{(d,s)} req[d, s] × ( max_change_weight + fairness_weight × fairness_tiers )

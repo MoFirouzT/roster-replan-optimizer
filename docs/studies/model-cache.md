@@ -44,7 +44,7 @@ types, rule parameters, every employee's availability, skills, contract, budgets
 every open shift, and `now`. The objective is *not* in the key, because `model.solve` applies it per
 solve.
 
-One exception makes this subtle rather than obvious, and it is `D-058`: `build` creates a variable for
+One exception makes this subtle rather than obvious, and it is [`D-058`](../decisions.md#d-058): `build` creates a variable for
 any pair the **incumbent** assigned even when presolve excluded it, so the incumbent changes the
 variable set and belongs in the key after all. The tidy split — constraints in, objective out — is
 wrong in exactly that one place, and wrong in the direction that returns a model missing the variables
@@ -94,7 +94,7 @@ went, on this repo's standing rule that code which cannot be shown to fail is no
 Memoising `window` meant adding a field to `Instance`, and `benchmarks/suite.py` fingerprints
 instances by walking `dataclasses.fields`. The cache immediately leaked into the committed manifest,
 so every hash depended on which methods had been called before the digest was taken. The manifest test
-failed on the next run — which is what `D-074` built it for.
+failed on the next run — which is what [`D-074`](../decisions.md#d-074) built it for.
 
 The fix is general rather than a patch: the walk now includes only fields with `compare=True`. A field
 excluded from `__eq__` must be excluded from a fingerprint, or two objects that compare equal hash

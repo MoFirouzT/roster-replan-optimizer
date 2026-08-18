@@ -16,7 +16,7 @@ Async job queue. POST enqueue / GET poll / DELETE cancel.
 | `DELETE /v1/replans/{id}` | cancel. Terminal jobs are returned unchanged |
 | `GET /v1/health` | solver health, not HTTP health — see [Telemetry](#telemetry) |
 
-**A rejected request still gets a job id** (`D-090`). A payload Pydantic accepts and
+**A rejected request still gets a job id** ([`D-090`](../decisions.md#d-090)). A payload Pydantic accepts and
 `validation.py` refuses returns `422` *and* a readable job in state `rejected`, so the
 caller's flow is the same either way — poll the id — and the defects sit at the URL a result
 would have occupied.
@@ -45,7 +45,7 @@ swapping the store for Redis or SQS is a contained change and touches nothing be
 
 Pydantic at the boundary. Versioned API contracts, so a model change never breaks a caller.
 
-**The wire schema is a separate schema, not a serialisation of `domain.py`** (`D-090`).
+**The wire schema is a separate schema, not a serialisation of `domain.py`** ([`D-090`](../decisions.md#d-090)).
 Reusing the domain dataclasses would be less code and would publish every internal field as
 public API, making a rename a breaking change for every caller — precisely the coupling the
 versioning exists to prevent.
@@ -90,7 +90,7 @@ Three things about it are consequences rather than choices, and each is asserted
   returns one, so "never return nothing" is a promise about *replanning*. The cold path
   cannot keep it.
 - **A cold solve is never infeasible** — the empty roster satisfies every hard constraint,
-  because the coverage floor is soft (`D-018`). Impossible demand comes back priced, not
+  because the coverage floor is soft ([`D-018`](../decisions.md#d-018)). Impossible demand comes back priced, not
   refused, so the only way a cold solve fails is exhaustion.
 - **The `incumbent` rung can return an illegal roster, deliberately.** After a disruption the
   published roster is usually already broken. It is returned with its violations named and
@@ -101,12 +101,13 @@ no instance in the committed set takes more than 15.4 ms, so `time-boxed`, `gree
 `incumbent` would otherwise ship untested. `tests/test_ladder.py` forces each one, and the
 mutation harness carries a mutant per rung.
 
-### A timeout is not an infeasibility (`D-094`)
+### A timeout is not an infeasibility ([`D-094`](../decisions.md#d-094))
 
 The ladder's first version reported one as the other, because `solve` returned an empty
 `list[Gate]` for both. See the record; the fix is a third return type, and the distinction
 matters most to T4's explainer, which is specified to turn a core into prose.
 
+<a id="telemetry"></a>
 ## Telemetry `[built — GET /v1/health]`
 
 Web observability says nothing about solver health: latency and error rate stay green while the
@@ -137,7 +138,7 @@ assumes the threads it was promised.
 
 **Fairness `[built]`.** Per-tenant queues with a rotation, not one FIFO: a tenant with 500
 queued jobs gets one slot per rotation, exactly like a tenant with one. Round-robin rather
-than weighted (`D-091`), because a per-tenant weight needs a priority nothing in this project
+than weighted ([`D-091`](../decisions.md#d-091)), because a per-tenant weight needs a priority nothing in this project
 can currently justify.
 
 **Solves run off the event loop `[built]`.** CP-SAT blocks, so a solve on the loop would
@@ -149,7 +150,7 @@ budget. Interrupting needs a solution callback wired through `model.solve`. `[TO
 stated because the misreading — that `DELETE` frees a core — only shows up under load.
 
 **Per-tenant compiled-model cache `[built — and it does not help replanning]`.** The premise
-here was right and the remedy was not (`D-093`). Building does cost more than solving, but a
+here was right and the remedy was not ([`D-093`](../decisions.md#d-093)). Building does cost more than solving, but a
 replan is triggered by a change to the model's own inputs — an absence changes which pairs
 survive presolve, which changes the variables — so the cache **hits 0 of 144 replan solves**.
 It ships enabled because a miss costs 0.6% of a build and a hit saves 170×, and because
@@ -157,7 +158,7 @@ It ships enabled because a miss costs 0.6% of a build and a hit saves 170×, and
 thread-safe, and a shared cache would hand one model to two concurrent solves.
 
 The latency win that was actually available came from profiling rather than from caching:
-memoising `Instance.window` removed 20% of build time (`D-092`), which is larger than presolve
+memoising `Instance.window` removed 20% of build time ([`D-092`](../decisions.md#d-092)), which is larger than presolve
 and larger than every level-1 lever in T2. See
 [`studies/model-cache.md`](../studies/model-cache.md).
 
@@ -175,7 +176,7 @@ singled out — a parameter sweep, and the question owners actually ask.
 agent asking a question and waiting. An enqueued replan is production work with a budget and
 a cancellation story. Both exist because they are different interactions.
 
-Three properties hold across all five (`D-012`, `D-013`):
+Three properties hold across all five ([`D-012`](../decisions.md#d-012), [`D-013`](../decisions.md#d-013)):
 
 - **Structured fields *and* prose, together.** A caller that distrusts the sentence reads the
   numbers; one that cannot parse the numbers reads the sentence. Prose alone would make a
@@ -186,7 +187,7 @@ Three properties hold across all five (`D-012`, `D-013`):
 - **All five are read-only.** `validate_profile` checks and reports; the save is the
   caller's. A tool an LLM can call should not be able to persist a tenant's policy.
 
-**An unlawful hypothetical is refused, not answered** (`D-098`). Relaxing a statutory
+**An unlawful hypothetical is refused, not answered** ([`D-098`](../decisions.md#d-098)). Relaxing a statutory
 parameter without a recorded derogation basis is rejected by `validation.py` before any
 solve, so `what_if` cannot reply *just shorten the rest gap* — the most dangerous output
 available from a tool a planner might trust.
@@ -198,8 +199,8 @@ error mapping — so a non-specialist can read and change it. The intricate part
 tested.
 
 **No language model is reachable from here.** `config.md` puts the parse outside the service, and
-that is an import-linter contract rather than a convention (`D-101`): `roster_replan.service` may
+that is an import-linter contract rather than a convention ([`D-101`](../decisions.md#d-101)): `roster_replan.service` may
 not import `roster_replan.nl` or `anthropic`. The SDK is an optional extra, so the service would
 otherwise acquire a dependency that has to be installed before it can start — and the tool surface
 would have a route whose availability depends on a key. Everything this service answers is derived,
-and `D-013` is what makes that worth stating twice.
+and [`D-013`](../decisions.md#d-013) is what makes that worth stating twice.
