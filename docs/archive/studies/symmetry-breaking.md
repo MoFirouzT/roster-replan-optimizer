@@ -1,6 +1,6 @@
 # Symmetry breaking, and how much the incumbent already does
 
-**Question.** [`model.md`](../specs/model.md#symmetry) says no symmetry breaking is in the model
+**Question.** [`model.md`](../../internals/model.md) says no symmetry breaking is in the model
 deliberately, because "the disruption objective already breaks symmetry partially — quantify this
 rather than assuming it". So: quantify it.
 

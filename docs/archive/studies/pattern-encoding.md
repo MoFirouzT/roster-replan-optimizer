@@ -1,6 +1,6 @@
 # Pattern/column variables against assignment booleans
 
-**Question.** [`model.md`](../specs/model.md) calls pattern variables "dramatically stronger
+**Question.** [`model.md`](../../internals/model.md) calls pattern variables "dramatically stronger
 formulations, evaluated as a study at these instance sizes", and [`D-009`](../decisions.md#d-009) had been open since the model was first written.
 
 **Answer.** Competitive on a replan, catastrophic on a cold week. Enumerating patterns and solving

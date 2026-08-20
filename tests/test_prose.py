@@ -34,7 +34,7 @@ from roster_replan.prose import (
     supported_terms,
     unsupported_terms,
 )
-from tests.test_specs import UNENCODED, _text, SPECS
+from tests.test_specs import UNENCODED, _text, GUIDE
 
 CASES = ["scarce-skill/0", "tight/0", "headline/3", "thin-availability/0"]
 
@@ -55,7 +55,7 @@ def findings():
 def test_every_encoded_rule_can_be_explained_to_a_planner():
     registry = {
         match.group(1)
-        for line in _text(SPECS / "rules.md").splitlines()
+        for line in _text(GUIDE / "rules.md").splitlines()
         # The registry's ID cell links to the rule's section where one exists and is bare
         # where the rule is declared but unspecified -- accept both shapes.
         if (match := re.match(r"\|\s*\[?`(R-[A-Z-]+)`\]?(?:\([^)]*\))?\s*\|", line))
@@ -67,7 +67,7 @@ def test_every_encoded_rule_can_be_explained_to_a_planner():
 def test_no_sentence_names_a_rule_the_registry_does_not_have():
     registry = {
         match.group(1)
-        for line in _text(SPECS / "rules.md").splitlines()
+        for line in _text(GUIDE / "rules.md").splitlines()
         # The registry's ID cell links to the rule's section where one exists and is bare
         # where the rule is declared but unspecified -- accept both shapes.
         if (match := re.match(r"\|\s*\[?`(R-[A-Z-]+)`\]?(?:\([^)]*\))?\s*\|", line))

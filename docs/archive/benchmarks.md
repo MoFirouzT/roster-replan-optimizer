@@ -49,7 +49,7 @@ The whole horizon is published, which is both the realistic replan case and the 
 **The incumbent is solved by the system under test** ([`D-069`](decisions.md#d-069));
 the benchmark's weak point, stated rather than buried.
 These numbers can show a replan beats a re-solve *given* a roster this model would produce;
-they cannot show the model matches what real planners publish. Only the captured corpus in [`specs/capture.md`](specs/capture.md) can carry that second claim, which is why it is scheduled rather than optional.
+they cannot show the model matches what real planners publish. Only the captured corpus in [`specs/capture.md`](capture.md) can carry that second claim, which is why it is scheduled rather than optional.
 
 **Partly answered from outside** ([`D-125`](decisions.md#d-125), [`studies/foreign-incumbent.md`](studies/foreign-incumbent.md)).
 Published solutions from the nurse-rostering benchmark set are rosters other people's solvers produced, optimising an objective this project does not implement.

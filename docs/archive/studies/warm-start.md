@@ -2,7 +2,7 @@
 
 **Question.** A replan is hinted with the roster it is repairing.
 "Warm-started replan" is the headline phrase, so the obvious risk is that the speedup being claimed for the hint is really the **objective** doing the work.
-[`replan.md`](../specs/replan.md) asked for this filed either way.
+[`replan.md`](../../internals/model.md) asked for this filed either way.
 
 **Answer.** **Not a null, and not the headline either: 9% of search time.**
 The hint reduces search time on 201 of 216 paired runs, median paired ratio **0.907** — reproduced at **0.906 on 662 of 756 runs** over the widened set ([`D-105`](../decisions.md#d-105)).

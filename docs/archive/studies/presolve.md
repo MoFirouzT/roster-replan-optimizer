@@ -1,6 +1,6 @@
 # Domain presolve: removing impossible pairs before the solver
 
-**Question.** [`model.md`](../specs/model.md#presolve) calls presolve "often the largest single win,
+**Question.** [`model.md`](../../internals/model.md) calls presolve "often the largest single win,
 and free". Is it?
 
 **Answer.** A win, consistently, and not the largest one. It removes about a quarter of the model and

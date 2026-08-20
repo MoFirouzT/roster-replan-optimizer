@@ -132,7 +132,7 @@ def test_the_build_to_search_balance_still_holds():
         f"build/search is {actual} against a committed {expected} "
         f"({100 * drift:.0f}% drift).\n\n"
         f"This ratio is what the prose reasons from, so a real shift means the milliseconds "
-        f"quoted in docs/benchmarks.md, docs/specs/replan.md and docs/studies/ are now "
+        f"quoted in docs/archive/benchmarks.md, docs/internals/model.md and docs/archive/studies/ are now "
         f"wrong. Fix those, then `uv run python -m tests.timings --write` and record why in "
         f"decisions.md."
     )

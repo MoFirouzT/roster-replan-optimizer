@@ -3,7 +3,7 @@
 **Question.** [`D-002`](../decisions.md#d-002) encodes hard rules as constraints rather than as large
 penalties, on the grounds that *a penalised legal rule produces a roster that is cheaply illegal*.
 [`D-003`](../decisions.md#d-003) leans on the same sentence to justify the independent checker, and
-[`validation.md`](../specs/validation.md) states it a third time. Three records rest on the claim and
+[`validation.md`](../../internals/testing.md) states it a third time. Three records rest on the claim and
 none of them measured it. So: measure it.
 
 **Answer.** **It depends entirely on the instance, and the easy distribution gives the wrong answer.**
@@ -22,7 +22,7 @@ one exit a penalised search can always afford.
 
 ## What was built
 
-[`benchmarks/anneal.py`](../../benchmarks/anneal.py) — Metropolis acceptance over the assignment
+[`benchmarks/anneal.py`](../../../benchmarks/anneal.py) — Metropolis acceptance over the assignment
 encoding, geometric cooling, moves being add / drop / reassign / swap. Every hard rule is priced at
 `hard_weight` instead of prohibited. There is no repair step and no feasibility gate.
 
@@ -177,7 +177,7 @@ since the exact formulation needs no such number.
 ## Notes
 
 [`D-128`](../decisions.md#d-128) records the decision. The runner writes
-[`benchmarks/anneal-results.json`](../../benchmarks/anneal-results.json) and
+[`benchmarks/anneal-results.json`](../../../benchmarks/anneal-results.json) and
 `anneal-results-foreign8.json`.
 
 **Per-run anytime samples are not committed**, and the reason is worth stating because the first

@@ -1,6 +1,6 @@
 # Caching the compiled model, and what profiling said instead
 
-**Question.** [`service.md`](../specs/service.md) calls for a per-tenant compiled-model cache:
+**Question.** [`service.md`](../../guide/api.md) calls for a per-tenant compiled-model cache:
 *"at these instance sizes, building the model can cost more than solving it."* The premise is right —
 about 5 ms of build against 3 ms of search. Is the remedy?
 

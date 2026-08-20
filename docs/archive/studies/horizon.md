@@ -1,6 +1,6 @@
 # The horizon: what a longer one costs, and what it buys
 
-**Question.** [`rules.md`](../specs/rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget)
+**Question.** [`rules.md`](../../guide/rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget)
 rejects extending the solve horizon to the reference period in one sentence:
 
 > The obvious fix is to extend the solve horizon to the reference period. That is rejected: it

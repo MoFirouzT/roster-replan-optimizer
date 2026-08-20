@@ -1,4 +1,4 @@
-"""The CP-SAT model: the other reading of `docs/specs/rules.md`.
+"""The CP-SAT model: the other reading of `docs/guide/rules.md`.
 
 Imports `domain` and `ortools`, and **never** `checker`. Every predicate here is written
 from the spec rather than from the checker, which is what makes comparing the two
@@ -112,7 +112,7 @@ def build(
     """The model, with every hard constraint instance gated.
 
     The four keyword arguments are **study switches, not supported modes**. Each selects an
-    alternative encoding of the same problem so that `docs/studies/` can measure one against
+    alternative encoding of the same problem so that `docs/archive/studies/` can measure one against
     the other with everything else held. The shipped configuration is the default of each,
     and `studies/*.md` records why.
 

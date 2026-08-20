@@ -75,7 +75,7 @@ def test_no_d2_weight_moves_the_roster_on_the_committed_set(weight):
 
     assert not weights.identifiable(row), (
         f"{weight} now moves the roster on headline/0, across {row['values']}. That "
-        "contradicts docs/studies/weight-recovery.md, which reports 0/14 for every D2 "
+        "contradicts docs/archive/studies/weight-recovery.md, which reports 0/14 for every D2 "
         f"weight -- rerun benchmarks.weights before citing it. Bands: {row['bands']}"
     )
 

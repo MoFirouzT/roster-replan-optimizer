@@ -1,6 +1,6 @@
 # Do D0–D4 produce different rosters?
 
-**Question.** [`replan.md`](../specs/replan.md) defines five metrics, ships D2, and asserts that the
+**Question.** [`replan.md`](../../internals/model.md) defines five metrics, ships D2, and asserts that the
 fact they produce different rosters is the deliverable rather than a problem to settle. This study
 tests that, and tests the constraint [`D-060`](../decisions.md#d-060) puts on it: that they can only diverge where there is
 slack.

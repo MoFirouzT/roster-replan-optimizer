@@ -1,6 +1,6 @@
 # The parse, against text its author did not render
 
-**Question.** Does stage 1 of [`config.md`](../specs/config.md) read a tenant's own words into
+**Question.** Does stage 1 of [`config.md`](../../guide/configuring.md) read a tenant's own words into
 the right fields — and, more importantly, does it leave alone the fields the text says nothing
 about?
 
@@ -9,7 +9,7 @@ failures were in the `unclear` field, and only one of them was the parse's fault
 extraction itself was right in every case on the first run, including both Dutch ones and both
 adversarial ones.
 
-Harness: [`benchmarks/nl_eval.py`](../../benchmarks/nl_eval.py). Model `claude-opus-5` at
+Harness: [`benchmarks/nl_eval.py`](../../../benchmarks/nl_eval.py). Model `claude-opus-5` at
 `effort: low`, prompt `nl-2026.1` on the first run and `nl-2026.2` after. 18 calls per run,
 about $0.35.
 

@@ -1,6 +1,6 @@
 # `R-REST-GAP`: pairwise inequalities against `no_overlap`
 
-**Question.** [`rules.md`](../specs/rules.md#rule-r-rest-gap) encodes the rest
+**Question.** [`rules.md`](../../guide/rules.md#rule-r-rest-gap) encodes the rest
 gap as one inequality per conflicting pair, and defers the alternative — one optional interval per
 (employee, shift instance) inflated by `min_rest_hours`, under a single `add_no_overlap` per employee
 — to a study, with the words *"measured there, not assumed here"*.

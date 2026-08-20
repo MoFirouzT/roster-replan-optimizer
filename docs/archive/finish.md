@@ -25,12 +25,12 @@ The analysis is in the studies and the reasoning is in the records, both one cli
 
 | Piece | Where | The decision it turned on |
 | --- | --- | --- |
-| Shortfall and infeasibility explainer | [`explain.py`](../roster_replan/explain.py), [`prose.py`](../roster_replan/prose.py) | [`D-097`](decisions.md#d-097) — explain shortfalls first, and answer from the checker |
-| Minimal cores | [`core.py`](../roster_replan/core.py) | [`D-100`](decisions.md#d-100) — the objective inflates the core; deletion is a null on top |
-| Tool surface and hypotheticals | [`service/tools.py`](../roster_replan/service/tools.py), [`whatif.py`](../roster_replan/whatif.py) | [`D-098`](decisions.md#d-098) — unlawful hypotheticals are refused, not answered |
-| Profile review | [`profile.py`](../roster_replan/profile.py) | [`D-099`](decisions.md#d-099) — deterministic, and enabling an unencoded rule is a defect |
-| NL → profile | [`nl.py`](../roster_replan/nl.py) | [`D-101`](decisions.md#d-101) — the schema is the confinement, and an open mapping is not a schema |
-| Parse eval | [`nl_eval.py`](../benchmarks/nl_eval.py) | [`D-102`](decisions.md#d-102) — score what was invented, not only what was found |
+| Shortfall and infeasibility explainer | [`explain.py`](../../roster_replan/explain.py), [`prose.py`](../../roster_replan/prose.py) | [`D-097`](decisions.md#d-097) — explain shortfalls first, and answer from the checker |
+| Minimal cores | [`core.py`](../../roster_replan/core.py) | [`D-100`](decisions.md#d-100) — the objective inflates the core; deletion is a null on top |
+| Tool surface and hypotheticals | [`service/tools.py`](../../roster_replan/service/tools.py), [`whatif.py`](../../roster_replan/whatif.py) | [`D-098`](decisions.md#d-098) — unlawful hypotheticals are refused, not answered |
+| Profile review | [`profile.py`](../../roster_replan/profile.py) | [`D-099`](decisions.md#d-099) — deterministic, and enabling an unencoded rule is a defect |
+| NL → profile | [`nl.py`](../../roster_replan/nl.py) | [`D-101`](decisions.md#d-101) — the schema is the confinement, and an open mapping is not a schema |
+| Parse eval | [`nl_eval.py`](../../benchmarks/nl_eval.py) | [`D-102`](decisions.md#d-102) — score what was invented, not only what was found |
 
 The Open table is empty: [`D-012`](decisions.md#d-012) and [`D-013`](decisions.md#d-013) were its last entries and both became writable once the boundary they describe existed.
 
@@ -167,7 +167,7 @@ structure held and the curve did not — [`D-120`](decisions.md#d-120).)*
 
 #### Scheduled and not delivered
 
-**Capture and replay** ([`specs/capture.md`](specs/capture.md)) is the one component `PLAN.md`
+**Capture and replay** ([`specs/capture.md`](capture.md)) is the one component `PLAN.md`
 scheduled inside a completed tier that does not exist. It never gated T2, by design: corpus
 population depends on an external authorization this project does not control, and a vendor adapter
 built before the payload shape is known yields a round-trip test proving only that the adapter
@@ -251,5 +251,5 @@ dead defensive call, and a fairness property no single response could show.
 
 ## Archived
 
-`PLAN.md` is archived to [`archive/PLAN.md`](archive/PLAN.md) and is not maintained. Anything in it
+`PLAN.md` is archived to [`archive/PLAN.md`](PLAN.md) and is not maintained. Anything in it
 that is still true has moved into a spec; anything that has not is sequencing, which has been spent.

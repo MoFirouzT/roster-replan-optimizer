@@ -1,4 +1,4 @@
-"""The independent checker: a second reading of `docs/specs/rules.md`.
+"""The independent checker: a second reading of `docs/guide/rules.md`.
 
 Imports no solver. Imports only `domain`, which carries the payload schema and the
 conventions `rules.md` fixes by definition. Every rule predicate here is written from

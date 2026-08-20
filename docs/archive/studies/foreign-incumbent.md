@@ -7,7 +7,7 @@
 > replan beats a re-solve *given a roster this model would produce*, not that the model resembles
 > what real planners publish.
 
-[`capture.md`](../specs/capture.md) was written to close that with a captured corpus, and is blocked
+[`capture.md`](../capture.md) was written to close that with a captured corpus, and is blocked
 on an authorization this project does not control. This is the half that is not blocked.
 
 **Answer. The claim reproduces on foreign incumbents, and by a wider margin than on the committed

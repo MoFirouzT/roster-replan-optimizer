@@ -1,47 +1,43 @@
 # Rules
 
-The canonical registry of scheduling rules.
-Every rule has a stable ID used identically in this spec, the CP-SAT model, the independent checker, the `Violation` objects and the infeasibility explainer.
-**One vocabulary end to end.**
+Every rule a roster is checked against: what it says, what parameters it takes, and where its authority comes from.
 
-`model.md` and `validation.md` reference IDs from this file and do not restate rule semantics.
+**One vocabulary end to end.** A rule's ID is the same string in this registry, in the CP-SAT model, in the independent checker, in the `Violation` objects you get back, and in the explainer's prose. When a shortfall says `R-SKILL`, that is the entry below.
 
-## Classification
+Each rule is specified in eight bullets. Five are for anyone using the service — **Statement**, **Class**, **Parameters**, **Explainer text**, **Provenance** — and three are for anyone changing it: **Predicate**, **Model encoding**, **Checker encoding**. The last two are documented side by side deliberately, because the model and the checker are two independent readings of this page and keeping both visible is what makes the independence checkable.
 
-- **Structural hard:** encoded as constraints. Infeasibility is a legitimate answer.
-- **Soft:** penalised in the objective, with its weight on a stated scale (see `replan.md`).
-- **Pinned** — fixes variables rather than constraining them.
+Symbols come from [`model.md`](../internals/model.md).
 
 ## Registry
 
 | ID | Rule | Class | Parameters | Provenance |
 | --- | --- | --- | --- | --- |
-| [`R-COVER`](#rule-r-cover) | Each open shift is staffed to its requirement | hard ceiling, soft floor ([`D-008`](../decisions.md#d-008)) | per shift | operational |
+| [`R-COVER`](#rule-r-cover) | Each open shift is staffed to its requirement | hard ceiling, soft floor | per shift | operational |
 | [`R-AVAIL`](#rule-r-avail) | No assignment overlapping a declared absence or unavailability | hard | per employee, interval | operational |
 | [`R-SKILL`](#rule-r-skill) | Assigned employee holds the shift's required skill | hard | per shift/employee | operational |
 | [`R-SKILL-MIX`](#rule-r-skill-mix) | A shift's roster holds at least *m* people with a given skill | hard or soft, **per entry** | per shift/skill | operational, or legal per entry `[CITE]` |
 | [`R-PIN-PAST`](#rule-r-pin-past) | Shifts starting before `now` are immutable | pinned | `now` | operational |
-| [`R-MIN-SHIFT`](#rule-r-min-shift) | Minimum shift length — 2h horeca, 3h general | **input validation** — not roster-violable, see below | hours, per tenant | Arbeidswet art. 21; KB 18 June 1990; PC 302 CAO nr. 7 of 25 June 1997 art. 10 ([`D-145`](../decisions.md#d-145)) |
+| [`R-MIN-SHIFT`](#rule-r-min-shift) | Minimum shift length — 2h horeca, 3h general | **input validation** — not roster-violable, see below | hours, per tenant | Arbeidswet art. 21; KB 18 June 1990; PC 302 CAO nr. 7 of 25 June 1997 art. 10 |
 | [`R-REST-GAP`](#rule-r-rest-gap) | Minimum rest between consecutive shifts | hard | hours | Arbeidswet art. 38ter §1; WTD art. 3 |
 | [`R-MAX-WEEKLY`](#rule-r-max-weekly) | Maximum hours this week, as a supplied per-employee budget | hard | hours, per employee | Arbeidswet art. 19, 26bis; WTD art. 6, 16(b) |
 | [`R-MAX-PERIOD`](#rule-r-max-period) | Hours left in the rolling reference period, over the whole horizon | hard, **optional** | hours, per employee | Arbeidswet art. 26bis §1; WTD art. 16(b), 19 |
 | [`R-MAX-DAILY`](#rule-r-max-daily) | Maximum hours per day | hard | hours, per contract | Arbeidswet art. 19, 20, 20bis, 22 |
 | [`R-CONSEC-DAYS`](#rule-r-consec-days) | Maximum consecutive working days | hard | days | **not statutory** — operational/CBA, see below |
-| [`R-MAX-WEEKENDS`](#rule-r-max-weekends) | Maximum weekends worked across the horizon | hard, **optional** | weekends, per employee | **not statutory** — operational/CBA ([`D-135`](../decisions.md#d-135)) |
-| [`R-MIN-DAYS-OFF`](#rule-r-min-days-off) | Minimum length of a stretch of days off | hard, **optional** | days, per employee | **not statutory** — operational/CBA ([`D-135`](../decisions.md#d-135)) |
-| [`R-MIN-BLOCK`](#rule-r-min-block) | Minimum length of a block of working days | hard, **optional** | days, per employee | **not statutory** — operational/CBA ([`D-136`](../decisions.md#d-136)) |
-| [`R-MAX-SHIFT-TYPE`](#rule-r-max-shift-type) | Maximum assignments of one shift type | hard, **optional** | count, per employee and shift type | **not statutory** — operational/CBA ([`D-136`](../decisions.md#d-136)) |
-| [`R-MIN-HOURS`](#rule-r-min-hours) | Minimum assigned hours over the horizon | hard, **optional** | hours, per employee | **not statutory** — operational/CBA ([`D-136`](../decisions.md#d-136)) |
-| [`R-SUCCESSION`](#rule-r-succession) | A shift type that may not follow another | hard, **optional** | pairs of shift types | **not statutory** — operational/CBA ([`D-136`](../decisions.md#d-136)) |
-| [`R-DAY-OFF`](#rule-r-day-off) | A day granted off, by day rather than by interval | hard, **optional** | day set, per employee | **not statutory** — operational/CBA ([`D-142`](../decisions.md#d-142)) |
+| [`R-MAX-WEEKENDS`](#rule-r-max-weekends) | Maximum weekends worked across the horizon | hard, **optional** | weekends, per employee | **not statutory** — operational/CBA |
+| [`R-MIN-DAYS-OFF`](#rule-r-min-days-off) | Minimum length of a stretch of days off | hard, **optional** | days, per employee | **not statutory** — operational/CBA |
+| [`R-MIN-BLOCK`](#rule-r-min-block) | Minimum length of a block of working days | hard, **optional** | days, per employee | **not statutory** — operational/CBA |
+| [`R-MAX-SHIFT-TYPE`](#rule-r-max-shift-type) | Maximum assignments of one shift type | hard, **optional** | count, per employee and shift type | **not statutory** — operational/CBA |
+| [`R-MIN-HOURS`](#rule-r-min-hours) | Minimum assigned hours over the horizon | hard, **optional** | hours, per employee | **not statutory** — operational/CBA |
+| [`R-SUCCESSION`](#rule-r-succession) | A shift type that may not follow another | hard, **optional** | pairs of shift types | **not statutory** — operational/CBA |
+| [`R-DAY-OFF`](#rule-r-day-off) | A day granted off, by day rather than by interval | hard, **optional** | day set, per employee | **not statutory** — operational/CBA |
 | [`R-WEEKLY-REST`](#rule-r-weekly-rest) | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
-| [`R-FLEXI-ELIG`](#rule-r-flexi-elig) | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1, as amended by Wet 28 June 2026 ([`D-145`](../decisions.md#d-145)) |
+| [`R-FLEXI-ELIG`](#rule-r-flexi-elig) | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1, as amended by Wet 28 June 2026 |
 | [`R-DIMONA-FLX`](#rule-r-dimona-flx) | `FLX` Dimona filing as an eligibility gate | hard, **resolved upstream** | filing state, per employee/day | NSSO Dimona instructions; Wet 16 Nov 2015 |
-| `R-STUDENT-QUOTA` | Student-worker hour quota | hard, optional | hours/year | KB 28 November 1969 art. 17bis ([`D-145`](../decisions.md#d-145)) |
-| `R-SUNDAY` | Sunday and public-holiday work restriction | hard, optional | derogation set | Arbeidswet art. 11, 16, 66; Feestdagenwet art. 4, 6, 11 ([`D-145`](../decisions.md#d-145)) |
-| `R-BREAK` | In-shift break entitlement | hard, optional | minutes per hours worked | Arbeidswet art. 38quater; art. 34 under 18 ([`D-145`](../decisions.md#d-145)) |
-| `R-PT-MIN` | Part-time minimum shift length and weekly hours | hard, optional | hours | Arbeidswet art. 21; Wet 3 July 1978 art. 11bis ([`D-145`](../decisions.md#d-145)) |
-| `R-PUB-NOTICE` | Variable-schedule publication notice | soft, optional | days | Wet 8 April 1965 art. 6 §1, 1°, third para., d) ([`D-145`](../decisions.md#d-145)) |
+| `R-STUDENT-QUOTA` | Student-worker hour quota | hard, optional | hours/year | KB 28 November 1969 art. 17bis |
+| `R-SUNDAY` | Sunday and public-holiday work restriction | hard, optional | derogation set | Arbeidswet art. 11, 16, 66; Feestdagenwet art. 4, 6, 11 |
+| `R-BREAK` | In-shift break entitlement | hard, optional | minutes per hours worked | Arbeidswet art. 38quater; art. 34 under 18 |
+| `R-PT-MIN` | Part-time minimum shift length and weekly hours | hard, optional | hours | Arbeidswet art. 21; Wet 3 July 1978 art. 11bis |
+| `R-PUB-NOTICE` | Variable-schedule publication notice | soft, optional | days | Wet 8 April 1965 art. 6 §1, 1°, third para., d) |
 
 An ID that links to a section below is specified there. The five that do not — `R-STUDENT-QUOTA`,
 `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` — are declared and sourced but not yet specified;
@@ -52,8 +48,8 @@ Every rule marked *optional* is profile-gated: a tenant that does not enable it 
 `[CITE]` — every legal rule needs a named source. A legality claim without
 provenance is a guess, and the checker is the component whose whole value is that it is not one.
 
-**Every rule that names a statute now names one** ([`D-145`](../decisions.md#d-145)). The five unspecified rules are sourced
-above, and so are the three items that were open inside the specified ones. Two of those searches came back
+**Every rule that names a statute names one.** The five unspecified rules are sourced above, and so
+are the three items that were once open inside the specified ones. Two of those searches came back
 negative, and the negative is the finding: there is **no 24-hour Dimona deadline** and **no horeca
 3h48 minimum**. Both are recorded where the rule that would have carried them lives.
 
@@ -89,7 +85,7 @@ not settled.
 **Two provenance lines are weaker than the rest and say so.** `R-SUNDAY`'s art. 66 could not be read
 off the consolidated statute — every ejustice endpoint truncates before Chapter VI — so its sector
 list rests on agreeing secondary renderings. And the flexi income ceiling is carried by three
-different figures in circulation; [`D-033`](../decisions.md#d-033) resolves it upstream, so the number below is documentation
+different figures in circulation. It is resolved upstream, so the number below is documentation
 rather than a model input.
 
 ## Legal sources
@@ -100,14 +96,14 @@ Cited in short form throughout. Every instrument below is consolidated and publi
 | --- | --- |
 | **Arbeidswet** | Arbeidswet van 16 maart 1971 / Loi du 16 mars 1971 sur le travail (BS 30 March 1971), as amended |
 | **WTD** | Directive 2003/88/EC of 4 November 2003 concerning certain aspects of the organisation of working time |
-| **Feestdagenwet** | Wet van 4 januari 1974 betreffende de feestdagen — the public-holiday regime, separate from the Arbeidswet's Sunday regime ([`D-145`](../decisions.md#d-145)) |
+| **Feestdagenwet** | Wet van 4 januari 1974 betreffende de feestdagen — the public-holiday regime, separate from the Arbeidswet's Sunday regime |
 | **Arbeidsreglementenwet** | Wet van 8 april 1965 tot instelling van de arbeidsreglementen, as amended by the Wet van 3 oktober 2022 (BS 10 November 2022) |
 | **Arbeidsovereenkomstenwet** | Wet van 3 juli 1978 betreffende de arbeidsovereenkomsten, as amended by the Wet van 18 mei 2026 (BS 1 June 2026) |
 | **RSZ-uitvoeringsbesluit** | KB van 28 november 1969 uitvoering wet 27 juni 1969 — art. 17bis carries the student quota |
 | **PC 302 CAO nr. 7** | CAO nr. 7 van 25 juni 1997, Paritair Comité voor het Hotelbedrijf, generally binding by KB of 25 May 1999 |
 
 Belgium transposes the WTD, and in several places transposes it *more strictly*. **Where the two
-differ, this project implements the Belgian rule** ([`D-024`](../decisions.md#d-024)) — it is the binding one for the target tenants, and
+differ, this project implements the Belgian rule** — it is the binding one for the target tenants, and
 the stricter of the two cannot produce a WTD violation. Each rule below records where that happens.
 
 The relevant provisions are widely restated by third parties and often restated incorrectly; article
@@ -117,95 +113,23 @@ art. 19, and the statute puts it in art. 21.
 
 ## The reference period, and why `R-MAX-WEEKLY` is a budget
 
-Average weekly hours in Belgian labour law are measured over a **rolling reference period** — a
-quarter or a year — not per calendar week. A per-week ceiling is therefore not the rule; it is an
-approximation of it, and one that is wrong in both directions. It forbids a legal heavy week that
-a light week would compensate, and it permits thirteen consecutive weeks at the ceiling.
+Average weekly hours in Belgian labour law are measured over a **rolling reference period** — a quarter or a year — not per calendar week. A per-week ceiling is not the rule; it is an approximation of it, and one that is wrong in both directions. It forbids a legal heavy week that a light week would compensate, and it permits thirteen consecutive weeks at the ceiling.
 
-The obvious fix is to extend the solve horizon to the reference period. That is rejected, and
-**measured rather than asserted** ([`D-116`](../decisions.md#d-116), [`studies/horizon.md`](../studies/horizon.md)): a longer
-horizon **buys nothing**. Four weeks solved at once and four weeks solved one at a time reach
-identical coverage on every case tried, at both ends of the tightness axis, and under pressure the
-single solve is two to six times slower for it. The weeks are barely coupled — `R-MAX-WEEKLY` binds
-inside a week and `R-WEEKLY-REST` is measured inside one, so what joins them is the seam that
-`last_shift_end_before_horizon` and `consecutive_days_worked_before_horizon` already carry.
+**So the reference period is resolved upstream and enters the solve as data.** You compute, per employee, the hours already worked in the period and the working time left in it, and supply a single `max_hours_this_week` budget. The solver and the checker see only that number. The horizon stays one week, the rule stays local, and the semantics stay correct.
 
-The cost was never the reason, though it was the one this spec used to give. Instance size grows
-**linearly** in the horizon, not by an order of magnitude, and four weeks answers in about 112 ms.
-What does grow faster than linearly is search, which is why [`D-081`](../decisions.md#d-081)'s premise that build dominates is
-a statement about one week and not about this model in general.
+The alternative — extending the solve horizon to cover the whole reference period — was built and measured, and it buys nothing: four weeks solved at once and four weeks solved one at a time reach identical coverage on every case tried, and under pressure the single solve is two to six times slower for it. See [`horizon.md`](../archive/studies/horizon.md).
 
-**Instead the reference period is resolved upstream and enters the solve as data.** The caller
-computes, per employee, the hours already worked in the current period and the working time
-remaining in it, and supplies a single `max_hours_this_week` budget. The solver and the checker see
-only that number. The horizon stays one week, the rule stays local, and the semantics are correct.
+**The budget is a week's hours, and it binds in every week of the horizon.** At a one-week horizon that is the same sum either way. What a single number cannot express is a *different* ceiling in week two from week one; supplying that is a payload change and it is not built.
 
-**The budget is a week's hours, and it is enforced in every week of the horizon** ([`D-111`](../decisions.md#d-111)): the sum
-runs over the assignments in one week, not over the instance. At a one-week horizon those are the
-same sum. What a single number still cannot express is a *different* ceiling in week two from week
-one, which is what a caller resolving a rolling reference period would supply — that is a payload
-change and it waits for the study that needs it.
+A horizon of **whole weeks** is a precondition of the request. A week or less is answered; two, three or four whole weeks are answered; ten days is refused, because it ends in a stub week no roster can fit a weekly rest inside.
 
-A horizon of **whole weeks** is a precondition of the request, and `validation.py` enforces it
-([`D-113`](../decisions.md#d-113), retiring [`D-110`](../decisions.md#d-110)'s flat refusal). A week or less is answered as it always was; more than a
-week is answered when it is two, three or four of them; ten days is refused, because it ends in a
-stub week no roster can put a weekly rest inside.
-
-The cost is stated rather than hidden: **correctness now depends on a computation this service does
-not perform.** Two consequences follow, and both are binding.
-
-- `model.md` owns the input contract for the budget and names the caller as its owner.
-- The checker verifies assignments against the *supplied* budget. It must not recompute it from a
-  period it cannot see — a checker that invents its own budget is testing the caller, not the roster.
-
-## How a rule is classified
-
-Classification is not a preference. It is settled by one question:
-
-> When the only otherwise-legal roster violates this rule, what should the service return?
-
-**"Nothing, and an explanation"** → hard. Infeasibility is a legitimate, actionable answer.
-**"The best compromise, priced and flagged"** → soft. There is a real-world price, and it can be named.
-
-Hard does not mean unrelaxable. Every hard constraint instance is gated on an assumption literal, so
-a failed solve yields a minimal core over rule instances rather than a bare `INFEASIBLE`. Relaxation
-is therefore explicit, per-instance and reportable — never hidden inside a weight. This is the same
-machinery the explainer and the *monotone objective under relaxation* property test both need.
-
-Two failure modes this avoids, recorded because both are tempting:
-
-- **Everything soft.** `checker_feasible` becomes universally true, which makes the differential
-  harness assert `true ⟺ true`, and moves every semantic claim into a weight nobody can falsify.
-- **Everything hard.** No shortfall is representable, so there is no cost axis to trade disruption
-  against and no Pareto frontier — and the service answers only "infeasible" to a planner who is one
-  person short, which is a product failure rather than a correct solve.
-
-Where a rule is soft, the checker still reports it. **The differential harness compares violation
-sets, not a feasibility bit** — see `validation.md`.
-
-## Per rule (template)
-
-### `R-EXAMPLE` — short name
-
-- **Statement.** One sentence, in the planner's language.
-- **Predicate.** The exact condition, over the index sets defined in `model.md`.
-- **Class.** Hard / soft / pinned.
-- **Parameters.** Names, units, defaults, and whether a tenant profile can override them.
-- **Model encoding.** How the constraint is expressed in CP-SAT, and why that encoding.
-- **Checker encoding.** How it is verified independently. Must not reference the model encoding.
-- **Explainer text.** What the planner sees when this rule blocks a solve.
-- **Provenance.** Source for legal rules.
-
----
+The cost is stated rather than hidden: **correctness depends on a computation this service does not perform.** The checker verifies assignments against the budget you supplied and never recomputes it — a checker that invents its own budget from a period it cannot see is testing you, not the roster.
 
 ## Operational rules
 
 These rules carry no legal provenance, which is why they were specified first: nothing in them waited
 on a `[CITE]`. The one exception is a `R-SKILL-MIX` entry that declares itself legal, which carries its
-own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
-
-The walking skeleton is superseded by these sections, not extended by them. It had no `R-SKILL`
-and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is interval-granular.
+own. Symbols are defined in [`model.md`](../internals/model.md#sets-and-data).
 
 <a id="rule-r-cover"></a>
 ### `R-COVER` — coverage
@@ -220,8 +144,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 
   Feasibility requires `Σ_e x[e, d, s] ≤ req[d, s]`. Each unit of `u[d, s]` is priced in the
   objective.
-- **Class.** Split — **hard ceiling, soft floor** ([`D-018`](../decisions.md#d-018)), ratified under [`D-008`](../decisions.md#d-008) with the
-  measurement that record argued from: forcing every non-historical shortfall to zero leaves **16 of
+- **Class.** Split — **hard ceiling, soft floor**. The split was ratified by measurement: forcing every non-historical shortfall to zero leaves **16 of
   the 72 committed cases with no answer at all**, and eight of those were weeks that could have been
   fully staffed before the disruption arrived.
 
@@ -231,7 +154,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   unconstrained case the optimum still lands exactly on `req[d, s]`, so the equality behaviour of the
   walking skeleton is preserved rather than abandoned.
 - **Parameters.** `req[d, s]`, integer ≥ 0, per shift instance, caller-supplied. The shortfall weight
-  lives in `replan.md` and must dominate every other soft term. Overstaffing is rejected outright; an
+  lives in [`model.md`](../internals/model.md) and must dominate every other soft term. Overstaffing is rejected outright; an
   `allow_overstaffing` tenant flag is not in the profile schema.
 - **Model encoding.** One equality per shift instance with an explicit slack variable
   `u[d, s] ∈ [0, req[d, s]]`, rather than two inequalities. The equality gives CP-SAT the tighter
@@ -244,7 +167,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 - **Explainer text.** `Sat 15:00–23:00 (Evening) is 1 short of its 3 required staff.`
 - **Provenance.** Operational.
 
-> **Consequence: this rule collapses the infeasibility surface** ([`D-047`](../decisions.md#d-047)). Once the floor is soft, the empty
+> **Consequence: this rule collapses the infeasibility surface**. Once the floor is soft, the empty
 > roster satisfies every hard rule, so a **cold solve is essentially never infeasible** — a shift nobody
 > can staff comes back as a priced shortfall rather than as a refusal. What remains able to produce
 > infeasibility is narrow: an incumbent whose past already breaks a rule (`R-PIN-PAST`), and a parameter
@@ -270,7 +193,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   **Interval intersection, not day equality.** This is the substantive correction to the walking
   skeleton, which blocked an employee for a whole day. A shift crossing midnight belongs partly to the
   next day, and an unavailability of `Sat 09:00–12:00` must not block `Sat Evening`.
-- **Class.** Hard, and split by provenance ([`D-019`](../decisions.md#d-019), [`D-020`](../decisions.md#d-020)):
+- **Class.** Hard, and split by provenance:
   - `absences[e]` — hard, **never relaxable**. Sickness is a fact about the world.
   - `unavailability[e]` — hard. Specified as tenant-configurable to soft, since some operations do
     assign over a stated preference; the profile schema does not carry that switch today.
@@ -279,20 +202,20 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   point: a report that blames a declared preference is actionable, one that blames an illness is
   noise. The checker carries it in the violation's `observed` field, as `absent` or `unavailable`.
 
-  **Both provenances are gated identically in the model** — under [`D-059`](../decisions.md#d-059) every eligibility fixing
+  **Both provenances are gated identically in the model** — every eligibility fixing
   carries an assumption literal, so an ineligible assignment can be *reported* rather than merely
   making the model infeasible. The gate is reachable only where a variable exists anyway: an
   incumbent pair under `R-PIN-PAST`. A core naming an absence therefore means *the past itself is
   illegal*, which is worth saying. The consequence is that the model's gate descriptor does not yet
   distinguish the two provenances; carrying it there is an **explainer obligation**, recorded in
-  [`D-020`](../decisions.md#d-020).
+
 - **Parameters.** `absences[e]` and `unavailability[e]`, sets of half-open intervals, both
   caller-supplied. No defaults — an absent key means the empty set, and never means "unknown".
 - **Model encoding.** Domain presolve, not a constraint: an ineligible `(e, d, s)` variable is never
   created. Removing variables is strictly cheaper than adding rows, and this rule plus `R-SKILL`
   eliminate most of the grid. Where the variable must exist anyway — any pair the **incumbent**
-  assigned, so that a pinned past is representable and a deviation is countable ([`D-058`](../decisions.md#d-058)) — the
-  exclusion becomes a *gated* `x = 0` rather than an outright fixing ([`D-059`](../decisions.md#d-059)), so a roster that
+  assigned, so that a pinned past is representable and a deviation is countable — the
+  exclusion becomes a *gated* `x = 0` rather than an outright fixing, so a roster that
   assigns an ineligible pair is reported instead of merely rejected.
 - **Checker encoding.** Intersect the raw interval lists against shift bounds recomputed from
   timestamps. **Must not consume an eligibility mask from the model** — the mask is the thing under
@@ -318,7 +241,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 - **Parameters.** `skills[e] ⊆ K` per employee and `req_skills[d, s] ⊆ K` per shift instance, both
   caller-supplied. No tenant override.
 - **Model encoding.** Domain presolve, the same mechanism as `R-AVAIL`. Both feed one joint
-  eligibility filter — `eligible ⊆ E × O` in `model.md` — evaluated once at build time.
+  eligibility filter — `eligible ⊆ E × O` in [`model.md`](../internals/model.md) — evaluated once at build time.
 - **Checker encoding.** Independent set containment against the raw skill lists.
 - **Explainer text.** `Wed 23:00–07:00 (Night) requires forklift; Bram does not hold it.`
 
@@ -342,7 +265,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   The right-hand side is clamped to the headcount actually rostered. Demanding two first-aiders on a
   shift that only got one body is not a violation of this rule — the missing person is already
   reported once by `R-COVER`, and reporting it twice makes shortfalls incomparable across instances.
-- **Class.** **Per entry** ([`D-025`](../decisions.md#d-025)). Each `skill_mix` entry declares its own class, because the two cases are
+- **Class.** **Per entry**. Each `skill_mix` entry declares its own class, because the two cases are
   genuinely different rules wearing one shape:
   - *"at least one first-aider"* — operational, **soft**. A covered shift where nobody can do first
     aid is a real, priced operational state, and a planner must be shown it rather than handed an
@@ -353,13 +276,13 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   Applying the classification test rule-by-rule would force one answer for both; applying it
   entry-by-entry is the only way it comes out right. Legal entries carry a provenance string,
   validated as non-empty at profile load.
-- **Why not fold this into `R-SKILL`** ([`D-026`](../decisions.md#d-026)). `R-SKILL` is per-assignee and is enforced by *deleting*
+- **Why not fold this into `R-SKILL`**. `R-SKILL` is per-assignee and is enforced by *deleting*
   variables in presolve. `R-SKILL-MIX` constrains a shift's composition and needs a counting
   constraint over surviving variables — it cannot presolve away. `R-SKILL` is formally the special
   case `m = req[d, s]`, and unifying them anyway would trade the cheapest constraint in the model for
   the more expensive encoding. Two IDs, two encodings, one vocabulary.
 - **Parameters.** `skill_mix[d, s]`, a set of `(skill, minimum, class, provenance)` entries per shift
-  instance, caller-supplied, default empty. Weight for soft entries lives in `replan.md` and must sit
+  instance, caller-supplied, default empty. Weight for soft entries lives in [`model.md`](../internals/model.md) and must sit
   at or above the `R-COVER` shortfall weight — an unqualified shift is at least as bad as a short one.
 - **Model encoding.** One linear inequality per `(shift instance, skill)` entry over the eligible
   employees holding that skill, with a slack variable for soft entries and none for hard ones.
@@ -398,14 +321,14 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   did not happen is the classic bug in this rule, and it produces rosters that are illegal precisely
   at the boundary nobody inspects.
 - **Interaction with `R-COVER`.** A past shift that was understaffed stays understaffed, and nothing
-  in the horizon can fix it. Its shortfall is therefore **excluded from the objective** ([`D-022`](../decisions.md#d-022)) and reported
+  in the horizon can fix it. Its shortfall is therefore **excluded from the objective** and reported
   separately as historical. Leaving it in adds a constant that cannot be optimised away and makes two
   runs with different `now` values incomparable.
-- **Model encoding.** Equalities carrying assumption literals, not constant substitution ([`D-021`](../decisions.md#d-021)). Substituting
+- **Model encoding.** Equalities carrying assumption literals, not constant substitution. Substituting
   constants at build time is cheaper and makes *pinning is not exemption* automatic, but it destroys
   the explainer's ability to name the past as the source of a conflict. CP-SAT's presolve folds these
   equalities well, so the cost is expected to be small — **measured, not assumed, in the [presolve
-  study](../studies/presolve.md).**
+  study](../archive/studies/presolve.md).**
 - **Why that matters.** Because pins are equalities, an incumbent that already violates a rule makes
   the entire solve infeasible with no repair available. This is a real production scenario: rules
   changed, or the roster was hand-edited. The assumption literals let the service distinguish **"the
@@ -427,7 +350,7 @@ instead of returning a bare `INFEASIBLE`; the literal is a diagnostic channel, n
 
 ### Two conventions these rules share
 
-**Hours attribution** ([`D-027`](../decisions.md#d-027)). A shift instance's hours are attributed **entirely to its start day**,
+**Hours attribution**. A shift instance's hours are attributed **entirely to its start day**,
 never split at midnight. A `23:00–07:00` night shift is eight hours on `d`, zero on `d + 1`. This follows
 from shift instances being indexed by start day, and it must be stated because a checker that split at
 midnight would disagree with the model on every night shift while both looked correct in isolation.
@@ -436,8 +359,7 @@ The same convention makes `d` a *worked day* for `R-CONSEC-DAYS` and leaves `d +
 the intended reading: the night worker's Tuesday is mostly rest, and it is `R-REST-GAP` that protects
 it, not a fractional day count.
 
-**Gross span and net working time are different symbols, and the rules disagree on which they want**
-([`D-037`](../decisions.md#d-037)).
+**Gross span and net working time are different symbols, and the rules disagree on which they want**.
 Art. 38quater entitles a worker exceeding six hours to a break, and a break is not working time, so a
 shift's `span` and its `work_hours` differ:
 
@@ -447,7 +369,7 @@ shift's `span` and its `work_hours` differ:
 
 There is deliberately no single `hours(d, s)`. One symbol would make one of those rules wrong by about
 a break per shift, in a direction no test would notice until a checker and a model disagreed over
-fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notation).
+fifteen minutes. Definitions live in [`model.md`](../internals/model.md#sets-and-data).
 
 <a id="rule-r-min-shift"></a>
 ### `R-MIN-SHIFT` — minimum work period
@@ -459,7 +381,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 > the roster** — and a constraint that no reachable solution can violate is not a constraint, it is
 > validation wearing one.
 >
-> Reclassified: **input validation** ([`D-031`](../decisions.md#d-031)), owned by `validation.md`. The roster checker does not
+> Reclassified: **input validation**, and [`api.md`](api.md#what-gets-rejected-before-any-solve) lists it. The roster checker does not
 > implement it, which is the one intended exception to *every rule gets a checker encoding*.
 
 - **Statement.** Every work period in the tenant's shift catalogue lasts at least the applicable
@@ -484,12 +406,12 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Validation encoding.** Reject the profile with the offending shift type named. A derogated minimum
   requires a non-empty `derogation_basis`, as with `R-REST-GAP`.
 - **Explainer text.** Not an explainer case — a profile is rejected at load, before any solve exists to
-  explain. `validation.md` owns the message.
+  explain. [`api.md`](api.md#what-gets-rejected-before-any-solve) owns the message.
 - **Provenance.** Arbeidswet art. 21 — the statute, *not* art. 19; the FPS Employment summary page
   misattributes this one. Exempt categories: Royal Decree of 18 June 1990. Horeca limb: **CAO nr. 7
   of 25 June 1997** in joint committee 302, art. 10 for the two-hour work period and art. 9 for the
   ten-hour weekly floor, made generally binding by the Royal Decree of 25 May 1999 and amended as
-  recently as the Royal Decree of 19 January 2023 ([`D-145`](../decisions.md#d-145)). The notification and GKS conditions
+  recently as the Royal Decree of 19 January 2023. The notification and GKS conditions
   above are attached to that derogation, but the instrument that added them in 2018 was not found;
   they are stated here from agreeing secondary sources.
 
@@ -536,14 +458,14 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   the pair set is small and the encoding is transparently the same object the checker walks, which is
   worth more here than tightness.
 
-  **Alternative, measured and rejected** ([`D-089`](../decisions.md#d-089)): one optional interval variable per
+  **Alternative, measured and rejected**: one optional interval variable per
   `(employee, shift instance)` inflated by `min_rest_hours`, under a single `add_no_overlap` per
   employee. It is 23% smaller and builds 14% faster, and searches 15% slower on 28 of 28 cases — a 4%
   better total on the committed set that reverses to 11% worse on larger cold instances. It also
   coarsens the gate to one literal per employee-week, losing the slot coordinate this encoding
   reports. The scaling argument for it is about the **horizon**, which is fixed at one week here, so
   it remains untested rather than disproved — see
-  [`studies/rest-gap-encoding.md`](../studies/rest-gap-encoding.md).
+  [`studies/rest-gap-encoding.md`](../archive/studies/rest-gap-encoding.md).
 - **Checker encoding.** Sort the employee's assigned instances by start time, walk consecutive pairs,
   compare each gap against the parameter. `last_shift_end_before_horizon[e]` is the predecessor of the
   first instance — **not a special case, just the zeroth element**, which is the framing that stops the
@@ -558,7 +480,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
 - **Statement.** An employee's assigned hours this week do not exceed the budget the caller supplied
   for them.
-- **Predicate.** For every `e ∈ E` and every week `w ∈ W` ([`D-111`](../decisions.md#d-111)):
+- **Predicate.** For every `e ∈ E` and every week `w ∈ W`:
 
   ```
   Σ_{(d, s) ∈ O, week(d) = w} work_hours(d, s) · x[e, d, s]  ≤  max_hours_this_week[e]
@@ -591,15 +513,15 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   in the ordinary case and the caller owns reconciling them.
 - **Model encoding.** One linear inequality per employee over eligible pairs.
 - **Checker encoding.** Sum `hours(d, s)` over the employee's assignments and compare to the supplied
-  budget. **The checker never recomputes the budget** — restating the constraint from `rules.md`,
+  budget. **The checker never recomputes the budget** — restating the constraint from this registry,
   because this is the single place a well-meaning checker most reliably goes wrong. A checker that
   reaches for the reference period is testing the caller, and it will disagree with the model for
   reasons that are defects in neither.
-- **Payload validation, distinct from roster checking** ([`D-030`](../decisions.md#d-030)). That the supplied budget does not exceed the
+- **Payload validation, distinct from roster checking**. That the supplied budget does not exceed the
   absolute weekly ceiling *is* locally verifiable, and it is worth verifying — but as **input
   validation**, not as a roster violation. A too-large budget is a bad payload; it is not a property of
   the roster, and reporting it as an `R-MAX-WEEKLY` violation would blame the solver for the caller's
-  arithmetic. `validation.md` owns the input-validation layer.
+  arithmetic. [`api.md`](api.md#what-gets-rejected-before-any-solve) lists it.
 - **Explainer text.** `Hugo is budgeted 32h a week and this roster assigns him 40h in the week from day 0.`
 - **Provenance.** Arbeidswet art. 19 and art. 26bis §1, §1bis. **WTD art. 6** and art. 16(b).
 
@@ -620,7 +542,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   ceiling. It is the only rule in this registry whose absence is ordinary rather than a defect.
 - **Parameters.** `max_hours_this_period[e]`, hours, caller-supplied. No default and no derivation —
   the same prohibition as `R-MAX-WEEKLY`, for the same reason.
-- **Why both, when `R-MAX-WEEKLY` already exists** ([`D-123`](../decisions.md#d-123)). The section above concedes that one
+- **Why both, when `R-MAX-WEEKLY` already exists**. The section above concedes that one
   weekly number cannot express a *different* ceiling in week two from week one. This is the part of
   that gap worth closing: component 1 of the weekly budget's derivation is an **average over a
   reference period**, and an average is a pool. A caller with 140 hours left in the quarter and a 38h
@@ -639,7 +561,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Provenance.** Arbeidswet art. 26bis §1 — the average measured over the reference period, which is
   the calendar quarter by default and at most a year by royal decree or CBA. **WTD art. 16(b)** allows
   a reference period up to four months, and art. 19 caps its extension; the Belgian computation is the
-  stricter one and the caller owns reconciling them ([`D-024`](../decisions.md#d-024)).
+  stricter one and the caller owns reconciling them.
 
 <a id="rule-r-max-daily"></a>
 ### `R-MAX-DAILY` — daily maximum
@@ -688,7 +610,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 > where compensatory rest lands, not a ceiling on consecutive days. The binding legal guarantee is
 > `R-WEEKLY-REST` (art. 38ter §3), and it belongs there.
 >
-> The rule stays in the registry, reclassified ([`D-023`](../decisions.md#d-023)): **operational and CBA-derived**, not statutory.
+> The rule stays in the registry, reclassified: **operational and CBA-derived**, not statutory.
 > Planners want it, sectoral agreements impose it, and it is cheap. But the legality claim moves out.
 > Youth workers under 18 do have explicit statutory limits; they are out of scope here and are not
 > this rule.
@@ -712,21 +634,21 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Parameters.** `max_consecutive_days`, default **6**, tenant-configurable including *off*.
   `consecutive_days_worked_before_horizon[e]`, caller-supplied, mandatory when the rule is enabled.
 
-  **Per employee where one is supplied** ([`D-136`](../decisions.md#d-136)). `Employee.max_consecutive_days` overrides the
+  **Per employee where one is supplied**. `Employee.max_consecutive_days` overrides the
   tenant's number for that person and absence means the tenant's applies. This is not a second rule —
   same ID, same encodings, same explainer text — only the place the limit is read from changes, and
   it is what lets one workforce hold two limits, which is how the only real dataset here states it.
 - **Model encoding.** Sliding-window sums — `|D| − L + p` inequalities per employee, each over `L + 1`
   booleans, plus one reification per `(employee, day)` for `w`.
 
-  **Alternative, measured and rejected** ([`D-088`](../decisions.md#d-088)): a `regular` automaton over the worked/not-worked
+  **Alternative, measured and rejected**: a `regular` automaton over the worked/not-worked
   sequence, whose states count the current streak. It is the textbook encoding for sequence rules,
   which is why the study had to confirm it rather than assume it — and it is **19% slower to search on
   28 of 28 cases**, because at a seven-day horizon with a six-day limit this encoding builds exactly
   **one** window per employee, so the automaton competes against a single inequality. It also gates
   only per employee-week, losing the day coordinate. It does not express `R-WEEKLY-REST` either: a
   continuous 35-hour free run is measured in hours, not days. See
-  [`studies/regular-constraint.md`](../studies/regular-constraint.md).
+  [`studies/regular-constraint.md`](../archive/studies/regular-constraint.md).
 - **Checker encoding.** Walk days in order tracking a streak counter initialised to
   `consecutive_days_worked_before_horizon[e]`, reset on any unworked day.
 - **Explainer text.** `Finn already worked 4 days before Monday and this roster adds 3 more — 7 consecutive, 6 allowed.`
@@ -747,15 +669,15 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   Existential, which is why this is the only rule here that is not a sum over assignments.
 - **Class.** Hard. Art. 38ter §2's derogations reach §1, and this project does not relax §3.
 - **Parameters.** `min_weekly_rest_hours`, default **35**. Window: **each week of the horizon**,
-  seven days from its start, clipped to the horizon ([`D-111`](../decisions.md#d-111)). At a one-week horizon that is the
+  seven days from its start, clipped to the horizon. At a one-week horizon that is the
   horizon, which is what it was before weeks were named here. A window counts for a week only if it
-  lies inside it, so a rest straddling a boundary counts for neither — [`D-029`](../decisions.md#d-029)'s conservatism, at
+  lies inside it, so a rest straddling a boundary counts for neither — a known conservatism, at
   every internal boundary rather than only at the end.
 - **Model encoding.** Candidate windows plus at-least-one. Introduce `r[e, j]` for each candidate
   window `j`, require `Σ_j r[e, j] ≥ 1`, and for each shift instance overlapping window `j` add
   `r[e, j] ⟹ x[e, instance] = 0` — a reified implication CP-SAT handles natively.
 
-  **Candidates are bounded, which is what makes this tractable** ([`D-028`](../decisions.md#d-028)): it suffices to anchor windows at
+  **Candidates are bounded, which is what makes this tractable**: it suffices to anchor windows at
   `end(d, s)` for each shift instance, plus the horizon start. Any feasible rest window can be slid
   later until its left edge meets the end of some shift without shrinking below the threshold, so an
   anchored candidate exists whenever any window does. The candidate count is therefore `|O| + 1`, not a
@@ -764,7 +686,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   `last_shift_end_before_horizon[e]`, and take the maximum gap between consecutive intervals **within
   each week**, clipping the roster to that week's span. Compare to the parameter. Independent of the
   candidate-window construction, which is the point — the model searches, the checker measures.
-- **Known conservatism, stated rather than hidden** ([`D-029`](../decisions.md#d-029), extended by [`D-111`](../decisions.md#d-111)). The rest window is
+- **Known conservatism, stated rather than hidden.** The rest window is
   required to lie **within the week it counts for**. A lawful roster whose 35-hour block straddles a
   boundary is therefore rejected, and it counts for neither of the two weeks it spans.
 
@@ -772,7 +694,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   inside any week — and it bites on shorter ones. At an *internal* boundary it bites on every horizon
   longer than a week, which is the price of measuring the rule per week rather than per rolling
   seven-day window; the rolling form has no week to name, and naming the week is the reporting
-  coordinate [`D-088`](../decisions.md#d-088) refused to trade away.
+  day coordinate the explainer needs.
 
   The fix for both is the same caller-supplied forward-looking commitment, symmetric with
   `last_shift_end_before_horizon`, and it is **deferred**: it would oblige the caller to promise
@@ -806,15 +728,15 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
 - **Class.** Hard, and **optional** in `R-MAX-PERIOD`'s sense: absent means the caller is not asking
   for it, which is ordinary rather than a defect. Hard rather than priced because the only formulation
-  measured against real data states it as a constraint ([`D-132`](../decisions.md#d-132)), and because hard here does not mean
+  measured against real data states it as a constraint, and because hard here does not mean
   unrelaxable — the gate names it in a core, so a planner who must breach one is told which one.
 - **Parameters.** `max_weekends[e]`, per employee, caller-supplied. Per employee because the one
   workforce this project has measured varies it from 1 to 3 inside a single team.
 
   `weekend_days ⊆ {0…6}`, on `RuleParams`, positions within a week. **Caller-supplied and empty by
-  default**, and the emptiness is the point: this domain has no calendar, so `model.md` fixes that a
+  default**, and the emptiness is the point: this domain has no calendar, so [`model.md`](../internals/model.md) fixes that a
   week is a position in the horizon and never a Monday. Which of its days are the weekend is a fact
-  only the caller holds, and an empty set switches the rule off ([`D-135`](../decisions.md#d-135)).
+  only the caller holds, and an empty set switches the rule off.
 - **Why a count of weekends and not of weekend days.** Two Saturdays are two weekends and a
   Saturday-Sunday pair is one. The rule people actually hold is about how many of their weekends are
   taken, not how many days it cost — which is why this counts weeks and not assignments.
@@ -843,7 +765,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Class.** Hard and **optional**, on the same footing as `R-MAX-WEEKENDS`.
 - **Parameters.** `min_consecutive_days_off[e]`, per employee. A minimum of 1 forbids nothing, since
   every gap between two worked days is at least one day long, and is treated as absent.
-- **Only interior stretches are judged, and that is a rule rather than a shortcut** ([`D-134`](../decisions.md#d-134)). A
+- **Only interior stretches are judged, and that is a rule rather than a shortcut**. A
   stretch of days off reaching either end of the horizon may continue outside it, and a roster cannot
   be judged on days it does not contain. Applied without that latitude the rule failed **every one of
   the 26 published rosters** in the benchmark set that supplied it — 26 rosters being wrong is not the
@@ -873,7 +795,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Class.** Hard and **optional**. A minimum of 1 forbids nothing and is treated as absent.
 - **Why a tenant wants it.** A single day between two stretches off is a day somebody travels in for
   one shift. The rule is about the journey and the disruption to a week, not about the hours.
-- **Interior blocks only**, for the reason `R-MIN-DAYS-OFF` gives about its own edges ([`D-134`](../decisions.md#d-134)).
+- **Interior blocks only**, for the reason `R-MIN-DAYS-OFF` gives about its own edges.
 - **Model encoding.** The forbidden pattern above, one gated inequality per (employee, block length,
   start). The boundary latitude needs no special case.
 - **Checker encoding.** Walk the worked days, measure each block, skip those touching either end.
@@ -944,7 +866,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   not want anyone on an early shift the day after a late one is stating a rule about the *pattern*,
   and stating it as hours would forbid other pairs they are content with.
 - **Model encoding.** One gated inequality per (employee, day, pair). Pairwise rather than an
-  automaton, for the reason [`studies/regular-constraint.md`](../studies/regular-constraint.md) gives:
+  automaton, for the reason [`studies/regular-constraint.md`](../archive/studies/regular-constraint.md) gives:
   the pairs are local, the expansion is small, and the day coordinate survives into the violation.
 - **Checker encoding.** Group the roster by employee and day, then check every consecutive pair. An
   employee holding two shifts on one day makes several pairs and each is checked — the rule is about
@@ -965,11 +887,11 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   ```
 
 - **Class.** Hard and **optional**, on `R-MAX-WEEKENDS`'s terms: an empty set is a caller not asking.
-- **Why this is not `R-AVAIL`** ([`D-142`](../decisions.md#d-142)). `R-AVAIL` refuses an assignment overlapping an interval,
+- **Why this is not `R-AVAIL`**. `R-AVAIL` refuses an assignment overlapping an interval,
   and a day off is not an interval. A shift starting at 22:00 the evening *before* runs six hours into
   the granted day and overlaps any interval covering it — so an interval reading refuses a shift the
   grant never meant to touch, while the day-indexed reading is exact. **Start-day attribution is what
-  makes the difference**, and it is the convention `rules.md` fixes for exactly this class of
+  makes the difference**, and it is the convention this registry fixes for exactly this class of
   question.
 
   This is not hypothetical. The nurse-rostering importer drops its source's days off rather than
@@ -990,8 +912,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 ## Eligibility gates
 
 `R-FLEXI-ELIG` and `R-DIMONA-FLX` share an architecture, and it is the one already established for
-`R-MAX-WEEKLY` under [`D-014`](../decisions.md#d-014): **the condition is resolved upstream and enters the solve as data**
-([`D-032`](../decisions.md#d-032)).
+`R-MAX-WEEKLY`: **the condition is resolved upstream and enters the solve as data**.
 
 Not by preference — by necessity. Between them these two rules depend on employment at *other*
 employers, on quarters that ended before the horizon began, on year-to-date earnings, on sectoral
@@ -1038,7 +959,7 @@ on a computation this service does not perform.**
   model's scope, recorded so nobody mistakes it for a rostering constraint.
 - **Parameters.** `flexi_eligible[e, d]`, boolean, caller-supplied, mandatory for any employee with a
   flexi contract. Absence is a malformed payload, never a default of `true`.
-- **Treatment of the income ceiling** ([`D-033`](../decisions.md#d-033)). Fold it into `max_hours_this_week[e]` as a fourth
+- **Treatment of the income ceiling**. Fold it into `max_hours_this_week[e]` as a fourth
   term in that budget's `min()`, rather than adding a parallel euro-denominated budget. The caller
   already converts a reference period into weekly hours; converting a remaining income allowance into
   remaining hours is the same kind of arithmetic against a known wage, and it keeps one budget concept
@@ -1051,7 +972,7 @@ on a computation this service does not perform.**
 - **Provenance.** Law of 16 November 2015 on various social-affairs provisions, art. 4 §1 — note this is
   a *wet houdende diverse bepalingen inzake sociale zaken*, not a programmawet, and it has been amended
   repeatedly since. The amending instrument behind the 1 July 2026 expansion is the **Wet van 28 juni
-  2026 houdende diverse bepalingen inzake flexi-jobs**, BS 2 July 2026, in force 1 July 2026 ([`D-145`](../decisions.md#d-145)).
+  2026 houdende diverse bepalingen inzake flexi-jobs**, BS 2 July 2026, in force 1 July 2026.
 
   **The T-3 test this rule encodes is unchanged**, which is the part that matters here. What the 2026
   law moved is the pensioner route: pension status is now read in quarter T rather than T-2, so
@@ -1064,7 +985,7 @@ on a computation this service does not perform.**
 
   **The income ceiling is carried by three different figures** — €18,000, €18,440 and €18,880 — and
   which is the social-security ceiling and which the indexed fiscal exemption was not settled. It is
-  documentation rather than a model input, because [`D-033`](../decisions.md#d-033) folds the ceiling into
+  documentation rather than a model input, because the ceiling is folded into
   `max_hours_this_week` upstream, so no predicate here reads a euro amount.
 
 <a id="rule-r-dimona-flx"></a>
@@ -1096,11 +1017,11 @@ on a computation this service does not perform.**
   *asymmetric by contract type*, and a disruption metric that counts both changes as one unit is
   understating the real cost of the flexi change.
 
-  This is a substantive input to `replan.md`: it is a defensible, externally-grounded reason for a
+  This is a substantive input to [`model.md`](../internals/model.md): it is a defensible, externally-grounded reason for a
   contract-weighted disruption metric, which is D3/D4 territory rather than the D2 that ships. **Not a
   reason to change the shipped metric** — a reason the alternatives are not arbitrary.
 
-  The D0–D4 study is done and deliberately left this out ([`D-036`](../decisions.md#d-036)), and its result raised the value of
+  The D0–D4 study is done and deliberately left this out, and its result raised the value of
   the idea rather than lowering it. D0, D1 and D2 never diverge on the committed set, because their
   weights multiply every candidate repair by the same constant and a constant factor reorders nothing.
   A per-contract weight would not behave that way: it varies with **which employee** is chosen, and
@@ -1115,18 +1036,18 @@ on a computation this service does not perform.**
 
   Consequence: `dimona_ok[e, d]` is not static within a solve horizon. For a same-day replan the caller
   must distinguish *already filed* from *fileable in time*, and the second is a judgement about NSSO
-  turnaround the service cannot make. **The conservative reading is taken — only `OK` counts** ([`D-035`](../decisions.md#d-035)) — and the
-  optimistic reading is deferred with the [capture work](capture.md), specified and not built, where replay against real incumbent decisions
+  turnaround the service cannot make. **The conservative reading is taken — only `OK` counts** — and the
+  optimistic reading is deferred with the [capture work](../archive/capture.md), specified and not built, where replay against real incumbent decisions
   can show whether it costs real repairs.
 
-  **The filing deadline is settled, and the twenty-four-hour figure is not a rule** ([`D-145`](../decisions.md#d-145)). The NSSO
+  **The filing deadline is settled, and the twenty-four-hour figure is not a rule**. The NSSO
   instruction defines a timely filing as *"vóór de aanvang van de prestaties"* — before the work
   starts. Vendor guidance stating twenty-four hours before start is tooling lead time with no
   instrument behind it. The earliest a `FLX` filing may be made is one month before the quarter opens;
   a verbal agreement needs one per day carrying the start and end times, a written one needs a single
   filing per quarter.
 
-  This narrows what [`D-035`](../decisions.md#d-035) is conservative *about*. The question for a same-day replan is not whether
+  This narrows what the conservative reading is *about*. The question for a same-day replan is not whether
   a day of notice exists but whether a filing returns `OK` before the shift starts, which is a much
   shorter bar than the deadline this rule was written against. **The NSSO instruction is guidance
   rather than law** and names no instrument itself; the statutory hook behind the Dimona obligation is
@@ -1135,7 +1056,7 @@ on a computation this service does not perform.**
   `filing_regime[e] ∈ {verbal, written}`, informational — it does not change the predicate, only
   the disruption weighting above.
 - **Model encoding.** Presolve elimination, folded into the same eligibility filter as `R-FLEXI-ELIG`.
-  The two rules are separate IDs ([`D-034`](../decisions.md#d-034)) because they fail for different reasons and produce different operator
+  The two rules are separate IDs because they fail for different reasons and produce different operator
   actions — *this person cannot hold a flexi job* versus *the paperwork is not in* — and the explainer
   must not conflate them.
 - **Checker encoding.** Verify each flexi assignment against the supplied flag.
@@ -1145,33 +1066,7 @@ on a computation this service does not perform.**
   statute and are revised quarterly — cite the instruction version in force, and expect this section to
   need rereading more often than the Arbeidswet ones do.
 
-## Independence rule
 
-The model and the checker are two readings of this document. **They share no rule logic** ([`D-038`](../decisions.md#d-038)) — not
-a constants module, not a predicate helper. The duplication is deliberate: it is what makes the
-differential harness meaningful. Enforced by an import-linter contract in CI.
+---
 
-### Where the line falls
-
-The original phrasing was "they share no code", which cannot be implemented as written: the differential
-harness must feed *the identical instance* to both readings, so both must be able to parse an instance,
-so something is shared. The line is drawn by what a shared item could hide:
-
-**Shared — the payload schema.** Data containers describing employees, shift instances, demand, skills,
-intervals, and the returned roster. A bug here corrupts both readings identically and the harness cannot
-see it — but neither can it hide a *rule* bug, which is what the harness exists to catch. Sharing is
-also the only way the two readings are comparable at all.
-
-**Shared — the stated conventions.** Half-open interval overlap, start-day attribution,
-`work_hours = span − break_hours`. These are definitions this document fixes, not readings of it. Two
-independent implementations of *the same convention* would add no signal, and a disagreement between
-them would be a bug in neither model nor checker.
-
-**Never shared — rule predicates and rule parameters** ([`D-039`](../decisions.md#d-039)). Which slot pairs conflict, how a streak is
-counted, how a rest window is found, and every numeric threshold: 11 hours, 35 hours, 3 hours, 6 days.
-No default for any of these lives in shared code, which is why the payload carries every rule parameter
-explicitly rather than defaulting it centrally. A shared threshold is precisely the bug the brute-force
-and differential layers cannot detect, because both readings would be wrong in the same direction.
-
-The import-linter contract enforces the module boundary; **the parameter discipline is a review
-obligation**, since no linter can tell a shared constant from a coincidentally equal one.
+*Where each rule's classification comes from, and why the model and the checker never share a threshold: [`design.md`](../internals/design.md). The legal research behind the provenance column, including two searches that came back negative: [`decisions.md`](../archive/decisions.md#by-theme), under* Rules, legal encoding and provenance.

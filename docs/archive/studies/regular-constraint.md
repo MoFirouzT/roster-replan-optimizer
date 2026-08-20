@@ -1,6 +1,6 @@
 # The `regular` automaton against sliding windows
 
-**Question.** [`model.md`](../specs/model.md#the-regular-automaton) makes this a study rather than
+**Question.** [`model.md`](../../internals/model.md) makes this a study rather than
 an assumption on purpose: the automaton is the textbook encoding for a sequence rule, and the spec
 wanted it to confirm the win rather than take it on faith.
 

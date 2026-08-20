@@ -74,7 +74,7 @@ this repo, and connecting them took running the sweep.
 
 ## The null is about the distribution, and here is the proof
 
-[`weights.forced_choice`](../../benchmarks/weights.py) is built to present the choice the
+[`weights.forced_choice`](../../../benchmarks/weights.py) is built to present the choice the
 committed set never does — the same move `studies.identical_workforce` makes for symmetry.
 Two holes, one employee with budget for one, so exactly one hole stays open either way and
 **the shortfall term cancels**. The two slots differ on precisely what D2 prices: day 2 is

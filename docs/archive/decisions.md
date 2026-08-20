@@ -32,7 +32,7 @@ A record can sit under more than one theme — the grouping is not a partition.
 is what was decided at the time.
 They appear nowhere else now: every other document says what it means instead.
 The gate each tier had to pass is in [`finish.md`](finish.md#the-gates-and-what-passed-them), and the
-plan itself is [`archive/PLAN.md`](archive/PLAN.md).
+plan itself is [`archive/PLAN.md`](PLAN.md).
 
 ## Lookup
 
@@ -627,7 +627,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 <a id="d-017"></a>
 ## D-017 — The acceptance bar is fixed before the first replay
 
-- **Decision.** The bar in [`specs/capture.md`](specs/capture.md#the-bar-stated-before-measuring) is
+- **Decision.** The bar in [`specs/capture.md`](capture.md#the-bar-stated-before-measuring) is
   fixed in advance of the first replay: two absolute gates, then bars on the paired distribution. It
   changes only through a `decisions.md` entry, and never in response to a result.
 - **Alternatives.** Set the bar once the distribution is known, which is what usually happens.
@@ -1627,7 +1627,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Consequences.** Stated cost, because it is the weak point of the whole benchmark: **the
   incumbent comes from the system under test.** It cannot be evidence that this model matches
   practice, only that a replan beats a re-solve *given* a roster this model would produce. Replacing
-  it with captured rosters is exactly what [`capture.md`](specs/capture.md) exists to do, and this is
+  it with captured rosters is exactly what [`capture.md`](capture.md) exists to do, and this is
   the strongest argument for that work being scheduled rather than optional. The base solve can leave
   shortfall at high demand, so `base_shortfall` is recorded on the scenario rather than assumed zero.
 - **Date.** 2026-08-13.
@@ -1657,7 +1657,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Decision.** When target demand falls below one person per shift instance, the generator opens
   fewer shift instances rather than keeping the whole grid open.
 - **Alternatives.** Always open every `(day, shift)` pair and vary the required headcount.
-- **Reason.** `O` is the set of pairs with `req > 0` ([`model.md`](specs/model.md)), so closing a
+- **Reason.** `O` is the set of pairs with `req > 0` ([`model.md`](../internals/model.md)), so closing a
   slot is how low demand is actually expressed — and a small tenant genuinely does not run a night
   shift every day. The full grid also puts a floor under the achievable demand ratio: with 21
   instances at one body each, no scenario can be looser than that floor, which silently caps how
@@ -3154,7 +3154,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   justification of the independent checker are **confirmed on measurement**, and both are scoped to the
   reason that survived: a penalty formulation escapes an expensive hard rule through `R-COVER`'s soft
   floor, so raising the price buys legality by refusing to staff. The rival lives at
-  [`benchmarks/anneal.py`](../benchmarks/anneal.py) and is **not** registered in `methods.METHODS`.
+  [`benchmarks/anneal.py`](../../benchmarks/anneal.py) and is **not** registered in `methods.METHODS`.
 - **Alternatives.** Leave the claim as prose. Register the search as a fifth method.
 - **Reason.** Three records asserted that penalising a hard rule yields a cheaply illegal roster and
   none had measured it. Measured, at weight 1 **every case returns an illegal roster and 13 of 14
@@ -3180,7 +3180,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
 - **Decision.** **Weight recovery from (generated, published) roster pairs is retired, not deferred**,
   on this instance distribution. The identifiability probe ships at
-  [`benchmarks/weights.py`](../benchmarks/weights.py) because the measurement *is* the result; no
+  [`benchmarks/weights.py`](../../benchmarks/weights.py) because the measurement *is* the result; no
   estimator is built. What would reopen it is stated below, so the retirement is falsifiable.
 - **Alternatives.** Build the estimator anyway and report its accuracy. Start crude and escalate to
   inverse optimization. Sweep the foreign rosters first.
@@ -3665,7 +3665,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   record. The T0 walking skeleton (`roster_replan/t0.py`) is deleted. `preferences.md` loses its
   twenty-three-item catalogue and its cost taxonomy, keeping what was measured. `finish.md` leads
   with the current state and carries the 2026-08-13 declaration below it, unedited. `capture.md`
-  leaves the spec table in [`docs/README.md`](README.md).
+  leaves the spec table in [`docs/README.md`](../README.md).
 - **Alternatives.** A record each, which is four records for one argument. Deleting `capture.md` and
   `preferences.md` outright, which loses the acceptance bar fixed before measuring and [`D-134`](#d-134)'s breach
   ranking. Rewriting the declaration so it reads true, which supersede-never-rewrite forbids.
@@ -3687,8 +3687,8 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 ## D-147 — Where the model stops is where this Python stops, and the sentence now says so
 
 - **Decision.** The 8M-variable ceiling is quoted as a limit of *this implementation* rather than of
-  the formulation. [`formulation.md`](formulation.md) says it outright under *Size, and where it stops*, and
-  [`docs/README.md`](README.md) names the build loop where it cites the figure. The number itself does not move, and
+  the formulation. [`formulation.md`](../internals/model.md) says it outright under *Size, and where it stops*, and
+  [`docs/README.md`](../README.md) names the build loop where it cites the figure. The number itself does not move, and
   [`foreign-incumbent.md`](studies/foreign-incumbent.md) and [`penalty-search.md`](studies/penalty-search.md) already read this way and are untouched.
 - **Alternatives.** Making the build faster first, which is a study with a null available and not a
   documentation fix. Leaving it, on the grounds that *model construction* already appeared in the
@@ -3707,7 +3707,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
 - **Decision.** `README.md` opens with a generated figure: one week of a 12-person roster drawn
   twice, a cold cost re-solve against the shipped replan. It is produced by
-  [`benchmarks/figure.py`](../benchmarks/figure.py) from a committed case, never drawn by hand, and the SVG is committed
+  [`benchmarks/figure.py`](../../benchmarks/figure.py) from a committed case, never drawn by hand, and the SVG is committed
   beside the manifest it depends on.
 - **Alternatives.** Drawing the demo scenario, which cannot carry it. A hand-made image, which
   cannot be checked against anything. No image, which is where this sat.

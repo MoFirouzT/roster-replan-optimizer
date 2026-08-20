@@ -1,7 +1,7 @@
 """Payload schema and stated conventions, shared by the model and the checker.
 
 This module is the *only* thing those two readings may share, and what it may contain
-is fixed by `docs/specs/rules.md#independence-rule`:
+is fixed by `docs/internals/design.md`:
 
 - data containers, so the differential harness can feed both readings one instance;
 - the conventions `rules.md` fixes by definition -- half-open overlap, start-day

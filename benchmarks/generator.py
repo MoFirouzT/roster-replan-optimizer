@@ -1,10 +1,10 @@
 """The seeded scenario generator.
 
-`docs/benchmarks.md` states the instance distribution, and states why: *an undefined
+`docs/archive/benchmarks.md` states the instance distribution, and states why: *an undefined
 distribution makes a p95 unfalsifiable*. This module is that distribution, executable.
 
 Three things about its shape are decisions rather than mechanics, and each is recorded
-in `docs/decisions.md`:
+in `docs/archive/decisions.md`:
 
 **A benchmark case is a scenario, not an instance.** A replan is a function of a
 published roster and a disruption to it, so the generator runs in two phases: build and
@@ -88,7 +88,7 @@ EVENTS = (SICK_CALL, MULTI_ABSENCE, DEMAND_SPIKE, AVAILABILITY_WITHDRAWAL)
 
 @dataclass(frozen=True, slots=True)
 class ScenarioParams:
-    """The generator's knobs, one per axis named in `docs/benchmarks.md`.
+    """The generator's knobs, one per axis named in `docs/archive/benchmarks.md`.
 
     `demand_ratio` is the tightness *target*: required shift-hours as a share of the
     workforce's total weekly budget. It drives generation; it is not what gets reported.
