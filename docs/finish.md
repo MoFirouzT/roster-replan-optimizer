@@ -1,18 +1,106 @@
 # Finish declaration
 
-> **Two documents in one file.** Everything under *The declaration* is as it was written on
-> 2026-08-13, when T3 was the finish — **including the sentences later work made false**, because a
-> record that gets edited whenever the world moves is not a record. That is the rule `decisions.md`
-> already runs on: supersede, never rewrite. The bracketed notes inside it are the only additions and
-> they point forward — that, and the heading levels, which were demoted one step so the two
-> parts nest. No words inside it were changed.
+> **Two documents in one file, current state first.** [*Where the project stands*](#where-the-project-stands) is
+> what is true now: what shipped, what it cost, what it got wrong, and what is still not done.
 >
-> Everything under [*After the declaration*](#after-the-declaration) is what has happened since, held
-> to the same standard: what shipped, what it cost, what it got wrong, and what is still not done.
-> **For the current state of the project, start there** — the section below is history, and one of
-> its claims (*"T4 and T5 were always upside and remain unbuilt"*) stopped being true on 2026-08-14.
+> [*The declaration*](#the-declaration-as-written-on-2026-08-13) below it is as it was written on 2026-08-13, when T3 was the
+> finish — **including the sentences later work made false**, because a record that gets edited
+> whenever the world moves is not a record. That is the rule `decisions.md` already runs on:
+> supersede, never rewrite. The bracketed notes inside it are the only additions and they point
+> forward — that, and the heading levels, which were demoted one step so the two parts nest. No words
+> inside it were changed, and it was moved below the current state rather than rewritten ([`D-146`](decisions.md#d-146)).
+> One of its claims (*"T4 and T5 were always upside and remain unbuilt"*) stopped being true on
+> 2026-08-14.
 
-## The declaration (2026-08-13)
+## Where the project stands
+
+Date: 2026-08-17. The declaration that follows is left as written.
+This section is the same exercise applied to everything since, and there is more of it than *postscript* implied: **T4 and T5 both closed**.
+`PLAN.md` is built out in full.
+
+Each line below is a status, not a retelling.
+The analysis is in the studies and the reasoning is in the records, both one click away.
+
+### T4, built in full
+
+| Piece | Where | The decision it turned on |
+| --- | --- | --- |
+| Shortfall and infeasibility explainer | [`explain.py`](../roster_replan/explain.py), [`prose.py`](../roster_replan/prose.py) | [`D-097`](decisions.md#d-097) — explain shortfalls first, and answer from the checker |
+| Minimal cores | [`core.py`](../roster_replan/core.py) | [`D-100`](decisions.md#d-100) — the objective inflates the core; deletion is a null on top |
+| Tool surface and hypotheticals | [`service/tools.py`](../roster_replan/service/tools.py), [`whatif.py`](../roster_replan/whatif.py) | [`D-098`](decisions.md#d-098) — unlawful hypotheticals are refused, not answered |
+| Profile review | [`profile.py`](../roster_replan/profile.py) | [`D-099`](decisions.md#d-099) — deterministic, and enabling an unencoded rule is a defect |
+| NL → profile | [`nl.py`](../roster_replan/nl.py) | [`D-101`](decisions.md#d-101) — the schema is the confinement, and an open mapping is not a schema |
+| Parse eval | [`nl_eval.py`](../benchmarks/nl_eval.py) | [`D-102`](decisions.md#d-102) — score what was invented, not only what was found |
+
+The Open table is empty: [`D-012`](decisions.md#d-012) and [`D-013`](decisions.md#d-013) were its last entries and both became writable once the boundary they describe existed.
+
+### T5, closed: two built, two retired on measurement
+
+| Item | Outcome |
+| --- | --- |
+| LNS | **Retired** ([`D-104`](decisions.md#d-104), [`D-105`](decisions.md#d-105)) — it improves a solution the solver cannot prove optimal in time, and neither half is true here |
+| Learned warm starts | **Retired** ([`D-104`](decisions.md#d-104)) — they would chase the 9% of search time [`warm-start.md`](studies/warm-start.md) measured |
+| Fairness objectives | **Shipped** ([`D-108`](decisions.md#d-108)) — rolling balance of unpopular shifts, and a third meaning of the word in this repo |
+| Generation mode | **Shipped** ([`D-109`](decisions.md#d-109)) — the cold-start case, made testable rather than argued |
+
+### What it got wrong
+
+Six findings, each one a place a claim in this repository was false.
+They are listed rather than told, because each has a study that tells it properly.
+
+| Finding | Where it is told |
+| --- | --- |
+| **The optimum was degenerate**, so `README.md`'s reproducibility promise was false — and no test could see it, because none looked at *which* optimum | [`reproducibility.md`](studies/reproducibility.md) |
+| Fixing that **blinded two test layers**: reproducibility and observability were trading against each other, and only one side was priced | [`mutation-harness.md`](studies/mutation-harness.md) |
+| The harness reported `clean` with a mutated file in the tree, a survivor it did not have, and **fourteen mutants it had never tested** | [`mutation-harness.md`](studies/mutation-harness.md) |
+| Two rules were **named for a week and measured over a horizon**, and the differential harness could not have caught it — both readings were wrong in the same direction | [`horizon.md`](studies/horizon.md), [`D-110`](decisions.md#d-110), [`D-111`](decisions.md#d-111) |
+| The last unmeasured rejection in the repo was measured, and **both reasons it gave were wrong** — size grows linearly, and a longer horizon buys nothing | [`horizon.md`](studies/horizon.md) |
+| `D-100` deferred core minimisation for a cause that was not the one that mattered, and `D-101`'s derogation field **compiled to an object that could hold nothing** | [`D-100`](decisions.md#d-100), [`D-101`](decisions.md#d-101) |
+
+Two premises were scoped rather than falsified.
+[`D-081`](decisions.md#d-081)'s *build dominates search* holds at one week and not beyond, so **every performance conclusion here is a statement about a one-week horizon**.
+And [`D-104`](decisions.md#d-104)'s retirement of LNS narrowed from *this never happens* to *this does not happen in the regime we serve*, once foreign data produced a 7.71-second search ([`D-127`](decisions.md#d-127)).
+
+### What a roster from outside this project did to it
+
+`benchmarks.md` has said since T2 that the incumbent is solved by the system under test, and this declaration called it the largest single gap in the evidence.
+**Half of it is now closed**: published solutions from the nurse-rostering set reproduce the headline claim by **4.6× to 37×**, where the committed set shows about 5×.
+
+It also found what a synthetic set could not — ten of thirteen published rosters have a past this model calls illegal, a defect in a fix made the same day, and **where the model stops**: about 40 employees over four weeks, against 527 seconds of model construction at 8M variables.
+
+Full account: [`foreign-incumbent.md`](studies/foreign-incumbent.md).
+
+### What is still not done
+
+Three of these are blocked on something outside this repository, which is the honest reason they are not done.
+The fourth is not blocked at all — it is deployment work with no findings in it.
+
+| Gap | Blocked on |
+| --- | --- |
+| **Capture and replay** — was the largest gap, now half of one ([`D-125`](decisions.md#d-125)) | External authorization and real vendor payloads. A Belgian horeca corpus is still what this owns |
+| The cost axis (`cost_weight` ships at 0, [`D-050`](decisions.md#d-050)) | Wage data |
+| `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each — `rules.md` refuses a legality claim without provenance |
+| Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing — these are deployment choices |
+| No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) | Nothing. The generator hard-codes seven days |
+
+The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the system under test.**
+Every benchmark number here shows a replan beats a re-solve *given a roster this model would produce*.
+
+### The state of the repo
+
+| | At the declaration | Now |
+| --- | --- | --- |
+| Tests | 567 | 949, of which 45 skip without fetched benchmark data |
+| Mutants, each naming the layer that must catch it | 59 | 132 |
+| Import-linter contracts | 8 | 11 |
+| Decision records | 94, 2 open | 143, none open |
+| Studies, including nulls | 8 | 16 |
+| Python | ~12,000 lines | ~24,500 lines |
+
+The mutation harness has been run in full eight times since the declaration, and **only the last one means what a verdict is supposed to mean**: 132 of 132 caught, `clean` and `trustworthy`, on a verified tree.
+The seven before it were each spoiled, and the five hardenings they produced are told in [`mutation-harness.md`](studies/mutation-harness.md).
+
+## The declaration, as written on 2026-08-13
 
 **T3 is complete. The project is finished in the sense `PLAN.md` defined**: T0 through T3 shipped,
 every tier gate passed on evidence rather than on prose, and every spec reconciled with its code.
@@ -160,94 +248,6 @@ dead defensive call, and a fairness property no single response could show.
    is the cheaper order to do these in.
 
 **This declaration is therefore complete.**
-
-## After the declaration
-
-Date: 2026-08-17. The declaration above is left as written.
-This section is the same exercise applied to everything since, and there is more of it than *postscript* implied: **T4 and T5 both closed**.
-`PLAN.md` is built out in full.
-
-Each line below is a status, not a retelling.
-The analysis is in the studies and the reasoning is in the records, both one click away.
-
-### T4, built in full
-
-| Piece | Where | The decision it turned on |
-| --- | --- | --- |
-| Shortfall and infeasibility explainer | [`explain.py`](../roster_replan/explain.py), [`prose.py`](../roster_replan/prose.py) | [`D-097`](decisions.md#d-097) — explain shortfalls first, and answer from the checker |
-| Minimal cores | [`core.py`](../roster_replan/core.py) | [`D-100`](decisions.md#d-100) — the objective inflates the core; deletion is a null on top |
-| Tool surface and hypotheticals | [`service/tools.py`](../roster_replan/service/tools.py), [`whatif.py`](../roster_replan/whatif.py) | [`D-098`](decisions.md#d-098) — unlawful hypotheticals are refused, not answered |
-| Profile review | [`profile.py`](../roster_replan/profile.py) | [`D-099`](decisions.md#d-099) — deterministic, and enabling an unencoded rule is a defect |
-| NL → profile | [`nl.py`](../roster_replan/nl.py) | [`D-101`](decisions.md#d-101) — the schema is the confinement, and an open mapping is not a schema |
-| Parse eval | [`nl_eval.py`](../benchmarks/nl_eval.py) | [`D-102`](decisions.md#d-102) — score what was invented, not only what was found |
-
-The Open table is empty: [`D-012`](decisions.md#d-012) and [`D-013`](decisions.md#d-013) were its last entries and both became writable once the boundary they describe existed.
-
-### T5, closed: two built, two retired on measurement
-
-| Item | Outcome |
-| --- | --- |
-| LNS | **Retired** ([`D-104`](decisions.md#d-104), [`D-105`](decisions.md#d-105)) — it improves a solution the solver cannot prove optimal in time, and neither half is true here |
-| Learned warm starts | **Retired** ([`D-104`](decisions.md#d-104)) — they would chase the 9% of search time [`warm-start.md`](studies/warm-start.md) measured |
-| Fairness objectives | **Shipped** ([`D-108`](decisions.md#d-108)) — rolling balance of unpopular shifts, and a third meaning of the word in this repo |
-| Generation mode | **Shipped** ([`D-109`](decisions.md#d-109)) — the cold-start case, made testable rather than argued |
-
-### What it got wrong
-
-Six findings, each one a place a claim in this repository was false.
-They are listed rather than told, because each has a study that tells it properly.
-
-| Finding | Where it is told |
-| --- | --- |
-| **The optimum was degenerate**, so `README.md`'s reproducibility promise was false — and no test could see it, because none looked at *which* optimum | [`reproducibility.md`](studies/reproducibility.md) |
-| Fixing that **blinded two test layers**: reproducibility and observability were trading against each other, and only one side was priced | [`mutation-harness.md`](studies/mutation-harness.md) |
-| The harness reported `clean` with a mutated file in the tree, a survivor it did not have, and **fourteen mutants it had never tested** | [`mutation-harness.md`](studies/mutation-harness.md) |
-| Two rules were **named for a week and measured over a horizon**, and the differential harness could not have caught it — both readings were wrong in the same direction | [`horizon.md`](studies/horizon.md), [`D-110`](decisions.md#d-110), [`D-111`](decisions.md#d-111) |
-| The last unmeasured rejection in the repo was measured, and **both reasons it gave were wrong** — size grows linearly, and a longer horizon buys nothing | [`horizon.md`](studies/horizon.md) |
-| `D-100` deferred core minimisation for a cause that was not the one that mattered, and `D-101`'s derogation field **compiled to an object that could hold nothing** | [`D-100`](decisions.md#d-100), [`D-101`](decisions.md#d-101) |
-
-Two premises were scoped rather than falsified.
-[`D-081`](decisions.md#d-081)'s *build dominates search* holds at one week and not beyond, so **every performance conclusion here is a statement about a one-week horizon**.
-And [`D-104`](decisions.md#d-104)'s retirement of LNS narrowed from *this never happens* to *this does not happen in the regime we serve*, once foreign data produced a 7.71-second search ([`D-127`](decisions.md#d-127)).
-
-### What a roster from outside this project did to it
-
-`benchmarks.md` has said since T2 that the incumbent is solved by the system under test, and this declaration called it the largest single gap in the evidence.
-**Half of it is now closed**: published solutions from the nurse-rostering set reproduce the headline claim by **4.6× to 37×**, where the committed set shows about 5×.
-
-It also found what a synthetic set could not — ten of thirteen published rosters have a past this model calls illegal, a defect in a fix made the same day, and **where the model stops**: about 40 employees over four weeks, against 527 seconds of model construction at 8M variables.
-
-Full account: [`foreign-incumbent.md`](studies/foreign-incumbent.md).
-
-### What is still not done
-
-Three of these are blocked on something outside this repository, which is the honest reason they are not done.
-The fourth is not blocked at all — it is deployment work with no findings in it.
-
-| Gap | Blocked on |
-| --- | --- |
-| **Capture and replay** — was the largest gap, now half of one ([`D-125`](decisions.md#d-125)) | External authorization and real vendor payloads. A Belgian horeca corpus is still what this owns |
-| The cost axis (`cost_weight` ships at 0, [`D-050`](decisions.md#d-050)) | Wage data |
-| `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each — `rules.md` refuses a legality claim without provenance |
-| Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing — these are deployment choices |
-| No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) | Nothing. The generator hard-codes seven days |
-
-The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the system under test.**
-Every benchmark number here shows a replan beats a re-solve *given a roster this model would produce*.
-
-### The state of the repo
-
-| | At the declaration | Now |
-| --- | --- | --- |
-| Tests | 567 | 949, of which 45 skip without fetched benchmark data |
-| Mutants, each naming the layer that must catch it | 59 | 132 |
-| Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 143, none open |
-| Studies, including nulls | 8 | 16 |
-| Python | ~12,000 lines | ~24,500 lines |
-
-The mutation harness has been run in full eight times since the declaration, and **only the last one means what a verdict is supposed to mean**: 132 of 132 caught, `clean` and `trustworthy`, on a verified tree.
-The seven before it were each spoiled, and the five hardenings they produced are told in [`mutation-harness.md`](studies/mutation-harness.md).
 
 ## Archived
 

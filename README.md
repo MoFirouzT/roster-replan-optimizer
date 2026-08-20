@@ -16,7 +16,8 @@ Nothing comes back unexplained or unchecked.
 Every roster is re-verified against every rule by a plain function with no solver involved, a short shift names the rule that blocked each person who could have filled it, and a policy written in plain English is accepted or rejected before it can produce a roster.
 
 The reasoning is on the record too:
-every design choice that could have gone the other way is a numbered decision, and the ones that turned on evidence are written up as studies; including the several that overturned what the specs first claimed.
+every design choice that could have gone the other way is a numbered decision, and the ones that turned on evidence are written up as studies;
+including the several that overturned what the specs first claimed.
 
 > Generation is not a separate feature.
 > It is the cold-start case of replanning; a replan from an empty roster.
@@ -27,19 +28,20 @@ every design choice that could have gone the other way is a numbered decision, a
 
 - **Replan:**
   repair a roster around absences, demand changes and late availability withdrawals, minimising weighted deviation from what people were already told.
-  With no incumbent supplied, the same solve fills a planner's open shifts from scratch; this is generation, not a second feature.
+  With no incumbent supplied, the same solve fills a planner's open shifts from scratch (a.k.a generation).
 - **Verify every roster against the rules:**
   every returned solution is re-checked against every rule by a plain function with no solver involved.
   Solutions that fail the checker are never returned.
 - **Explain a short shift:**
   name the rule that blocked every person who could have filled it, in planner language:
-  *6 of the 12 staff do not hold a skill the shift requires; 5 would not get the minimum rest*.
-  This is the common case: with a soft coverage floor a shift comes back **priced** rather than refused.
-  Where a single override would close the shift, say which — ranked by what it would cost, confirmed by re-solving rather than assumed from the blocker count.
+  *e.g. 6 of the 12 staff do not hold a skill the shift requires.*
+  This is a common case as with a soft coverage floor a shift comes back **priced** rather than refused.
+  Where a single override would close the shift, say which, ranked by what it would cost, confirmed by re-solving rather than assumed from the blocker count.
 - **Explain infeasibility:**
   in the rare case where no legal roster exists, return the *minimal* set of blocking rules with the day, shift and employee involved.
 - **Answer a hypothetical:**
-  *what if I hire one more flexi-jobber?* — re-solve under the change and report the difference.
+  *what if I hire one more flexi-jobber?*
+  Re-solve under the change and report the difference.
   Unlawful hypotheticals are refused rather than answered.
 - **Validate a policy before it can produce a roster:**
   structural checks, contradictions between a tenant's own rules, rules that cannot bind, and a feasibility probe.

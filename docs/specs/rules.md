@@ -17,8 +17,8 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 
 ## Classification
 
-- **Structural hard** — encoded as constraints. Infeasibility is a legitimate answer.
-- **Soft** — penalised in the objective, with its weight on a stated scale (see `replan.md`).
+- **Structural hard:** encoded as constraints. Infeasibility is a legitimate answer.
+- **Soft:** penalised in the objective, with its weight on a stated scale (see `replan.md`).
 - **Pinned** — fixes variables rather than constraining them.
 
 ## Registry
@@ -30,7 +30,7 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | [`R-SKILL`](#rule-r-skill) | Assigned employee holds the shift's required skill | hard | per shift/employee | operational |
 | [`R-SKILL-MIX`](#rule-r-skill-mix) | A shift's roster holds at least *m* people with a given skill | hard or soft, **per entry** | per shift/skill | operational, or legal per entry `[CITE]` |
 | [`R-PIN-PAST`](#rule-r-pin-past) | Shifts starting before `now` are immutable | pinned | `now` | operational |
-| [`R-MIN-SHIFT`](#rule-r-min-shift) | Minimum shift length — 2h horeca, 3h general | **input validation** — not roster-violable, see below | hours, per tenant | Arbeidswet art. 21; KB 18 June 1990; PC 302 CBA `[CITE]` |
+| [`R-MIN-SHIFT`](#rule-r-min-shift) | Minimum shift length — 2h horeca, 3h general | **input validation** — not roster-violable, see below | hours, per tenant | Arbeidswet art. 21; KB 18 June 1990; PC 302 CAO nr. 7 of 25 June 1997 art. 10 ([`D-145`](../decisions.md#d-145)) |
 | [`R-REST-GAP`](#rule-r-rest-gap) | Minimum rest between consecutive shifts | hard | hours | Arbeidswet art. 38ter §1; WTD art. 3 |
 | [`R-MAX-WEEKLY`](#rule-r-max-weekly) | Maximum hours this week, as a supplied per-employee budget | hard | hours, per employee | Arbeidswet art. 19, 26bis; WTD art. 6, 16(b) |
 | [`R-MAX-PERIOD`](#rule-r-max-period) | Hours left in the rolling reference period, over the whole horizon | hard, **optional** | hours, per employee | Arbeidswet art. 26bis §1; WTD art. 16(b), 19 |
@@ -44,13 +44,13 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | [`R-SUCCESSION`](#rule-r-succession) | A shift type that may not follow another | hard, **optional** | pairs of shift types | **not statutory** — operational/CBA ([`D-136`](../decisions.md#d-136)) |
 | [`R-DAY-OFF`](#rule-r-day-off) | A day granted off, by day rather than by interval | hard, **optional** | day set, per employee | **not statutory** — operational/CBA ([`D-142`](../decisions.md#d-142)) |
 | [`R-WEEKLY-REST`](#rule-r-weekly-rest) | Minimum uninterrupted weekly rest | hard | hours | Arbeidswet art. 38ter §3; WTD art. 5 |
-| [`R-FLEXI-ELIG`](#rule-r-flexi-elig) | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1 |
+| [`R-FLEXI-ELIG`](#rule-r-flexi-elig) | Flexi-job eligibility conditions | hard, **resolved upstream** | per employee, per day | Wet 16 Nov 2015 art. 4 §1, as amended by Wet 28 June 2026 ([`D-145`](../decisions.md#d-145)) |
 | [`R-DIMONA-FLX`](#rule-r-dimona-flx) | `FLX` Dimona filing as an eligibility gate | hard, **resolved upstream** | filing state, per employee/day | NSSO Dimona instructions; Wet 16 Nov 2015 |
-| `R-STUDENT-QUOTA` | Student-worker hour quota | hard, optional | hours/year | labour law `[CITE]` |
-| `R-SUNDAY` | Sunday and public-holiday work restriction | hard, optional | derogation set | labour law `[CITE]` |
-| `R-BREAK` | In-shift break entitlement | hard, optional | minutes per hours worked | labour law `[CITE]` |
-| `R-PT-MIN` | Part-time minimum shift length and weekly hours | hard, optional | hours | labour law `[CITE]` |
-| `R-PUB-NOTICE` | Variable-schedule publication notice | soft, optional | days | labour law `[CITE]` |
+| `R-STUDENT-QUOTA` | Student-worker hour quota | hard, optional | hours/year | KB 28 November 1969 art. 17bis ([`D-145`](../decisions.md#d-145)) |
+| `R-SUNDAY` | Sunday and public-holiday work restriction | hard, optional | derogation set | Arbeidswet art. 11, 16, 66; Feestdagenwet art. 4, 6, 11 ([`D-145`](../decisions.md#d-145)) |
+| `R-BREAK` | In-shift break entitlement | hard, optional | minutes per hours worked | Arbeidswet art. 38quater; art. 34 under 18 ([`D-145`](../decisions.md#d-145)) |
+| `R-PT-MIN` | Part-time minimum shift length and weekly hours | hard, optional | hours | Arbeidswet art. 21; Wet 3 July 1978 art. 11bis ([`D-145`](../decisions.md#d-145)) |
+| `R-PUB-NOTICE` | Variable-schedule publication notice | soft, optional | days | Wet 8 April 1965 art. 6 §1, 1°, third para., d) ([`D-145`](../decisions.md#d-145)) |
 
 `R-MAX-DAILY`, `R-CONSEC-DAYS` and `R-WEEKLY-REST` land in T1 — they are structural, cheap, and
 belong in the checker before it is written rather than bolted on after.
@@ -59,18 +59,60 @@ a tenant that does not enable them never pays for them.
 
 `[CITE]` — every legal rule needs a named source before T1 closes. A legality claim without
 provenance is a guess, and the checker is the component whose whole value is that it is not one.
-The T1 set is now sourced. The remaining `[CITE]`s are on the profile-gated T2 rules, plus three open
-items inside T1 rules: the horeca limb of `R-MIN-SHIFT`, the amending instrument behind the
-1 July 2026 flexi changes, and the Dimona filing deadline.
+
+**Every rule that names a statute now names one** ([`D-145`](../decisions.md#d-145)). The five profile-gated T2 rules are sourced
+above, and so are the three items that were open inside T1 rules. Two of those searches came back
+negative, and the negative is the finding: there is **no 24-hour Dimona deadline** and **no horeca
+3h48 minimum**. Both are recorded where the rule that would have carried them lives.
+
+`R-SKILL-MIX` keeps its `[CITE]` and always will. Its provenance is declared **per entry** by the
+tenant, so there is no one instrument to name — a first-aider requirement and a food-hygiene
+requirement come from different places, and which applies is a fact about the tenant. That marker is
+a property of the rule's shape rather than work left undone.
+
+A citation is not the same as an encoded rule. The five T2 rules stay outlines — each still needs a
+predicate, parameters, a hard/soft classification and a failure message before it can be built, and
+`tests/test_specs.py` holds them to *optional* until then.
+
+### What the sources say, for rules not yet encoded
+
+Recorded here so the search does not have to be repeated when one of these is built. **None of these
+numbers is enforced by anything**, and none has been through the two independent readings that a
+shipped rule gets.
+
+| Rule | What the instrument sets |
+| --- | --- |
+| `R-STUDENT-QUOTA` | 650 hours a calendar year, permanent since 1 January 2025 — 475 before, 600 through 2023–24. Counted in hours, filed under Dimona worker type `STU`; ordinary contributions from the 651st hour |
+| `R-SUNDAY` | Sunday work permitted for horeca under Arbeidswet art. 66 for workers 18 or over. Compensatory rest under art. 16: a full day where Sunday work passed four hours, half a day otherwise, inside the six days following. Public holidays are the Feestdagenwet's own entitlement and the two must not be made to coincide |
+| `R-BREAK` | Two limbs. No more than six hours worked without interruption; and where working time passes six hours a break is owed, its length and timing set by CAO or the work rules. Only where no CAO applies does the statute's own floor bite — fifteen minutes, at the latest on reaching six hours. Under-18 workers take art. 34 instead. The statute does not say whether the break is paid |
+| `R-PT-MIN` | Three hours per work period (Arbeidswet art. 21, general — **not** part-time-specific). Weekly floor one tenth of a comparable full-timer's week since 1 June 2026, a third before. PC 302 sets its own: ten hours a week, two hours a period |
+| `R-PUB-NOTICE` | Seven working days, which a generally binding CAO may shorten to no fewer than three. **PC 302 sits at three** — it registered no CAO of its own by 31 December 2022, so the amending law's own floor took effect for it on 1 January 2023 |
+
+Two of these carry a question that would have to be answered before encoding. `R-BREAK`'s second limb
+is conditional on the tenant having no CAO, which is a profile fact this registry has no field for.
+And `R-PUB-NOTICE` may not be alone: art. 159 of the Programmawet van 22 december 1989 states an
+overlapping publication duty, and whether it is a second obligation or the same one seen twice was
+not settled.
+
+**Two provenance lines are weaker than the rest and say so.** `R-SUNDAY`'s art. 66 could not be read
+off the consolidated statute — every ejustice endpoint truncates before Chapter VI — so its sector
+list rests on agreeing secondary renderings. And the flexi income ceiling is carried by three
+different figures in circulation; [`D-033`](../decisions.md#d-033) resolves it upstream, so the number below is documentation
+rather than a model input.
 
 ## Legal sources
 
-Cited in short form throughout. Both instruments are consolidated and publicly available.
+Cited in short form throughout. Every instrument below is consolidated and publicly available.
 
 | Short form | Instrument |
 | --- | --- |
 | **Arbeidswet** | Arbeidswet van 16 maart 1971 / Loi du 16 mars 1971 sur le travail (BS 30 March 1971), as amended |
 | **WTD** | Directive 2003/88/EC of 4 November 2003 concerning certain aspects of the organisation of working time |
+| **Feestdagenwet** | Wet van 4 januari 1974 betreffende de feestdagen — the public-holiday regime, separate from the Arbeidswet's Sunday regime ([`D-145`](../decisions.md#d-145)) |
+| **Arbeidsreglementenwet** | Wet van 8 april 1965 tot instelling van de arbeidsreglementen, as amended by the Wet van 3 oktober 2022 (BS 10 November 2022) |
+| **Arbeidsovereenkomstenwet** | Wet van 3 juli 1978 betreffende de arbeidsovereenkomsten, as amended by the Wet van 18 mei 2026 (BS 1 June 2026) |
+| **RSZ-uitvoeringsbesluit** | KB van 28 november 1969 uitvoering wet 27 juni 1969 — art. 17bis carries the student quota |
+| **PC 302 CAO nr. 7** | CAO nr. 7 van 25 juni 1997, Paritair Comité voor het Hotelbedrijf, generally binding by KB of 25 May 1999 |
 
 Belgium transposes the WTD, and in several places transposes it *more strictly*. **Where the two
 differ, this project implements the Belgian rule** ([`D-024`](../decisions.md#d-024)) — it is the binding one for the target tenants, and
@@ -170,8 +212,8 @@ These rules carry no legal provenance, which is why they were specified first: n
 on a `[CITE]`. The one exception is a `R-SKILL-MIX` entry that declares itself legal, which carries its
 own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
 
-`t0.py` is superseded by these sections, not extended by them. It has no `R-SKILL` and no
-`R-PIN-PAST`, and its `R-AVAIL` is day-granular where this spec is interval-granular.
+The T0 walking skeleton is superseded by these sections, not extended by them. It had no `R-SKILL`
+and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is interval-granular.
 
 <a id="rule-r-cover"></a>
 ### `R-COVER` — coverage
@@ -233,9 +275,9 @@ own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
   [start(d, s), end(d, s)) ∩ blocked[e] ≠ ∅   ⟹   x[e, d, s] = 0
   ```
 
-  **Interval intersection, not day equality.** This is the substantive correction to `t0.py`, which
-  blocks an employee for a whole day. A shift crossing midnight belongs partly to the next day, and an
-  unavailability of `Sat 09:00–12:00` must not block `Sat Evening`.
+  **Interval intersection, not day equality.** This is the substantive correction to the T0 walking
+  skeleton, which blocked an employee for a whole day. A shift crossing midnight belongs partly to the
+  next day, and an unavailability of `Sat 09:00–12:00` must not block `Sat Evening`.
 - **Class.** Hard, and split by provenance ([`D-019`](../decisions.md#d-019), [`D-020`](../decisions.md#d-020)):
   - `absences[e]` — hard, **never relaxable**. Sickness is a fact about the world.
   - `unavailability[e]` — hard in T1, tenant-configurable to soft in T2, since some operations do
@@ -452,13 +494,25 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Explainer text.** Not an explainer case — a profile is rejected at load, before any solve exists to
   explain. `validation.md` owns the message.
 - **Provenance.** Arbeidswet art. 21 — the statute, *not* art. 19; the FPS Employment summary page
-  misattributes this one. Exempt categories: Royal Decree of 18 June 1990. Horeca limb: CBA of
-  25 June 1997 in joint committee 302, with the notification and GKS conditions above `[CITE]`.
+  misattributes this one. Exempt categories: Royal Decree of 18 June 1990. Horeca limb: **CAO nr. 7
+  of 25 June 1997** in joint committee 302, art. 10 for the two-hour work period and art. 9 for the
+  ten-hour weekly floor, made generally binding by the Royal Decree of 25 May 1999 and amended as
+  recently as the Royal Decree of 19 January 2023 ([`D-145`](../decisions.md#d-145)). The notification and GKS conditions
+  above are attached to that derogation, but the instrument that added them in 2018 was not found;
+  they are stated here from agreeing secondary sources.
 
-  **One unresolved claim.** A secondary source asserts a change effective 1 June 2026 — minimum
-  contracts of 3h48 per week with performances of at least 3 hours per day — which would contradict
-  the 2-hour horeca figure. It could not be confirmed against the CBA or any primary source and is
-  **not** encoded here. Someone must read the current PC 302 text before the horeca limb ships. `[CITE]`
+  **The unresolved claim is now resolved, and the answer is that the rule does not exist.** A
+  secondary source asserted a change effective 1 June 2026 — minimum contracts of 3h48 per week with
+  performances of at least 3 hours per day — which would contradict the two-hour horeca figure. **No
+  primary instrument applies it to horeca.** What exists is the Wet van 18 mei 2026 (BS 1 June 2026),
+  which lowered the *general* part-time weekly floor from a third to a tenth of a full-timer's week;
+  a 38-hour week makes that 3h48. It does not reach PC 302, whose ten-hour floor is set by CAO rather
+  than derived from that fraction, and it left art. 21 untouched — the consolidated text still carries
+  `<W 1989-12-22/31>` as its last marker, so the three-hour half of the claim has no source either.
+
+  **It is a live dispute rather than a dead rumour**, which is why it stays on the record. The claim
+  is the employer-side position in the sector, contested by ACV, who report the Ministry of Employment
+  agreeing with them. Nothing here changes until PC 302 or the FPS issues something concrete.
 
 <a id="rule-r-rest-gap"></a>
 ### `R-REST-GAP` — daily rest
@@ -1004,8 +1058,22 @@ on a computation this service does not perform.**
 - **Explainer text.** `Bram is not flexi-eligible on Wed 1 July (new quarter); he is eligible through Tue 30 June.`
 - **Provenance.** Law of 16 November 2015 on various social-affairs provisions, art. 4 §1 — note this is
   a *wet houdende diverse bepalingen inzake sociale zaken*, not a programmawet, and it has been amended
-  repeatedly since. The 1 July 2026 expansion and ceiling change postdate the original text `[CITE]` —
-  cite the amending instrument, not a payroll provider's summary, before this ships.
+  repeatedly since. The amending instrument behind the 1 July 2026 expansion is the **Wet van 28 juni
+  2026 houdende diverse bepalingen inzake flexi-jobs**, BS 2 July 2026, in force 1 July 2026 ([`D-145`](../decisions.md#d-145)).
+
+  **The T-3 test this rule encodes is unchanged**, which is the part that matters here. What the 2026
+  law moved is the pensioner route: pension status is now read in quarter T rather than T-2, so
+  somebody newly retired can start at once. The eighty-percent employment test in T-3 for everybody
+  else is untouched. A pensioner branch is therefore missing from the predicate above rather than
+  wrong in it.
+
+  Two exclusions survive in every sector: artistic, artistically-technical and artistically-supporting
+  functions, and sex workers in PC 302 — the second lands inside this project's target sector.
+
+  **The income ceiling is carried by three different figures** — €18,000, €18,440 and €18,880 — and
+  which is the social-security ceiling and which the indexed fiscal exemption was not settled. It is
+  documentation rather than a model input, because [`D-033`](../decisions.md#d-033) folds the ceiling into
+  `max_hours_this_week` upstream, so no predicate here reads a euro amount.
 
 <a id="rule-r-dimona-flx"></a>
 ### `R-DIMONA-FLX` — Dimona filing gate
@@ -1057,9 +1125,20 @@ on a computation this service does not perform.**
   must distinguish *already filed* from *fileable in time*, and the second is a judgement about NSSO
   turnaround the service cannot make. **T1 takes the conservative reading — only `OK` counts** ([`D-035`](../decisions.md#d-035)) — and the
   optimistic reading is deferred with the T2 capture work, where replay against real incumbent decisions
-  can show whether it costs real repairs. `[CITE]` on the filing deadline: vendor guidance states 24
-  hours before start, the general statutory obligation is filing before work begins, and the two are not
-  the same claim.
+  can show whether it costs real repairs.
+
+  **The filing deadline is settled, and the twenty-four-hour figure is not a rule** ([`D-145`](../decisions.md#d-145)). The NSSO
+  instruction defines a timely filing as *"vóór de aanvang van de prestaties"* — before the work
+  starts. Vendor guidance stating twenty-four hours before start is tooling lead time with no
+  instrument behind it. The earliest a `FLX` filing may be made is one month before the quarter opens;
+  a verbal agreement needs one per day carrying the start and end times, a written one needs a single
+  filing per quarter.
+
+  This narrows what [`D-035`](../decisions.md#d-035) is conservative *about*. The question for a same-day replan is not whether
+  a day of notice exists but whether a filing returns `OK` before the shift starts, which is a much
+  shorter bar than the deadline this rule was written against. **The NSSO instruction is guidance
+  rather than law** and names no instrument itself; the statutory hook behind the Dimona obligation is
+  not cited here because it was not confirmed.
 - **Parameters.** `dimona_ok[e, d]`, boolean, caller-supplied, mandatory for flexi contracts.
   `filing_regime[e] ∈ {verbal, written}`, informational in T1 — it does not change the predicate, only
   the disruption weighting above.

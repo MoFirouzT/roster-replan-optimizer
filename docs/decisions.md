@@ -176,6 +176,8 @@ A record can sit under more than one theme — the grouping is not a partition.
 | [`D-142`](#d-142) | A day off is not an interval, and that is a rule rather than a workaround |
 | [`D-143`](#d-143) | A catch against a red catcher is not a catch, and CI found it before the harness did |
 | [`D-144`](#d-144) | Two overrides of different provenance are not one ranking, and the sweep was paying twice |
+| [`D-145`](#d-145) | Every statutory rule names an instrument, and two of the searches found no rule at all |
+| [`D-146`](#d-146) | Four documents trimmed to what they carry, and the spec table made true |
 
 ## By theme
 
@@ -185,7 +187,7 @@ A record can sit under more than one theme — the grouping is not a partition.
 | Formulation and solver choice | [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-048`](#d-048), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-093`](#d-093), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126) |
 | Independence — two readings of one registry | [`D-003`](#d-003), [`D-038`](#d-038), [`D-039`](#d-039), [`D-040`](#d-040), [`D-041`](#d-041), [`D-045`](#d-045), [`D-046`](#d-046), [`D-063`](#d-063), [`D-078`](#d-078), [`D-128`](#d-128) |
 | Ground truth, test layers, and the mutation harness | [`D-004`](#d-004), [`D-042`](#d-042), [`D-061`](#d-061), [`D-062`](#d-062), [`D-064`](#d-064), [`D-065`](#d-065), [`D-066`](#d-066), [`D-067`](#d-067), [`D-077`](#d-077), [`D-112`](#d-112), [`D-122`](#d-122), [`D-124`](#d-124), [`D-130`](#d-130), [`D-138`](#d-138), [`D-139`](#d-139), [`D-140`](#d-140), [`D-141`](#d-141), [`D-143`](#d-143) |
-| Rules, legal encoding and provenance | [`D-008`](#d-008), [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-030`](#d-030), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142) |
+| Rules, legal encoding and provenance | [`D-008`](#d-008), [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-030`](#d-030), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142), [`D-145`](#d-145) |
 | The benchmark set and its method | [`D-068`](#d-068), [`D-069`](#d-069), [`D-070`](#d-070), [`D-071`](#d-071), [`D-072`](#d-072), [`D-073`](#d-073), [`D-074`](#d-074), [`D-075`](#d-075), [`D-076`](#d-076), [`D-079`](#d-079), [`D-080`](#d-080), [`D-081`](#d-081), [`D-082`](#d-082), [`D-083`](#d-083), [`D-084`](#d-084), [`D-096`](#d-096), [`D-105`](#d-105), [`D-107`](#d-107) |
 | Reproducibility and CI | [`D-096`](#d-096), [`D-114`](#d-114), [`D-117`](#d-117), [`D-118`](#d-118), [`D-119`](#d-119), [`D-121`](#d-121), [`D-124`](#d-124) |
 | Explaining an answer — shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-048`](#d-048), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100), [`D-144`](#d-144) |
@@ -3619,4 +3621,55 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   and inside the statutory group disruption is still the only order, though `R-MAX-WEEKLY` and
   `R-MAX-DAILY` are not equally easy things to ask of a person. `compare` gains an optional `baseline`
   and an obligation with it — one from another instance or seed breaks the pairing.
+- **Date.** 2026-08-20.
+
+<a id="d-145"></a>
+## D-145 — Every statutory rule names an instrument, and two of the searches found no rule at all
+
+- **Decision.** The five profile-gated rules and the three open items inside T1 rules now carry a
+  named instrument, recorded in `rules.md` with the parameter each sets. Two searches returned a
+  negative and the negative is recorded as the finding: **there is no 24-hour Dimona deadline** and
+  **no horeca 3h48 minimum**. `R-SKILL-MIX` keeps its `[CITE]` permanently, because its provenance is
+  declared per entry by the tenant, so no one instrument can be named.
+- **Alternatives.** Deleting the five unsourced rows. Encoding them off the citations, which confuses
+  naming a source with passing two independent readings. Leaving the two negatives open, which
+  invites the same search a third time.
+- **Reason.** **A citation search is worth running for what it refuses.** The NSSO defines a timely
+  `FLX` filing as *"vóór de aanvang van de prestaties"*; the vendor 24-hour figure is tooling lead
+  time with nothing behind it, narrowing what [`D-035`](#d-035) is conservative about — the bar is a filing that
+  returns `OK` before the shift starts, not a day of notice. The horeca 3h48 claim traces to the
+  Wet van 18 mei 2026 lowering the *general* part-time floor to a tenth of a full week; it does not
+  reach PC 302, and art. 21 still carries `<W 1989-12-22/31>` as its last marker. This repeats what
+  [`D-023`](#d-023) found for `R-CONSEC-DAYS`: the widely quoted rule did not exist.
+- **Consequences.** A citation is not an encoded rule and the five stay outlines, held to *optional*
+  by `tests/test_specs.py`. Two provenance lines are weaker and say so: `R-SUNDAY`'s art. 66 could not
+  be read off the consolidated statute, every ejustice endpoint truncating before Chapter VI, and the
+  flexi income ceiling is carried by three figures. `R-BREAK` arrives with a
+  demand this registry cannot yet meet — its floor applies only where no CAO does, and no profile
+  field says. `R-FLEXI-ELIG`'s T-3 test is unchanged; a pensioner branch is missing rather than wrong.
+- **Date.** 2026-08-20.
+
+<a id="d-146"></a>
+## D-146 — Four documents trimmed to what they carry, and the spec table made true
+
+- **Decision.** A review pass removes material that no longer earns its place, as one change with one
+  record. The T0 walking skeleton (`roster_replan/t0.py`) is deleted. `preferences.md` loses its
+  twenty-three-item catalogue and its cost taxonomy, keeping what was measured. `finish.md` leads
+  with the current state and carries the 2026-08-13 declaration below it, unedited. `capture.md`
+  leaves the spec table in [`docs/README.md`](README.md).
+- **Alternatives.** A record each, which is four records for one argument. Deleting `capture.md` and
+  `preferences.md` outright, which loses the acceptance bar fixed before measuring and [`D-134`](#d-134)'s breach
+  ranking. Rewriting the declaration so it reads true, which supersede-never-rewrite forbids.
+- **Reason.** Each item failed one test: does a reader's attention buy anything here it does not buy
+  elsewhere? `t0.py` sat in the shipped package only to be contradicted by `rules.md`. The catalogue
+  was a roadmap, and a roadmap of unbuilt things is not evidence on a project that has declared
+  itself finished. The declaration's first stretch is knowingly false in places — right for a record,
+  wrong for the page a reader lands on. And a spec table promising *reconciled against the code*
+  could not hold a row reading *specified, not built* and stay true.
+- **Consequences.** 115 lines leave `preferences.md` and 184 leave the package. The declaration's body
+  is byte-identical, checked by diff rather than by eye; its heading moved and one directional
+  reference had to follow. `preferences.md` keeps the survey item IDs, because
+  [`foreign-incumbent.md`](studies/foreign-incumbent.md) cites them. One planned trim was dropped on
+  inspection: a scoping note here duplicated a limit [`horizon.md`](studies/horizon.md) already states better, so it was
+  cut rather than moved.
 - **Date.** 2026-08-20.

@@ -63,7 +63,7 @@ def test_avail_overlapping_absence_fires(make_instance, person, one_shift):
 def test_avail_is_interval_not_day(make_instance, person):
     """A morning unavailability must not block an evening shift on the same day.
 
-    This is the T0 behaviour the spec deliberately corrected: `t0.py` blocks whole days.
+    This is the behaviour the spec deliberately corrected: the T0 walking skeleton blocked whole days.
     """
     morning_only = dataclasses.replace(person, unavailability=(unavailable(0, 6.0, 12.0),))
     instance = make_instance([morning_only], [OpenShift(day=0, shift=EVENING, required=1)])

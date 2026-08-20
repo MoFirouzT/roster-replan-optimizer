@@ -119,7 +119,10 @@ scenarios/               demo data — domain specificity lives here, not in the
 | [`specs/validation.md`](specs/validation.md) | shipped | input validation, the independent checker, the test layers |
 | [`specs/service.md`](specs/service.md) | shipped | the async pattern, contracts, fallback ladder, telemetry |
 | [`specs/config.md`](specs/config.md) | shipped | the profile document and the four stages of building one |
-| [`specs/capture.md`](specs/capture.md) | **specified, not built** | capture and replay, and the bar fixed before the first replay |
+
+Every row above describes code that exists. `specs/capture.md` used to sit here and no longer does
+([`D-146`](decisions.md#d-146)): it describes a component that was never built, so a table promising *reconciled against the
+code* could not hold it and stay true. It is below, with the rest of the writing.
 
 **Everything else.**
 
@@ -130,7 +133,8 @@ scenarios/               demo data — domain specificity lives here, not in the
 | [`benchmarks.md`](benchmarks.md) | measured | the committed set, the four methods, the results and their caveats |
 | [`studies/`](studies/README.md) | measured | sixteen analyses, five of them nulls or rejections |
 | [`decisions.md`](decisions.md) | — | what was chosen, what was rejected, why |
-| [`finish.md`](finish.md) | status | the finish declaration, and everything since |
-| [`preferences.md`](preferences.md) | **survey — nothing implemented** | what employees and employers want past one week |
+| [`finish.md`](finish.md) | status | where the project stands, then the declaration that closed it |
+| [`specs/capture.md`](specs/capture.md) | **design, not built** | capture and replay, and the bar fixed before the first replay |
+| [`preferences.md`](preferences.md) | survey, four items since shipped | what the objective cannot say across weeks, and what that costs |
 | [`development.md`](development.md) | — | running the suite, and contributing |
 | [`archive/PLAN.md`](archive/PLAN.md) | **archived, not maintained** | the original tiers and sequencing |
