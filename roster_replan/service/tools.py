@@ -1,6 +1,6 @@
-"""The five tools of T4's surface, as one registry with schemas a caller can enumerate.
+"""The five tools of the service surface, as one registry with schemas a caller can enumerate.
 
-`PLAN.md` names them: `solve`, `replan`, `explain_infeasibility`, `what_if`,
+They are `solve`, `replan`, `explain_infeasibility`, `what_if`,
 `validate_profile`. Four are thin over machinery that already exists, and that is the point
 rather than a shortcut — a tool surface whose tools each contain original logic is a second
 implementation of the product with its own bugs.

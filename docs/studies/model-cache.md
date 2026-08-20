@@ -32,7 +32,7 @@ saving comes from collapsing 3,474 calls to 21 *within* one build, not from reus
 it is a production win rather than a benchmark artifact.
 
 That is larger than presolve (`studies/presolve.md`), larger than the warm start, and larger than
-every level-1 lever in the T2 set. It was invisible to all of them because they compared *encodings*,
+every level-1 lever in the benchmark set. It was invisible to all of them because they compared *encodings*,
 and this was never an encoding question.
 
 ## The cache itself: correct, cheap, and useless where it was aimed
@@ -69,7 +69,7 @@ a deviation is counted on.
 Zero, and structurally so. **The event that triggers a replan is a change to the model's inputs**: an
 absence changes which pairs survive presolve, which changes the variables. A replan of a week is never
 the same model as the week. The one case where a cache pays — the same instance solved more than once
-— is not the replan path; it is T4's `what_if` sweep, replay, and retries.
+— is not the replan path; it is the `what_if` sweep, replay, and retries.
 
 So it ships **enabled**, on the grounds that a miss costs 0.6% and a hit saves 170×, not on the
 grounds that it helps replanning. `test_the_replan_path_does_not_hit` asserts the zero, so that if it

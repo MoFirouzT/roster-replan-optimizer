@@ -98,7 +98,7 @@ class ScenarioParams:
     employees who **hold** the scarce skill, so a larger number means a less scarce
     skill. A knob whose direction has to be remembered is a knob that gets set wrongly.
 
-    Student contracts are absent on purpose. `R-STUDENT-QUOTA` is a profile-gated T2 rule
+    Student contracts are absent on purpose. `R-STUDENT-QUOTA` is a profile-gated rule
     and is not yet encoded, so a student share would move no constraint -- a knob that
     does nothing makes the instance distribution look richer than it is.
     """

@@ -97,7 +97,7 @@ def test_a_timeout_is_never_reported_as_an_infeasibility(scenario):
 
     `solve` used to return an empty `list[Gate]` on a timeout, which is type-identical to
     "proved infeasible with an empty core". A caller could not tell a proof from a
-    stopwatch, and T4's explainer is specified to turn a core into prose.
+    stopwatch, and the explainer is specified to turn a core into prose.
     """
     from roster_replan.model import Unproven, solve
 

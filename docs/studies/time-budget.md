@@ -1,7 +1,7 @@
 # Solution quality against the time budget
 
 **Question.** What does the answer cost if the solver is given 1 s, 5 s or 30 s?
-The T3 fallback ladder exists to time-box a solve and report its gap, so the anytime curve is the thing that would justify it.
+The fallback ladder exists to time-box a solve and report its gap, so the anytime curve is the thing that would justify it.
 
 **Answer.** **There is no curve to draw.**
 All **2,268 solver runs** across the three budgets returned `OPTIMAL`, the longest search anywhere was **15.4 ms**, and no answer changed with the budget on any of the 756 (case, method, seed) triples ([`D-107`](../decisions.md#d-107)).

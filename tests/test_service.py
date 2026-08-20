@@ -1,4 +1,4 @@
-"""The T3 boundary: contracts, job lifecycle, fairness, telemetry.
+"""The service boundary: contracts, job lifecycle, fairness, telemetry.
 
 `service.md` wants this layer boring, and boring code still has three things worth testing
 that a code review does not settle.
@@ -363,7 +363,7 @@ def anyio_backend():
     return "asyncio"
 
 
-# --- The T4 tool surface -------------------------------------------------------------
+# --- The tool surface -------------------------------------------------------------
 
 
 @pytest.mark.anyio

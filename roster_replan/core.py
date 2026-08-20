@@ -1,6 +1,6 @@
 """Reducing a sufficient infeasibility core to a minimal one.
 
-`D-048` deferred this from T1 with a precise reason: CP-SAT's
+`D-048` deferred this with a precise reason: CP-SAT's
 `sufficient_assumptions_for_infeasibility` returns a set that *explains* the infeasibility
 with no guarantee it is the smallest, and the reduction is a loop of solves layered on top
 rather than a change to the model. This is that loop.

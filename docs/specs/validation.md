@@ -104,7 +104,7 @@ comparing objectives across relaxations or against enumeration is meaningless on
 ### Brute force lands in two stages ([`D-042`](../decisions.md#d-042))
 
 The gate in `PLAN.md` reads "solver objective equals enumerated optimum", which needs an objective — and
-the disruption metric is specified late in T1. As written the gate depended on an artifact scheduled
+the disruption metric was specified late. As written the gate depended on an artifact scheduled
 after it.
 
 Rather than pull the metric forward, the layer splits. **(a)** compares *feasible sets* and needs only
@@ -128,7 +128,7 @@ structures its instances contain.
 ### The instance set, and how its gaps were found
 
 Twenty-nine committed micro-instances in `tests/micro_instances.py` — Python constructors rather than a
-serialised format, because a schema and a loader are T2's problem ([`D-064`](../decisions.md#d-064)). Each exercises a *structure* rather
+serialised format, because a schema and a loader belong with the benchmark set ([`D-064`](../decisions.md#d-064)). Each exercises a *structure* rather
 than looking realistic, with `employees × open_shifts ≤ 10` so enumeration stays affordable. The bound is
 asserted rather than reviewed: an oversized instance would not fail, it would only make the suite slow,
 and a slow enumeration layer is one that eventually gets deleted instead of fixed.
@@ -178,7 +178,7 @@ small. Build it early.
 
 `model_violations(r)` needs the model to *report* rather than merely refuse. Fix all assignment
 variables to `r`, solve, and read which assumption literals appear in the infeasibility core — the same
-machinery the T4 explainer uses, which is the second reason the assumption literals in `rules.md` are
+machinery the explainer uses, which is the second reason the assumption literals in `rules.md` are
 not optional. A model that only answers `INFEASIBLE` can be differentially tested against a checker's
 feasibility bit and nothing more, and that comparison is the vacuous one.
 

@@ -2,9 +2,9 @@
 
     uv run python -m roster_replan.demo scenarios/saturday_sick_call.json
 
-T0's gate was *something solves, and the output is inspectable by eye*, and nothing since
-has been inspectable by eye — the suite asserts, the benchmarks tabulate, and the service
-returns JSON. This is the one place the whole stack is visible at once: a published week, a
+The first gate this project set itself was *something solves, and the output is inspectable
+by eye*, and nothing since has been — the suite asserts, the benchmarks tabulate, and the
+service returns JSON. This is the one place the whole stack is visible at once: a published week, a
 disruption, the repair, and why anything left short is left short.
 
 It takes a **payload file** rather than a scenario name, which keeps `roster_replan` free of

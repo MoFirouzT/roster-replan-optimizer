@@ -3,9 +3,9 @@
     uv run python -m benchmarks.foreign --fetch     # download once, verified
     uv run python -m benchmarks.foreign             # report what was imported
 
-`benchmarks.md` names the weak point of every number in this repo, and it has not moved
-since T2: **the incumbent is solved by the system under test.** A replan is measured against
-a roster this model would produce, which cannot show that it repairs what real planners
+`benchmarks.md` names the weak point of every number in this repo, and it has not moved: **the incumbent is
+solved by the system under test.** A replan is measured against a roster this model would
+produce, which cannot show that it repairs what real planners
 publish. `capture.md` was written to close that with a captured corpus, and is blocked on an
 authorization this project does not control.
 

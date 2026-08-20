@@ -1,6 +1,6 @@
 """The MILP formulation: a third reading, and the evidence behind `D-001`.
 
-`D-001` was owed from T1 until the comparison existed, because the alternative was to
+`D-001` was owed until the comparison existed, because the alternative was to
 invent a rationale nobody had. This module is the comparison's correctness half — a timing
 against a formulation that means something *else* is not a comparison, it is a coincidence.
 

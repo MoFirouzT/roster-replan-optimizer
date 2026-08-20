@@ -1,4 +1,4 @@
-"""T2 benchmark machinery: the seeded scenario generator and the committed set.
+"""Benchmark machinery: the seeded scenario generator and the committed set.
 
 Kept out of `roster_replan` deliberately. This is an *instance source*, not a reading of
 the specification, so the independence contracts in `pyproject.toml` do not reach it and

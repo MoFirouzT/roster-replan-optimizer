@@ -1,6 +1,6 @@
 """Generation mode: the cold-start case of replanning (`replan.md`, `D-109`).
 
-`PLAN.md` listed generation as a T5 item and `replan.md` answered it in advance — generation
+Generation was planned as a separate mode, and `replan.md` answered it in advance — generation
 is a replan from an empty incumbent, so there is no second formulation to build. That is a
 strong claim and it was never tested. This file tests it, and the three consequences the spec
 derives from it.

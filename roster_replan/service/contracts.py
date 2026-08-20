@@ -499,7 +499,7 @@ class ShortfallOut(Strict):
     """One under-staffed slot and why, on the wire.
 
     `summary` is rendered here rather than left to the caller so that every consumer — the
-    API, a log line, and T4's prose layer — reads the same sentence. `D-013` requires the
+    API, a log line, and the prose layer — reads the same sentence. `D-013` requires the
     LLM to phrase a finding it did not identify, and this is the finding.
     """
 

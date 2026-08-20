@@ -280,9 +280,9 @@ def _pin_past(built: Built, instance: Instance, incumbent: Roster) -> None:
 
 
 # --- R-REST-GAP -------------------------------------------------------------------
-# Pairwise <= 1 over the conflicting-pair set. At T1 sizes the pair set is small, and
+# Pairwise <= 1 over the conflicting-pair set. At these sizes the pair set is small, and
 # the encoding is transparently the object the spec describes. The interval/no-overlap
-# alternative is a T2 study, not a T1 decision.
+# alternative was left to be measured rather than assumed -- `studies/rest-gap-encoding.md`.
 
 
 def _conflicting_pairs(instance: Instance) -> list[tuple[tuple[int, int], tuple[int, int]]]:
@@ -342,7 +342,7 @@ def _rest_gap_boundary(built: Built, instance: Instance) -> None:
 def _rest_gap_intervals(built: Built, instance: Instance) -> None:
     """`R-REST-GAP` as one `add_no_overlap` per employee `[study only]`.
 
-    The alternative `rules.md` deferred to a T2 study: an optional interval per (employee,
+    The alternative `rules.md` deferred to a study: an optional interval per (employee,
     shift instance), inflated by `min_rest_hours`, so that a global propagator enforces
     what the pairwise encoding states one pair at a time. It should scale better as the
     horizon grows, because the conflicting-pair set grows quadratically in the slots.
@@ -511,7 +511,7 @@ def _max_daily(built: Built, instance: Instance) -> None:
 # Sliding-window sums over a reified worked-day indicator. Windows start at -p rather
 # than 0: an employee who worked the six days before Monday is out of days on Monday,
 # and windows beginning at 0 silently grant a fresh streak. The `regular` automaton is
-# the T2 alternative.
+# the alternative, measured in `studies/regular-constraint.md`.
 
 
 def _consec_days(built: Built, instance: Instance) -> None:
@@ -746,8 +746,8 @@ def _days_off(built: Built, instance: Instance) -> None:
 
 
 # --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------
-# The textbook encoding of a sequence rule, and `model.md` calls it a T2 study rather than
-# a T1 assumption precisely so it has to earn the swap. See `studies/regular-constraint.md`.
+# The textbook encoding of a sequence rule, and `model.md` calls it a study rather than
+# an assumption precisely so it has to earn the swap. See `studies/regular-constraint.md`.
 
 
 def _worked_indicators(built: Built, instance: Instance, employee: int) -> dict[int, object]:
@@ -910,10 +910,10 @@ class Solution:
     """`search_seconds` is CP-SAT's own wall time, and it is reported separately from
     whatever the caller measured around this function on purpose.
 
-    At T2 sizes a solve is milliseconds and building the model in Python is a comparable
+    At these instance sizes a solve is milliseconds and building the model in Python is a comparable
     number, so an end-to-end stopwatch is mostly measuring model construction -- which is
     identical for every method and would make four methods look equally fast for a reason
-    that has nothing to do with any of them. End-to-end latency is the number T3's service
+    that has nothing to do with any of them. End-to-end latency is the number the service
     owes a caller; this is the number that separates a search from another search.
     """
 
@@ -959,7 +959,7 @@ class Unproven:
     type-identical to "proved infeasible with an empty core", so a caller could not tell a
     proof from a timeout. Three things downstream turn that into a real failure: the
     fallback ladder would report a conflict that was never demonstrated, `methods.py` would
-    record a timeout as `INFEASIBLE` in a benchmark, and T4's explainer is specified to
+    record a timeout as `INFEASIBLE` in a benchmark, and the explainer is specified to
     turn a core into prose, so it would phrase an infeasibility nobody proved.
 
     Found by giving the ladder a 1 ms budget, which is the only reason it was ever seen:
@@ -983,28 +983,32 @@ def solve(
     """Solve, or say why not -- distinguishing a proof from a timeout.
 
     A list of `Gate`s means **proved infeasible**: those are the rule instances in
-    conflict, which is the shape the T4 explainer consumes. An `Unproven` means the search
+    conflict, which is the shape the explainer consumes. An `Unproven` means the search
     ran out of budget with nothing to show, which is not the same claim and must not be
     reported as one.
 
     **Sufficient, not minimal.** CP-SAT's `sufficient_assumptions_for_infeasibility`
     returns a set that explains the infeasibility, and does not guarantee it is the
-    smallest such set. `PLAN.md` describes T4's explainer as consuming a *minimal* core,
+    smallest such set. The explainer is specified against a *minimal* core,
     which needs iterative deletion on top of this -- solve, drop a gate, re-solve, keep
     what remains necessary. That reduction belongs with the explainer rather than here,
     but the gap is real and should not be discovered then.
 
     `hint` is the warm start of `replan.md`, and it is a **separate argument from
     `instance.incumbent` on purpose**. The two are the same roster in the shipped replan,
-    and keeping them one parameter would have made the T2 measurement impossible to
+    and keeping them one parameter would have made the benchmark's central measurement impossible to
     state: the disruption objective and the hint are two independent reasons a replan
     beats a cold solve, and a benchmark that cannot solve with the objective and without
     the hint is measuring their sum.
 
-    `built` accepts an already-constructed model, which is how `compiled.ModelCache` avoids
-    rebuilding one. It must have been built from **this** instance: nothing here checks and
-    nothing here could, so the cache's fingerprint is what makes reuse safe. A model built
-    from a different payload would solve the wrong problem and return it as an answer.
+    `built` accepts an already-constructed model, so a caller measuring build against search
+    can pay for the build once. It must have been built from **this** instance: nothing here
+    checks and nothing here could, and a model built from a different payload solves the
+    wrong problem and returns it as an answer.
+
+    That is why the caller owns the reuse and no module memoises one. A cache tried it, and
+    its key silently stopped covering every rule the model was built from (`D-149`). Today the
+    only callers are in `benchmarks/`, where the instance is in scope on the line above.
     """
     built = build(instance) if built is None else built
     model = built.model
@@ -1114,11 +1118,12 @@ def _canonicalise(
     caller keeps phase one's answer, which is still a proved optimum and simply not the
     canonical one.
 
-    **The pin is added and then taken back off**, which matters because `compiled.py`
-    caches built models and CP-SAT has no way to remove a constraint. `reset` can clear
-    hints and assumptions before reuse; it could not clear this, so a cached model would
-    carry one request's optimal value into the next request's solve and answer a question
-    nobody asked. Snapshotting the proto is the only removal CP-SAT offers, and it restores
+    **The pin is added and then taken back off**, because CP-SAT has no way to remove a
+    constraint and a caller may hand the same model to a second solve through `built`.
+    Leaving the pin on would carry one request's optimal value into the next request and
+    answer a question nobody asked. That mattered most to the model cache `D-149` deleted,
+    and it still matters to `benchmarks/` which passes `built` directly.
+    Snapshotting the proto is the only removal CP-SAT offers, and it restores
     the objective at the same time, so the model is handed back exactly as phase one left
     it.
 

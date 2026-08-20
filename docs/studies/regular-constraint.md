@@ -1,7 +1,7 @@
 # The `regular` automaton against sliding windows
 
-**Question.** [`model.md`](../specs/model.md#the-regular-automaton) makes this a T2 study rather than
-a T1 assumption on purpose: the automaton is the textbook encoding for a sequence rule, and the spec
+**Question.** [`model.md`](../specs/model.md#the-regular-automaton) makes this a study rather than
+an assumption on purpose: the automaton is the textbook encoding for a sequence rule, and the spec
 wanted it to confirm the win rather than take it on faith.
 
 **Answer.** It loses. `R-CONSEC-DAYS` as an automaton is **19% slower to search on 28 of 28 cases**,
@@ -48,7 +48,7 @@ breached the limit — the same coordinate `checker.py` reports. That matters be
   key. An automaton gate with no day would not match its counterpart, so the differential harness
   would need an exception carved into it — and an exception in the harness that proves the two
   readings agree is a bad thing to trade for 20% of 3 ms in the wrong direction.
-- T4's explainer turns cores into rule IDs *and coordinates*. "Employee 7's week violates
+- The explainer turns cores into rule IDs *and coordinates*. "Employee 7's week violates
   R-CONSEC-DAYS" is a worse explanation than "employee 7 would work a seventh consecutive day on
   Saturday".
 

@@ -94,7 +94,7 @@ class Answer:
     violations: tuple[tuple, ...] = ()
 
     # The conflicting rule instances, when the exact rung proved infeasibility. This is
-    # what T4's explainer consumes, and it is kept even when a lower rung then answered:
+    # what the explainer consumes, and it is kept even when a lower rung then answered:
     # the fallback says what to do now, the core says what is actually wrong.
     core: tuple[Gate, ...] = ()
 
@@ -122,20 +122,18 @@ def answer(
     seed: int = 7,
     budget_seconds: float = 30.0,
     workers: int = 1,
-    built=None,
 ) -> Answer:
     """Solve, and fall back rather than fail. Never raises for an unsolvable instance.
 
-    `built` is an optional pre-built model from `compiled.ModelCache`. The ladder does not
-    own the cache and does not create one: caching policy is a deployment concern, and a
-    module that silently memoised across calls would make a solver that is supposed to be
-    replayable depend on what it was asked before.
+    Nothing is memoised across calls (`D-149`). A module that quietly reused a model would
+    make a solver that is supposed to be replayable depend on what it was asked before, and
+    the cache that used to be passed in here is gone.
     """
     started = time.perf_counter()
     attempts: list[str] = []
 
     outcome = solve(
-        instance, seed=seed, time_limit=budget_seconds, workers=workers, built=built
+        instance, seed=seed, time_limit=budget_seconds, workers=workers
     )
 
     if isinstance(outcome, Solution):

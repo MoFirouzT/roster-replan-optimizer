@@ -1,6 +1,6 @@
-"""The four methods T2 compares, and the one yardstick all four are scored on.
+"""The four methods compared, and the one yardstick all four are scored on.
 
-`PLAN.md` names them: cold cost-objective re-solve, greedy nearest-eligible repair, cold
+They are: cold cost-objective re-solve, greedy nearest-eligible repair, cold
 disruption-objective solve, warm-started replan. Each isolates one thing.
 
 | Method | Objective it optimises | Hint |
@@ -82,7 +82,7 @@ class Outcome:
 
     `seconds` is end-to-end -- building the model in Python and then searching.
     `search_seconds` is CP-SAT's own wall time. Both are reported because they answer
-    different questions and, at T2 sizes, they are the same order of magnitude: an
+    different questions and, at these instance sizes, they are the same order of magnitude: an
     end-to-end number alone would say the four methods are equally fast, which is true
     and is a fact about the model builder rather than about any method. Greedy has no
     search, so its `search_seconds` is zero and its end-to-end number is the whole story.

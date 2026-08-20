@@ -1,6 +1,6 @@
 # CP-SAT against MILP
 
-**Question.** [`D-001`](../decisions.md#d-001) — *CP-SAT over MILP* — was the one T1 record still owed, and
+**Question.** [`D-001`](../decisions.md#d-001) — *CP-SAT over MILP* — was the last record still owed, and
 [`decisions.md`](../decisions.md) said why it stayed owed: no spec argued it, so it could not be
 written without inventing a rationale nobody had. This is the comparison that was needed instead.
 
@@ -44,7 +44,7 @@ model construction moves more.
 Three capabilities, each already load-bearing:
 
 **Assumption literals, and therefore infeasibility cores.** CP-SAT returns the rule instances in
-conflict when a solve fails ([`D-048`](../decisions.md#d-048)), which is exactly what T4's explainer consumes and what [`D-013`](../decisions.md#d-013)
+conflict when a solve fails ([`D-048`](../decisions.md#d-048)), which is exactly what the explainer consumes and what [`D-013`](../decisions.md#d-013)
 insists must come from the solver rather than from an LLM. MILP has no assumption mechanism; an IIS is
 a different object with different guarantees and is not exposed through `pywraplp` at all.
 

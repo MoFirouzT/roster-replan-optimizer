@@ -1,6 +1,6 @@
 # Replanning a roster this project did not produce
 
-**Question.** [`benchmarks.md`](../benchmarks.md) has carried the same caveat since T2, and
+**Question.** [`benchmarks.md`](../benchmarks.md) has carried the same caveat from the start, and
 [`finish.md`](../finish.md) calls it the largest single gap in the evidence:
 
 > **The incumbent is solved by the system under test.** Every benchmark number here shows that a

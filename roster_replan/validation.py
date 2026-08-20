@@ -7,8 +7,8 @@ planner reads a violation, so the two never share a result list.
 
 `R-MIN-SHIFT` lives here in full: with fixed shift instances no reachable roster can
 contain a work period the catalogue does not already contain, so a too-short shift is a
-profile defect. It becomes a real constraint in T5 generation mode, where shift
-boundaries become decision variables.
+profile defect. It becomes a real constraint if shift boundaries ever become decision
+variables rather than data.
 
 This module may hold statutory baselines -- it is not one of the two independent
 readings, so `rules.md`'s no-shared-thresholds discipline does not reach it. The model

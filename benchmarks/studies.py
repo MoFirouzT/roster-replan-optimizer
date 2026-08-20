@@ -289,7 +289,7 @@ def pattern_study() -> None:
 def rest_gap_study() -> None:
     """Pairwise inequalities against one `add_no_overlap` per employee.
 
-    `rules.md` deferred this to a T2 study and said "measured there, not assumed here",
+    `rules.md` deferred this to a study and said "measured there, not assumed here",
     which is a promise the repo had not kept. The pairwise set grows quadratically in the
     slots, so the interval form should win as the horizon grows -- and the horizon here is
     one week, which is exactly the regime where the naive form is cheapest.
@@ -315,7 +315,7 @@ def coverage_study() -> None:
     """How often a hard coverage floor would answer "infeasible" instead of answering.
 
     The evidence `D-008` needs. `R-COVER` ships as a hard ceiling and a soft floor, and
-    `D-018` argued that from first principles at T1 -- a disruption often has no legal
+    `D-018` argued that from first principles -- a disruption often has no legal
     repair, and *one short on Saturday, here is what it costs* is what a planner can act
     on. That argument is sound and was never measured. This measures it: force every
     non-historical shortfall to zero and count how many of the committed cases stop having

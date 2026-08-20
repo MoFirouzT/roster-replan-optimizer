@@ -1,6 +1,6 @@
 """Stage 1 of `config.md`: a policy described in English, turned into a candidate profile.
 
-The only part of this project that needs a language model, and the last piece of T4. Every
+The only part of this project that needs a language model. Every
 stage downstream of it — structural validation, contradiction and subsumption checks, the
 feasibility probe — is deterministic and already built (`D-099`), so this module produces a
 candidate and hands it straight to machinery that can refuse it.

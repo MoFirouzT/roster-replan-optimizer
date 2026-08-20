@@ -2,7 +2,7 @@
 
     uv run python -m benchmarks.milp
 
-`D-001` — *CP-SAT over MILP* — has been the one T1 record owed since T1, and `decisions.md`
+`D-001` — *CP-SAT over MILP* — was the last record still owed, and `decisions.md`
 says why it stayed owed: no spec argues it, so it could not be written without inventing a
 rationale nobody had. The alternative to inventing one is to run the comparison, which is
 what every other *this encoding against that one* question in this project got.

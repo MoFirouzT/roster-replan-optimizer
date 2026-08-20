@@ -30,7 +30,7 @@ Beside that, the hint does not show up end to end at all.
 This is why the README's framing is *the objective is what does the work*, not *warm-started replan*.
 The honest sentence was available only because the two effects were measured separately.
 
-**It has a consequence for work not done.** Learned warm starts — a T5 candidate — are chasing 9% of the smaller half of the latency budget, at these sizes.
+**It has a consequence for work not done.** Learned warm starts — a candidate that was never built — are chasing 9% of the smaller half of the latency budget, at these sizes.
 That is worth knowing before building them, and it is part of why that item was retired on measurements already taken ([`D-104`](../decisions.md#d-104)).
 
 **What is unanswered.** Whether the hint matters where search dominates construction.

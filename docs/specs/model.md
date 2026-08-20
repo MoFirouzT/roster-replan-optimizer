@@ -2,13 +2,13 @@
 
 > **Status: reconciled with `model.py` and `domain.py`.** Index sets, decision variables, the gate
 > mechanism, presolve, symmetry and the payload schema describe what is built, and the four encoding
-> questions this file deferred to T2 are now measured rather than assumed — presolve ([`D-045`](../decisions.md#d-045)),
+> questions this file deferred to a study are now measured rather than assumed — presolve ([`D-045`](../decisions.md#d-045)),
 > symmetry ([`D-087`](../decisions.md#d-087)), the `regular` automaton ([`D-088`](../decisions.md#d-088)) and pattern variables ([`D-009`](../decisions.md#d-009)), each with a
 > study in [`docs/studies/`](../studies/README.md). Presolve was confirmed; the other three
 > alternatives lost, two of them to this file's own stated suspicions.
 >
-> Still outline: the wire format (JSON, versioning, the Pydantic boundary — all T3), and the forecast
-> interface, which is interface-only by design.
+> Still outline: the wire format (JSON, versioning, the Pydantic boundary — all owned by the service),
+> and the forecast interface, which is interface-only by design.
 
 The CP-SAT formulation. Rule semantics live in [`rules.md`](rules.md); this file defines the index
 sets, variables and encodings those rules are expressed over.
@@ -87,7 +87,7 @@ Every time quantity — shift bounds, `now`, `published_through`, interval endpo
 counting hours from the start of the horizon. Values before the horizon are negative, which is what
 makes `last_shift_end_before_horizon[e]` an ordinary number rather than a special case.
 
-Calendar timestamps belong at the API boundary in T3. The rules are arithmetic, and keeping them off
+Calendar timestamps belong at the API boundary. The rules are arithmetic, and keeping them off
 the calendar keeps them testable without one: no timezone, no DST discontinuity, and a micro-instance
 that reads as `Interval(6.0, 12.0)` rather than as a date.
 
@@ -217,7 +217,7 @@ separate things depend on it:
 overstaffed roster can be reported instead of silently rejected ([`D-043`](../decisions.md#d-043)).
 
 **Sufficient, not minimal** ([`D-048`](../decisions.md#d-048)). CP-SAT returns a set of assumptions that explains the infeasibility, with
-no guarantee it is the smallest. T4's explainer is specified against a *minimal* core, which needs
+no guarantee it is the smallest. The explainer is specified against a *minimal* core, which needs
 iterative deletion on top — solve, drop a gate, re-solve, keep what stays necessary. That reduction
 belongs with the explainer; the gap is recorded here so it is not discovered there.
 
@@ -225,7 +225,7 @@ belongs with the explainer; the gap is recorded here so it is not discovered the
 
 `R-CONSEC-DAYS` and `R-WEEKLY-REST` are both sequence rules, and both currently use the naive encoding —
 sliding-window sums and candidate windows respectively. The automaton expresses both in one propagator
-and is the textbook choice, which is exactly why it is a **T2 study rather than a T1 assumption**: at a
+and is the textbook choice, which is exactly why it is a **study rather than an assumption**: at a
 seven-day horizon the window count is trivially small, and the study should confirm the automaton wins
 rather than take it on faith.
 

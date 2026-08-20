@@ -1,8 +1,8 @@
 """The pattern/column formulation, built so `D-009` can be closed with a measurement.
 
 `model.md` lists pattern variables as "dramatically stronger formulations, evaluated as a
-T2 study at these instance sizes", and `D-009` has been open since T1. This module is the
-second formulation, and it is a genuine one rather than a sketch: it enumerates every legal
+study at these instance sizes", and `D-009` had been open since the model was first written.
+This module is the second formulation, and it is a genuine one rather than a sketch: it enumerates every legal
 weekly pattern per employee, selects one per employee, and reaches the same optimum as the
 assignment model.
 

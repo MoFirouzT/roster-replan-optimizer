@@ -188,7 +188,7 @@ solver seeds on the same case, its disruption moves by a median of 100 points an
 52 of the 84 cases. The disruption methods move by **zero**, on every case, at every seed. [`D-080`](decisions.md#d-080)
 predicted exactly this from the structure — flat cost, hard coverage ceiling, so every fully
 staffed roster costs the same and CP-SAT returns whichever it reaches first — which is why a single
-seed's number would have been an accident reported as a result. It is also a T3 result in advance:
+seed's number would have been an accident reported as a result. It is also a result the service depends on:
 the shipped objective is reproducible across seeds without being asked to be.
 
 **Greedy ties the optimum on 71 of 84 cases** ([`D-083`](decisions.md#d-083), [`D-105`](decisions.md#d-105)). Wherever it matched the optimal
@@ -285,11 +285,11 @@ to trade for time.
 
 That is a result about the instance distribution, not the solver — stated rather than shown as
 three identical bars. A one-week horizon over 8–25 employees and 21 shift instances is small for
-CP-SAT. The T3 fallback ladder — exact, then time-boxed with a reported gap, then greedy — is
+CP-SAT. The fallback ladder — exact, then time-boxed with a reported gap, then greedy — is
 designed for a regime this set does not reach, and honestly, its time-boxed rung is currently
 unexercised by any committed benchmark. What the numbers here do support is the opposite
 scheduling concern: at 3 ms of search against 5 ms of model construction, the thing worth caching
-is the compiled model, which is what T3 already plans.
+is the compiled model, which is what T3 tried and [`D-149`](decisions.md#d-149) then removed — it hit nothing, and its key went stale.
 
 ## Reproduction
 

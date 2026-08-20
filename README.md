@@ -16,11 +16,28 @@ Nothing comes back unexplained or unchecked.
 Every roster is re-verified against every rule by a plain function with no solver involved, a short shift names the rule that blocked each person who could have filled it, and a policy written in plain English is accepted or rejected before it can produce a roster.
 
 The reasoning is on the record too:
-every design choice that could have gone the other way is a numbered decision, and the ones that turned on evidence are written up as studies;
+every design choice that could have gone the other way is a [numbered decision](docs/decisions.md), and the ones that turned on evidence are written up as [studies](docs/studies/README.md);
 including the several that overturned what the specs first claimed.
 
 > Generation is not a separate feature.
 > It is the cold-start case of replanning; a replan from an empty roster.
+
+---
+
+## The difference, on one week
+
+![One week of a 12-person roster, drawn twice. A cold cost re-solve moves six assignments; the minimum-disruption replan moves two.](docs/saturday-sick-call.svg)
+
+E05 calls in sick for Sunday evening. Both rosters below are legal, both staff every shift, and
+both are optimal for the objective they were given.
+
+The replan drops E05 and calls E04 in — the absence, and its replacement. The cold re-solve also
+moves **E01, E07 and E08**, three people whose shifts were never in question, because nothing in a
+cost objective prefers the roster they were already told about.
+
+That is one case (`headline/1`, from the committed set) and not the set: across 72 cases the means
+are 12.4 assignments moved against 2.4. Regenerate it with
+`uv run python -m benchmarks.figure --write`.
 
 ---
 
@@ -29,27 +46,35 @@ including the several that overturned what the specs first claimed.
 - **Replan:**
   repair a roster around absences, demand changes and late availability withdrawals, minimising weighted deviation from what people were already told.
   With no incumbent supplied, the same solve fills a planner's open shifts from scratch (a.k.a generation).
+  [`specs/replan.md`](docs/specs/replan.md)
 - **Verify every roster against the rules:**
   every returned solution is re-checked against every rule by a plain function with no solver involved.
-  Solutions that fail the checker are never returned.
+  Nothing is returned unchecked, and a roster that still breaks a rule says which one.
+  That matters most on the two fallback rungs no solver stands behind: a greedy repair, and the last known good roster.
+  [`specs/validation.md`](docs/specs/validation.md)
 - **Explain a short shift:**
   name the rule that blocked every person who could have filled it, in planner language:
   *e.g. 6 of the 12 staff do not hold a skill the shift requires.*
   This is a common case as with a soft coverage floor a shift comes back **priced** rather than refused.
   Where a single override would close the shift, say which, ranked by what it would cost, confirmed by re-solving rather than assumed from the blocker count.
+  [`specs/service.md`](docs/specs/service.md#shortfall-recommendations)
 - **Explain infeasibility:**
   in the rare case where no legal roster exists, return the *minimal* set of blocking rules with the day, shift and employee involved.
+  [`specs/model.md`](docs/specs/model.md)
 - **Answer a hypothetical:**
   *what if I hire one more flexi-jobber?*
   Re-solve under the change and report the difference.
   Unlawful hypotheticals are refused rather than answered.
+  [`specs/service.md`](docs/specs/service.md#tool-surface)
 - **Validate a policy before it can produce a roster:**
   structural checks, contradictions between a tenant's own rules, rules that cannot bind, and a feasibility probe.
+  [`specs/config.md`](docs/specs/config.md)
 - **Configure in natural language:**
   describe a tenant's policy in plain English;
   the parse emits a typed profile, which the validation bullet above then accepts or rejects.
   The model is confined by a **narrow schema rather than by instruction**:
   it has nowhere to write an objective weight or to switch on a rule the solver does not enforce.
+  [`specs/config.md`](docs/specs/config.md)
 
 > Belgian labour law is encoded as **data, not code**:
 > rest gaps, weekly hour ceilings, flexi-job eligibility, same-day Dimona filing, student quotas, horeca minimum shift length.

@@ -23,8 +23,8 @@ from .domain import Disruption, Instance, Roster
 class Score:
     """The objective, broken into the terms `replan.md` distinguishes.
 
-    Reported separately rather than only as a total, because the T2 frontier needs both
-    axes and a single number cannot be placed on a chart.
+    Reported separately rather than only as a total, because the coverage/disruption
+    frontier needs both axes and a single number cannot be placed on a chart.
     """
 
     disruption: int
@@ -234,7 +234,7 @@ def _cost(roster: Roster, instance: Instance, params: Disruption) -> int:
 
 def _peak(roster: Roster, instance: Instance, params: Disruption) -> int:
     """Tie-breaker for cold solves, where cost is indifferent to *who* works. Not a
-    fairness model -- those are T5."""
+    fairness model -- that is `fairness_of` above."""
     if instance.incumbent is not None or not roster:
         return 0
     counts: dict[int, int] = defaultdict(int)

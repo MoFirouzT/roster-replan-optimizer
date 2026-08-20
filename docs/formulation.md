@@ -130,6 +130,11 @@ Build time dominates search at this size, which is why the performance work went
 The ceiling is known rather than guessed ([`D-127`](decisions.md#d-127)): the largest foreign instance tried reaches about 8M variables and 527 s of **model construction**, and returns no roster.
 The first genuinely hard searches this project has seen came from the same import — 7.71 s to prove optimality, against a committed-set maximum of 15.4 ms.
 
+**That ceiling is a property of this implementation, not of the formulation** ([`D-147`](decisions.md#d-147)).
+The 527 s is a Python loop emitting constraints one at a time; the same model handed to the same solver by a faster builder would start searching sooner, and nothing in the encoding above requires it to be slow.
+So *where it stops* means where this code stops, and the number is quoted that way throughout — it bounds what the service can answer today, and says nothing about whether the model is the right one at that size.
+Whether batching the construction moves it has not been measured, which is why the claim here is scoped rather than hopeful.
+
 ## Where to go next
 
 - **Is it legal?** [`specs/rules.md`](specs/rules.md) — the registry, then the rule.

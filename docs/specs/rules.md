@@ -6,15 +6,6 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 
 `model.md` and `validation.md` reference IDs from this file and do not restate rule semantics.
 
-> **Status: T1 set complete.** Specified below: the operational rules `R-COVER`, `R-AVAIL`, `R-SKILL`,
-> `R-SKILL-MIX`, `R-PIN-PAST`; the structural legal rules `R-MIN-SHIFT`, `R-REST-GAP`, `R-MAX-WEEKLY`,
-> `R-MAX-DAILY`, `R-CONSEC-DAYS`, `R-WEEKLY-REST`; and the eligibility gates `R-FLEXI-ELIG`,
-> `R-DIMONA-FLX`.
->
-> Still outline: the five profile-gated T2 rules. Each needs exact predicate, parameters and their
-> per-tenant configurability, hard/soft classification, provenance, and the failure message the
-> explainer renders.
-
 ## Classification
 
 - **Structural hard:** encoded as constraints. Infeasibility is a legitimate answer.
@@ -52,16 +43,17 @@ Every rule has a stable ID used identically in this spec, the CP-SAT model, the 
 | `R-PT-MIN` | Part-time minimum shift length and weekly hours | hard, optional | hours | Arbeidswet art. 21; Wet 3 July 1978 art. 11bis ([`D-145`](../decisions.md#d-145)) |
 | `R-PUB-NOTICE` | Variable-schedule publication notice | soft, optional | days | Wet 8 April 1965 art. 6 §1, 1°, third para., d) ([`D-145`](../decisions.md#d-145)) |
 
-`R-MAX-DAILY`, `R-CONSEC-DAYS` and `R-WEEKLY-REST` land in T1 — they are structural, cheap, and
-belong in the checker before it is written rather than bolted on after.
-The five rules marked *optional* are profile-gated and land in T2;
-a tenant that does not enable them never pays for them.
+An ID that links to a section below is specified there. The five that do not — `R-STUDENT-QUOTA`,
+`R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` — are declared and sourced but not yet specified;
+each still needs an exact predicate, its parameters and their per-tenant configurability, a
+hard/soft classification, and the failure message the explainer renders.
+Every rule marked *optional* is profile-gated: a tenant that does not enable it never pays for it.
 
-`[CITE]` — every legal rule needs a named source before T1 closes. A legality claim without
+`[CITE]` — every legal rule needs a named source. A legality claim without
 provenance is a guess, and the checker is the component whose whole value is that it is not one.
 
-**Every rule that names a statute now names one** ([`D-145`](../decisions.md#d-145)). The five profile-gated T2 rules are sourced
-above, and so are the three items that were open inside T1 rules. Two of those searches came back
+**Every rule that names a statute now names one** ([`D-145`](../decisions.md#d-145)). The five unspecified rules are sourced
+above, and so are the three items that were open inside the specified ones. Two of those searches came back
 negative, and the negative is the finding: there is **no 24-hour Dimona deadline** and **no horeca
 3h48 minimum**. Both are recorded where the rule that would have carried them lives.
 
@@ -70,9 +62,9 @@ tenant, so there is no one instrument to name — a first-aider requirement and 
 requirement come from different places, and which applies is a fact about the tenant. That marker is
 a property of the rule's shape rather than work left undone.
 
-A citation is not the same as an encoded rule. The five T2 rules stay outlines — each still needs a
-predicate, parameters, a hard/soft classification and a failure message before it can be built, and
-`tests/test_specs.py` holds them to *optional* until then.
+A citation is not the same as an encoded rule. Those five stay outlines until each has a predicate,
+parameters, a hard/soft classification and a failure message, and `tests/test_specs.py` holds them to
+*optional* until then.
 
 ### What the sources say, for rules not yet encoded
 
@@ -178,7 +170,7 @@ Classification is not a preference. It is settled by one question:
 Hard does not mean unrelaxable. Every hard constraint instance is gated on an assumption literal, so
 a failed solve yields a minimal core over rule instances rather than a bare `INFEASIBLE`. Relaxation
 is therefore explicit, per-instance and reportable — never hidden inside a weight. This is the same
-machinery the T4 explainer and the *monotone objective under relaxation* property test both need.
+machinery the explainer and the *monotone objective under relaxation* property test both need.
 
 Two failure modes this avoids, recorded because both are tempting:
 
@@ -212,7 +204,7 @@ These rules carry no legal provenance, which is why they were specified first: n
 on a `[CITE]`. The one exception is a `R-SKILL-MIX` entry that declares itself legal, which carries its
 own. Symbols are defined in [`model.md`](model.md#index-sets-and-notation).
 
-The T0 walking skeleton is superseded by these sections, not extended by them. It had no `R-SKILL`
+The walking skeleton is superseded by these sections, not extended by them. It had no `R-SKILL`
 and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is interval-granular.
 
 <a id="rule-r-cover"></a>
@@ -228,7 +220,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 
   Feasibility requires `Σ_e x[e, d, s] ≤ req[d, s]`. Each unit of `u[d, s]` is priced in the
   objective.
-- **Class.** Split — **hard ceiling, soft floor** ([`D-018`](../decisions.md#d-018)), ratified under [`D-008`](../decisions.md#d-008) in T2 with the
+- **Class.** Split — **hard ceiling, soft floor** ([`D-018`](../decisions.md#d-018)), ratified under [`D-008`](../decisions.md#d-008) with the
   measurement that record argued from: forcing every non-historical shortfall to zero leaves **16 of
   the 72 committed cases with no answer at all**, and eight of those were weeks that could have been
   fully staffed before the disruption arrived.
@@ -239,8 +231,8 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   unconstrained case the optimum still lands exactly on `req[d, s]`, so the equality behaviour of the
   walking skeleton is preserved rather than abandoned.
 - **Parameters.** `req[d, s]`, integer ≥ 0, per shift instance, caller-supplied. The shortfall weight
-  lives in `replan.md` and must dominate every other soft term. Overstaffing is rejected outright in
-  T1; an `allow_overstaffing` tenant flag is deferred to the T2 profile schema.
+  lives in `replan.md` and must dominate every other soft term. Overstaffing is rejected outright; an
+  `allow_overstaffing` tenant flag is not in the profile schema.
 - **Model encoding.** One equality per shift instance with an explicit slack variable
   `u[d, s] ∈ [0, req[d, s]]`, rather than two inequalities. The equality gives CP-SAT the tighter
   linear relaxation, and `u` is directly the coordinate the explainer reports — no reconstruction
@@ -258,7 +250,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 > infeasibility is narrow: an incumbent whose past already breaks a rule (`R-PIN-PAST`), and a parameter
 > that cannot be satisfied by any roster at all, such as a weekly rest window wider than the horizon.
 >
-> This is the intended product behaviour, and it re-scopes T4. The explainer's ordinary job is
+> This is the intended product behaviour, and it is what the explainer is scoped around. Its ordinary job is
 > explaining **shortfalls and their cost**, not explaining infeasibility; infeasibility is the rare case
 > and both of its causes are structural rather than combinatorial. An explainer built for the rare case
 > first would be built for the wrong one.
@@ -275,13 +267,13 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   [start(d, s), end(d, s)) ∩ blocked[e] ≠ ∅   ⟹   x[e, d, s] = 0
   ```
 
-  **Interval intersection, not day equality.** This is the substantive correction to the T0 walking
+  **Interval intersection, not day equality.** This is the substantive correction to the walking
   skeleton, which blocked an employee for a whole day. A shift crossing midnight belongs partly to the
   next day, and an unavailability of `Sat 09:00–12:00` must not block `Sat Evening`.
 - **Class.** Hard, and split by provenance ([`D-019`](../decisions.md#d-019), [`D-020`](../decisions.md#d-020)):
   - `absences[e]` — hard, **never relaxable**. Sickness is a fact about the world.
-  - `unavailability[e]` — hard in T1, tenant-configurable to soft in T2, since some operations do
-    assign over a stated preference.
+  - `unavailability[e]` — hard. Specified as tenant-configurable to soft, since some operations do
+    assign over a stated preference; the profile schema does not carry that switch today.
 
   The distinction is invisible to the solved model and visible in what a human is shown, which is the
   point: a report that blames a declared preference is actionable, one that blames an illness is
@@ -292,7 +284,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   making the model infeasible. The gate is reachable only where a variable exists anyway: an
   incumbent pair under `R-PIN-PAST`. A core naming an absence therefore means *the past itself is
   illegal*, which is worth saying. The consequence is that the model's gate descriptor does not yet
-  distinguish the two provenances; carrying it there is a **T4 explainer obligation**, recorded in
+  distinguish the two provenances; carrying it there is an **explainer obligation**, recorded in
   [`D-020`](../decisions.md#d-020).
 - **Parameters.** `absences[e]` and `unavailability[e]`, sets of half-open intervals, both
   caller-supplied. No defaults — an absent key means the empty set, and never means "unknown".
@@ -378,7 +370,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
   shortfall.
 - **Explainer text.** `Sat 15:00–23:00 (Evening) has 3 of 3 staff but no first-aider; 1 required.`
 - **Provenance.** Operational by default; per-entry legal provenance where an entry is declared hard.
-  Sector-specific minimum-qualification rules are `[CITE]` and land with the T2 profile schema.
+  Sector-specific minimum-qualification rules are `[CITE]` and land with the profile schema.
 
 <a id="rule-r-pin-past"></a>
 ### `R-PIN-PAST` — the immutable past
@@ -412,8 +404,8 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 - **Model encoding.** Equalities carrying assumption literals, not constant substitution ([`D-021`](../decisions.md#d-021)). Substituting
   constants at build time is cheaper and makes *pinning is not exemption* automatic, but it destroys
   the explainer's ability to name the past as the source of a conflict. CP-SAT's presolve folds these
-  equalities well, so the cost is expected to be small — **measured, not assumed, in the T2 presolve
-  study.**
+  equalities well, so the cost is expected to be small — **measured, not assumed, in the [presolve
+  study](../studies/presolve.md).**
 - **Why that matters.** Because pins are equalities, an incumbent that already violates a rule makes
   the entire solve infeasible with no repair available. This is a real production scenario: rules
   changed, or the roster was hand-edited. The assumption literals let the service distinguish **"the
@@ -428,7 +420,7 @@ and no `R-PIN-PAST`, and its `R-AVAIL` was day-granular where this spec is inter
 
 ## Structural legal rules
 
-The five rules T1 encodes from labour law. Every one is **hard** — a roster that breaks one is not a
+The rules encoded from labour law. Every one is **hard** — a roster that breaks one is not a
 worse roster, it is an unlawful one, and "cheaply illegal" is not a state this service may return.
 Each carries an assumption literal anyway, so a failed solve names the conflicting rule instances
 instead of returning a bare `INFEASIBLE`; the literal is a diagnostic channel, not permission to relax.
@@ -480,8 +472,8 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 
   Gross span, not net — a work period interrupted by a coffee break is still one period. Checked once at
   profile load and on every profile change, not per solve.
-- **Class.** Input validation. **Becomes structural in T5 generation mode**, where shift boundaries
-  become decision variables rather than data — at which point it needs a real encoding and a checker
+- **Class.** Input validation. **Becomes structural if shift boundaries ever become decision
+  variables rather than data** — at which point it needs a real encoding and a checker
   entry. Recorded here so that transition is a known cost rather than a discovery.
 - **Parameters.** `min_period_hours`, default **3** (art. 21). Horeca derogation to **2**, available
   only under two cumulative conditions: a motivated notification to the chair of the joint committee
@@ -540,7 +532,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 - **Parameters.** `min_rest_hours`, default **11**. A tenant may lower it only with a non-empty
   `derogation_basis` string, validated at profile load. There is no upward cap — a stricter tenant is
   always lawful.
-- **Model encoding.** Pairwise `≤ 1` over the conflicting-pair set, per employee. At T1 instance sizes
+- **Model encoding.** Pairwise `≤ 1` over the conflicting-pair set, per employee. At these instance sizes
   the pair set is small and the encoding is transparently the same object the checker walks, which is
   worth more here than tightness.
 
@@ -698,7 +690,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
 >
 > The rule stays in the registry, reclassified ([`D-023`](../decisions.md#d-023)): **operational and CBA-derived**, not statutory.
 > Planners want it, sectoral agreements impose it, and it is cheap. But the legality claim moves out.
-> Youth workers under 18 do have explicit statutory limits; they are out of scope for T1 and are not
+> Youth workers under 18 do have explicit statutory limits; they are out of scope here and are not
 > this rule.
 
 - **Statement.** An employee does not work more than `max_consecutive_days` days in a row.
@@ -790,7 +782,7 @@ fifteen minutes. Definitions live in [`model.md`](model.md#index-sets-and-notati
   hours to *either* Sunday rest (art. 11) or compensatory rest for Sunday work (art. 16); art. 17 gives
   shift workers a distinct form — 24 uninterrupted hours weekly with at least 18 of them falling on
   Sunday. This rule encodes only the 35-hour block, which is the part that binds regardless of which
-  limb applies. Sunday placement is `R-SUNDAY`, profile-gated, T2.
+  limb applies. Sunday placement is `R-SUNDAY`, profile-gated and not yet specified.
 - **Explainer text.** `Gita's longest rest this week is 27h; 35h uninterrupted is required.`
 - **Provenance.** Arbeidswet art. 38ter §3, reading with art. 11, art. 16 and art. 17.
 
@@ -1123,8 +1115,8 @@ on a computation this service does not perform.**
 
   Consequence: `dimona_ok[e, d]` is not static within a solve horizon. For a same-day replan the caller
   must distinguish *already filed* from *fileable in time*, and the second is a judgement about NSSO
-  turnaround the service cannot make. **T1 takes the conservative reading — only `OK` counts** ([`D-035`](../decisions.md#d-035)) — and the
-  optimistic reading is deferred with the T2 capture work, where replay against real incumbent decisions
+  turnaround the service cannot make. **The conservative reading is taken — only `OK` counts** ([`D-035`](../decisions.md#d-035)) — and the
+  optimistic reading is deferred with the [capture work](capture.md), specified and not built, where replay against real incumbent decisions
   can show whether it costs real repairs.
 
   **The filing deadline is settled, and the twenty-four-hour figure is not a rule** ([`D-145`](../decisions.md#d-145)). The NSSO
@@ -1140,7 +1132,7 @@ on a computation this service does not perform.**
   rather than law** and names no instrument itself; the statutory hook behind the Dimona obligation is
   not cited here because it was not confirmed.
 - **Parameters.** `dimona_ok[e, d]`, boolean, caller-supplied, mandatory for flexi contracts.
-  `filing_regime[e] ∈ {verbal, written}`, informational in T1 — it does not change the predicate, only
+  `filing_regime[e] ∈ {verbal, written}`, informational — it does not change the predicate, only
   the disruption weighting above.
 - **Model encoding.** Presolve elimination, folded into the same eligibility filter as `R-FLEXI-ELIG`.
   The two rules are separate IDs ([`D-034`](../decisions.md#d-034)) because they fail for different reasons and produce different operator

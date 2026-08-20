@@ -1,4 +1,4 @@
-"""Rolling balance of unpopular shifts — the T5 objective (`replan.md`, `D-108`).
+"""Rolling balance of unpopular shifts (`replan.md`, `D-108`).
 
 Three things are being tested and only one of them is arithmetic.
 

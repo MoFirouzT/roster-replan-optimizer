@@ -6,7 +6,7 @@ The objective. [`rules.md`](rules.md) owns what is *legal*; this file owns what 
 > [`studies/disruption-metrics.md`](../studies/disruption-metrics.md), and warm starting is measured
 > under [`D-082`](../decisions.md#d-082).
 >
-> **T2 closes without the wage data**, so the two remaining `[TODO]`s stand and their owner has moved:
+> **The project closes without the wage data**, so the two remaining `[TODO]`s stand and their owner has moved:
 > the cost model is still a flat rate, and the exchange rate is still uncalibrated. Neither can be
 > settled from first principles, and the corpus that would settle them is
 > [`capture.md`](capture.md)'s. `benchmarks.md` reports the consequence rather than working around it —
@@ -48,7 +48,7 @@ actually needs it. `published_through` is a special case of it, so the generalis
 
 ## The five definitions
 
-All five are defensible. They produce different rosters, and **that fact is the deliverable** — the T2
+All five are defensible. They produce different rosters, and **that fact is the deliverable** — the
 study exists to show it rather than to assert it.
 
 > **Measured** in [`studies/disruption-metrics.md`](../studies/disruption-metrics.md). They diverge on
@@ -60,7 +60,7 @@ study exists to show it rather than to assert it.
 > agree because the concentration penalty needs two events on one person, and median damage is one
 > assignment ([`D-086`](../decisions.md#d-086)).
 
-> **They only diverge where there is slack, and this constrains T2's generator.** On a tightly covered
+> **They only diverge where there is slack, and this constrains the instance generator.** On a tightly covered
 > instance there is exactly one legal repair, so every metric returns it and the choice of metric is
 > invisible. An instance generator that does not vary **coverage tightness** would therefore report "the
 > metrics agree" — as a property of the instances, not of the metrics. The generator's tightness
@@ -151,7 +151,7 @@ Default ordering **`W_callin > W_cancel > W_move`**: being newly called in impos
 expected shift next, having one moved within a day least.
 
 **That ordering is a hypothesis about human preference, not a measurement**, and it is the single most
-falsifiable claim in this file. T2's capture-and-replay work can test it directly: real planners
+falsifiable claim in this file. The capture-and-replay work can test it directly: real planners
 resolving real disruptions reveal which trade they actually make. If the corpus contradicts the
 ordering, the ordering changes and this paragraph becomes a `decisions.md` entry.
 
@@ -170,7 +170,8 @@ earliest notice rather than by the affected shift's.
 
 **`extend` is not in D3, and cannot be** ([`D-056`](../decisions.md#d-056)). The outline listed extending a shift as a change type; with
 fixed shift instances a shift's boundaries are data, so there is no roster the model can express in
-which one is extended. It becomes representable in T5's generation mode and is a change type only there.
+which one is extended. It becomes representable only if shift boundaries become decision variables, and is a change type
+only there.
 
 ### D4 — concentration
 
@@ -247,7 +248,7 @@ Default: **one published change at short notice ≈ two hours of overtime premiu
 can be argued with, which is the whole point of stating an exchange rate instead of tuning until the
 output looks reasonable.
 
-It is not a measurement. Calibrating it needs the T2 corpus — real planners choosing between paying
+It is not a measurement. Calibrating it needs the corpus — real planners choosing between paying
 overtime and moving someone reveal their own rate. `[TODO]` after capture.
 
 ### The cost model is a placeholder
@@ -256,13 +257,13 @@ overtime and moving someone reveal their own rate. `[TODO]` after capture.
 
 Deliberately thin. Overtime premiums, flexi-job rates — the horeca flexi wage cap is a real constraint
 on this — weekend and night differentials, and the difference between marginal and sunk labour cost all
-belong here and none are modelled. **`[TODO]` T2**, alongside the wage data that would make them
+belong here and none are modelled. **`[TODO]`**, alongside the wage data that would make them
 meaningful. Until then, cost differences between two rosters of equal hours are zero, which is honest
 but blunt, and the frontier's cost axis should be read as *paid hours* rather than as euros.
 
 **And `cost_weight` ships at `0`**, so the term is not merely blunt — it is switched off, and the
 shipped objective is pure disruption. That is the right default while the cost model is a placeholder:
-a weight on a number that cannot tell two equal-hours rosters apart would add noise and no signal. T2
+a weight on a number that cannot tell two equal-hours rosters apart would add noise and no signal. The benchmark
 sweeps it ([`D-050`](../decisions.md#d-050)), which is when the cost axis starts to mean anything.
 
 ## Understaffing: hard or soft

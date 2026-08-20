@@ -3,8 +3,8 @@
 Two things are being tested, and they are different. That each metric is *encoded*
 correctly is checked by comparing `disruption.py` against `scoring.py` -- the same
 independence discipline the rules get. That the five metrics are *distinct* is checked by
-showing they choose different rosters, which is the claim `replan.md` makes and the T2
-study will quantify.
+showing they choose different rosters, which is the claim `replan.md` makes and
+`studies/disruption-metrics.md` quantifies.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ def replan_of(instance, incumbent, **overrides):
 
 
 # --- The nesting property ----------------------------------------------------------
-# Each metric contains the one before it, which is what makes the T2 study a comparison
+# Each metric contains the one before it, which is what makes that study a comparison
 # rather than five unrelated numbers.
 
 
@@ -281,7 +281,7 @@ def test_metrics_only_diverge_when_there_is_slack():
     """The finding that made the previous version of this test fail, kept as a test.
 
     A tightly-covered instance has one legal repair, so every metric returns it and the
-    choice of metric is invisible. This matters for T2: an instance generator that does
+    choice of metric is invisible. This matters for the benchmark: an instance generator that does
     not vary coverage tightness would report "the metrics agree" as a finding, when it is
     a side effect of the instances.
     """

@@ -3,10 +3,10 @@
 **Question.** [`rules.md`](../specs/rules.md#rule-r-rest-gap) encodes the rest
 gap as one inequality per conflicting pair, and defers the alternative — one optional interval per
 (employee, shift instance) inflated by `min_rest_hours`, under a single `add_no_overlap` per employee
-— to a T2 study, with the words *"measured there, not assumed here"*.
+— to a study, with the words *"measured there, not assumed here"*.
 
 This study exists because that promise was outstanding. It is not one of the four level-1 studies
-`PLAN.md` names; it surfaced during the T2 close-out reconcile, which is what that beat is for.
+the plan named; it surfaced during a close-out reconcile, which is what that beat is for.
 
 **Answer.** A wash at this horizon, and rejected. The interval form is smaller and builds faster, and
 searches slower by more than it saves — a 2% total win on the committed set, which is exactly the
@@ -80,6 +80,6 @@ encoding names the **second slot of the offending pair** — the coordinate `che
 Two of the four level-1 alternatives and this one all failed for the same structural reason, which is
 worth stating once: **global constraints aggregate, and this model's gates are per rule instance.** An
 encoding that replaces many local constraints with one global one necessarily coarsens what a failure
-can be attributed to. That is a real cost in a project whose T4 deliverable is an explainer.
+can be attributed to. That is a real cost in a project whose headline deliverable is an explainer.
 
 **Rejected at a one-week horizon** ([`D-089`](../decisions.md#d-089)). Revisit with the horizon, not with tenant size.

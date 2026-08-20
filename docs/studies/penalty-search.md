@@ -31,9 +31,9 @@ It lives in `benchmarks/` and not on the product path, which is the `benchmarks/
 that can reach the model is not a rival, and a module whose whole point is having no hard-constraint
 guarantee must not be able to borrow one.
 
-**It is deliberately not registered in `methods.METHODS`.** That tuple defines the four-method T2
+**It is deliberately not registered in `methods.METHODS`.** That tuple defines the four-method
 comparison and drives the committed `results.json`; adding a fifth member would re-base every number
-in [`benchmarks.md`](../benchmarks.md) to answer a question T2 was not asking.
+in [`benchmarks.md`](../benchmarks.md) to answer a question that comparison was not asking.
 
 ### Three choices that decide what the numbers mean
 

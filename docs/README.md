@@ -76,7 +76,7 @@ Then [`development.md`](development.md) for the suite, the import contracts, and
   A tenant's rules live in a profile from day one. Across thousands of small tenants the bottleneck
   is configuration work, not solve time; the one large instance this project tried tells the
   opposite story ([`foreign-incumbent.md`](studies/foreign-incumbent.md), ~8M variables, 527 s
-  to build).
+  to build — a Python build loop rather than a limit of the formulation, [`D-147`](decisions.md#d-147)).
 - **Fallback ladder**:
   exact → time-boxed with reported gap → greedy repair → last known good.
   The service never returns nothing.

@@ -16,7 +16,7 @@ than trusted to review, since an accidentally large instance would not fail -- i
 just make the suite slow, which is how enumeration layers quietly get deleted.
 
 Serialisation is deliberately absent. These are Python constructors, not JSON: a schema and
-a loader are T2's problem, alongside the versioned *benchmark* set they are actually needed
+a loader belong with the versioned *benchmark* set they are actually needed
 for. "Committed" here means fixed and diffable, which a module already is.
 """
 

@@ -1,4 +1,4 @@
-"""Minimal infeasibility cores, closing the debt `D-048` opened at T1.
+"""Minimal infeasibility cores, closing the debt `D-048` opened.
 
 Infeasibility has to be constructed here. `D-047` collapsed the surface — with a soft
 coverage floor the empty roster satisfies every hard rule — so none of the 72 committed cases

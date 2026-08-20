@@ -1,6 +1,6 @@
 """The shortfall explainer, and the invariant that makes it more than presentation.
 
-`D-047` re-scoped T4 before it started: with a soft coverage floor a cold solve is
+`D-047` re-scoped the explainer before it was written: with a soft coverage floor a cold solve is
 essentially never infeasible, so the explainer's ordinary job is shortfalls, not
 infeasibility. Measured on the committed set — 16 of 72 cases return an optimal roster that
 still leaves a shift short, and none is infeasible.

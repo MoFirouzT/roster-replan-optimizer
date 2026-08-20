@@ -28,6 +28,12 @@ Two ways in.
 **By theme** groups the records that make one argument together, which the ID order hides because IDs are chronological.
 A record can sit under more than one theme — the grouping is not a partition.
 
+**`T0`–`T5` are the tiers the original plan sequenced the work in**, and records use them because that
+is what was decided at the time.
+They appear nowhere else now: every other document says what it means instead.
+The gate each tier had to pass is in [`finish.md`](finish.md#the-gates-and-what-passed-them), and the
+plan itself is [`archive/PLAN.md`](archive/PLAN.md).
+
 ## Lookup
 
 | ID | Record |
@@ -124,7 +130,7 @@ A record can sit under more than one theme — the grouping is not a partition.
 | [`D-090`](#d-090) | The wire schema is its own schema, not a serialisation of the domain |
 | [`D-091`](#d-091) | Round-robin fairness across tenants, not weighted |
 | [`D-092`](#d-092) | `Instance.window` memoised: the largest single win in the solve path |
-| [`D-093`](#d-093) | The compiled-model cache ships enabled, and does not help replanning |
+| [`D-093`](#d-093) | The compiled-model cache ships enabled, and does not help replanning — **superseded by [`D-149`](#d-149)** |
 | [`D-094`](#d-094) | A timeout and an infeasibility are different answers, and `solve` now says which |
 | [`D-095`](#d-095) | Finish declaration: name ratified, publication deferred |
 | [`D-096`](#d-096) | The timing balance is committed and asserted; absolute milliseconds are not |
@@ -178,6 +184,9 @@ A record can sit under more than one theme — the grouping is not a partition.
 | [`D-144`](#d-144) | Two overrides of different provenance are not one ranking, and the sweep was paying twice |
 | [`D-145`](#d-145) | Every statutory rule names an instrument, and two of the searches found no rule at all |
 | [`D-146`](#d-146) | Four documents trimmed to what they carry, and the spec table made true |
+| [`D-147`](#d-147) | Where the model stops is where this Python stops, and the sentence now says so |
+| [`D-148`](#d-148) | The README draws the claim it used to only tabulate |
+| [`D-149`](#d-149) | The model cache is deleted, because its key was a claim that went stale |
 
 ## By theme
 
@@ -3672,4 +3681,72 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   [`foreign-incumbent.md`](studies/foreign-incumbent.md) cites them. One planned trim was dropped on
   inspection: a scoping note here duplicated a limit [`horizon.md`](studies/horizon.md) already states better, so it was
   cut rather than moved.
+- **Date.** 2026-08-20.
+
+<a id="d-147"></a>
+## D-147 — Where the model stops is where this Python stops, and the sentence now says so
+
+- **Decision.** The 8M-variable ceiling is quoted as a limit of *this implementation* rather than of
+  the formulation. [`formulation.md`](formulation.md) says it outright under *Size, and where it stops*, and
+  [`docs/README.md`](README.md) names the build loop where it cites the figure. The number itself does not move, and
+  [`foreign-incumbent.md`](studies/foreign-incumbent.md) and [`penalty-search.md`](studies/penalty-search.md) already read this way and are untouched.
+- **Alternatives.** Making the build faster first, which is a study with a null available and not a
+  documentation fix. Leaving it, on the grounds that *model construction* already appeared in the
+  sentence — true, and it is not what a reader takes from a heading that says where the model stops.
+- **Reason.** 527 seconds is a Python loop emitting constraints one at a time. It bounds what this
+  service can answer today and says nothing about whether the formulation is right at that size, but
+  the sentence sat under a heading that invited the second reading. A reader deciding whether the
+  encoding scales should not have to infer which of the two the number measures.
+- **Consequences.** The claim is scoped rather than hopeful: whether batching construction moves the
+  ceiling has **not** been measured, and the text says that too, so this does not become a promise.
+  If it is ever measured it is a study with a row in [`studies/README.md`](studies/README.md), not an edit here.
+- **Date.** 2026-08-20.
+
+<a id="d-148"></a>
+## D-148 — The README draws the claim it used to only tabulate
+
+- **Decision.** `README.md` opens with a generated figure: one week of a 12-person roster drawn
+  twice, a cold cost re-solve against the shipped replan. It is produced by
+  [`benchmarks/figure.py`](../benchmarks/figure.py) from a committed case, never drawn by hand, and the SVG is committed
+  beside the manifest it depends on.
+- **Alternatives.** Drawing the demo scenario, which cannot carry it. A hand-made image, which
+  cannot be checked against anything. No image, which is where this sat.
+- **Reason.** A roster is a grid of people against days, and every reader of the results table has
+  been rebuilding that grid in their head. The picture also shows the mechanism in a way a mean
+  cannot: the cold solve moves three people nobody asked about, and a reader can count them.
+  `scenarios/saturday_sick_call.json` had to be rejected as the source — at `now = 129` the week is
+  pinned back to Saturday morning, so the cost baseline has nothing left to reshuffle and returns
+  **the same single change** the replan does. That is true about late notice and useless about the
+  objective, so the figure is `headline/1`, where Sunday is still movable.
+- **Consequences.** A committed artifact can go stale and a caption can lie, so
+  `tests/test_figure.py` asserts the file is what the generator still produces and counts the marks
+  drawn against what `methods.run` reports; two mutants cover both failures. The figure inherits the
+  reproducibility [`D-119`](#d-119) bought — against a degenerate optimum it would have flickered with the ortools
+  build. It shows one case and says so on the page: six changes against two, where the set-wide
+  means are 12.4 and 2.4.
+- **Date.** 2026-08-20.
+
+<a id="d-149"></a>
+## D-149 — The model cache is deleted, because its key was a claim that went stale
+
+- **Decision.** `roster_replan/compiled.py` and `tests/test_cache.py` are deleted, with the
+  thread-local store in `service/jobs.py`, the `built` argument on `ladder.answer`, and six mutants.
+  `model.solve(built=...)` stays, because `benchmarks/` passes a model directly and owns the
+  consequence. Nothing memoises a built model any more. Supersedes [`D-093`](#d-093).
+- **Alternatives.** Adding the eight missing fields, which repairs today and not tomorrow. Adding
+  them plus a structural test that every `Employee` field is fingerprinted or declared
+  objective-only — correct, and still paying for a component measured at zero benefit.
+- **Reason.** The fingerprint covered 12 of `Employee`'s 21 fields. Eight of the nine it missed
+  carry hard rules and arrived *after* it was written — [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142) — and none
+  revisited it. So two instances differing only in a granted day off share a key: warm the cache with
+  one, ask for the other, and the service answers `OPTIMAL` with a roster breaking eight `R-DAY-OFF`
+  instances where an honest solve returns INFEASIBLE. Only the independent checker caught it, which
+  is [`D-003`](#d-003) earning its place. [`D-093`](#d-093) already measured the cache at **0 hits in 144 solves**, so this
+  is a hazard attached to nothing, and removing it is cheaper than repairing it.
+- **Consequences.** `service.md` asked for this component and now records that it was built and
+  removed; the study stays, because the measurement is what justified deleting. The recurrence this
+  closes is the general one: a key that must be updated whenever a field is added is a key that will
+  be wrong. **The blind spot is the one [`D-131`](#d-131) already named** — a field the committed set does not
+  supply is a field no test exercises, and `test_optional_rules.py` says as much in its own
+  docstring. Two boundaries have now failed that way.
 - **Date.** 2026-08-20.

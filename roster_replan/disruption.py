@@ -209,7 +209,7 @@ def fairness_terms(
 
 def _cost(instance: Instance, x, params: Disruption) -> list:
     """Placeholder: paid minutes at a flat rate. See `replan.md` -- overtime premiums,
-    flexi rates and shift differentials are all T2, with the wage data that would make
+    flexi rates and shift differentials all wait on the wage data that would make
     them mean something."""
     terms = []
     for (employee, _, shift), var in x.items():

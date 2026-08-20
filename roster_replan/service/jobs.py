@@ -46,12 +46,10 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import os
-import threading
 import time
 import uuid
 from collections import deque
 
-from ..compiled import ModelCache
 from ..ladder import Answer, answer as solve_answer
 from ..validation import validate_instance
 from . import contracts
@@ -216,29 +214,7 @@ def solver_workers(concurrency: int) -> int:
     return max(1, (os.cpu_count() or 1) // max(1, concurrency))
 
 
-# One compiled-model cache per worker thread, never one shared between them.
-#
-# `CpModel` is not thread-safe, and a shared cache would hand the *same* model object to two
-# concurrent solves whenever their fingerprints matched -- both would then set an objective
-# and assumptions on it at once. That is a data race producing a plausible roster, which is
-# the worst shape of bug available here. Thread-local storage removes the sharing rather than
-# guarding it: no lock, no leasing, and concurrency stays real.
-#
-# The cost is one cache per thread instead of one per process. At a default concurrency of 2
-# that is a rounding error, and it buys an invariant that does not depend on getting a lock
-# right.
-_caches = threading.local()
-
-
-def _cache() -> ModelCache:
-    existing = getattr(_caches, "cache", None)
-    if existing is None:
-        existing = ModelCache()
-        _caches.cache = existing
-    return existing
-
-
-def run_job(job: Job, *, workers: int = 1, cache: ModelCache | None = None) -> Job:
+def run_job(job: Job, *, workers: int = 1) -> Job:
     """Solve one job. Pure with respect to the store: payload in, payload out.
 
     Runs on a worker thread because CP-SAT is blocking and CPU-bound, and running it on the
@@ -246,14 +222,12 @@ def run_job(job: Job, *, workers: int = 1, cache: ModelCache | None = None) -> J
     how this one is doing.
     """
     instance = contracts.to_domain(job.request.instance)
-    store = _cache() if cache is None else cache
     try:
         job.answer = solve_answer(
             instance,
             seed=job.request.seed,
             budget_seconds=job.request.budget_seconds,
             workers=workers,
-            built=store.get(instance, tenant=job.tenant),
         )
         # A `DELETE` that landed while this was searching has already told the caller the
         # job is cancelled. Overwriting that with `succeeded` here would make the state

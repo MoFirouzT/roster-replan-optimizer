@@ -253,7 +253,7 @@ def test_the_replan_stays_near_the_incumbent():
     on a week with slack should move a couple of assignments, not re-cut the roster.
 
     Deliberately loose. This is a guard against the objective silently reverting to
-    cost-from-scratch (`D-005`), not a benchmark -- the real number is T2's to report.
+    cost-from-scratch (`D-005`), not a benchmark -- the real number is `benchmarks.md`'s to report.
     """
     scenario = generate(14, dataclasses.replace(TYPICAL, event=SICK_CALL))
     result = solved(scenario.instance)

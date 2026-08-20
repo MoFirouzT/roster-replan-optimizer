@@ -14,7 +14,7 @@ differential layer, because both readings would be wrong in the same direction. 
 rule parameter arrives explicitly in the payload.
 
 Time is hours as a float, measured from the start of the horizon. Timestamps belong at
-the API boundary (T3), not here -- the rules are arithmetic and stay testable without a
+the API boundary, not here -- the rules are arithmetic and stay testable without a
 calendar. Values before the horizon are negative.
 """
 
@@ -100,7 +100,7 @@ class Employee:
     skills: frozenset[str]
 
     # R-AVAIL, split by provenance: absences are never relaxable, declared
-    # unavailability is relaxable-by-literal and tenant-configurable to soft in T2.
+    # unavailability is relaxable-by-literal, and specified as tenant-configurable to soft.
     absences: tuple[Interval, ...] = ()
     unavailability: tuple[Interval, ...] = ()
 
@@ -170,7 +170,7 @@ class Employee:
     dimona_ok: frozenset[int] | None = None
 
     # Cost, in currency units per hour. None means a uniform rate: the cost model is a
-    # placeholder until T2 supplies wage data -- see replan.md.
+    # placeholder until wage data exists -- see replan.md.
     hourly_rate: float | None = None
 
 
@@ -235,8 +235,8 @@ def shipped_d2(**overrides) -> Disruption:
     same reason.
 
     The exchange rate embedded here -- one published change at short notice against two
-    hours of overtime premium -- is a stated hypothesis awaiting T2 calibration, not a
-    measurement.
+    hours of overtime premium -- is a stated hypothesis awaiting calibration against real
+    decisions, not a measurement.
     """
     defaults = dict(
         metric="D2",
@@ -358,9 +358,9 @@ class Instance:
         the model calls this about 3,500 times and there are only `days x shift_types`
         distinct answers -- 21 for a one-week horizon with three shift types. Profiling
         `build` put 60% of its time in this one method, which made it the largest single
-        cost in the whole solve path: at T2 sizes the model is built more slowly than it is
-        searched, so the dominant cost of a replan was allocating the same 21 intervals
-        thousands of times.
+        cost in the whole solve path: at these instance sizes the model is built more
+        slowly than it is searched, so the dominant cost of a replan was allocating the
+        same 21 intervals thousands of times.
 
         Returning a shared `Interval` is safe because it is frozen -- no caller can mutate
         one, and equality is by value, so a cached result is indistinguishable from a fresh

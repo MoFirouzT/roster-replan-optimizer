@@ -1,10 +1,10 @@
 # Capture and replay
 
-> **Status: outline, and not built.** This is the one component `PLAN.md` scheduled for T2 that T2
+> **Status: outline, and not built.** This is the one component the plan scheduled and the project
 > did not deliver, and the finish declaration records it as outstanding rather than quietly dropping
 > it — see [`docs/finish.md`](../finish.md).
 >
-> It never gated T2, by design: corpus population depends on an external authorization this project
+> It never gated the benchmark work, by design: corpus population depends on an external authorization this project
 > does not control, and building a vendor adapter before the payload shape is known would produce a
 > round-trip test that proves only that the adapter matches a guess. The scoring machinery it was to
 > share with `benchmarks.md` exists and is what it would reuse.
@@ -117,7 +117,7 @@ says.
 - Disruption (D2) **no worse on ≥ 90%** of instances, and **strictly better on ≥ 50%**.
   The first number is the parity claim, the second is the thesis.
   One figure cannot carry both: a method can tie everywhere and satisfy a 90% bar while
-  demonstrating nothing. That is not hypothetical — T2's greedy baseline ties the optimal replan on
+  demonstrating nothing. That is not hypothetical — the greedy baseline ties the optimal replan on
   64 of 72 cases ([`benchmarks.md`](../benchmarks.md)), so it would clear the parity bar alone.
 - On the instances where disruption is worse, **worse by no more than 25%** of that instance's
   incumbent score. Without this cap the 10% allowance is unbounded, and ten catastrophic losses
@@ -139,13 +139,13 @@ until the bar above is met on a stated corpus.
 
 ## Sequencing
 
-The adapter, the replay harness and the scoring code are built in **T2**, where the multi-method
-comparison machinery already exists and this is one more instance source feeding it.
+The adapter, the replay harness and the scoring code belong **with the benchmark set**, where the
+multi-method comparison machinery already exists and this is one more instance source feeding it.
 
 Population is gated on authorization to capture Protime and Strobbo traffic, which is a contractual
 question with lead time and is not this project's to grant.
 That conversation starts early because it is the long pole;
-**T2 does not block on it.** The harness is testable against synthetic instances passed through the
+**The benchmark work does not block on it.** The harness is testable against synthetic instances passed through the
 adapter, and the corpus fills in as access arrives.
 
 ## Relationship to committed data

@@ -1,7 +1,7 @@
 """Why a shift is short: the explainer's ordinary job.
 
-`PLAN.md` opens T4 with an infeasibility explainer, and `rules.md` re-scopes it before a
-line is written (`D-047`): once the coverage floor is soft, the empty roster satisfies every
+The explainer was specified as an infeasibility explainer, and `rules.md` re-scoped it before a
+line was written (`D-047`): once the coverage floor is soft, the empty roster satisfies every
 hard rule, so **a cold solve is essentially never infeasible**. A shift nobody can staff
 comes back as a priced shortfall, not a refusal. Measured on the committed set, 16 of 72
 cases return an optimal roster that still leaves a shift short — 24 unstaffed positions —

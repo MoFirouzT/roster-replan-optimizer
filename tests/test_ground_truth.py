@@ -1,7 +1,7 @@
 """Brute-force ground truth over the committed instance set.
 
-`PLAN.md`'s T1 gate: "~20 committed micro-instances (N<=6, 3 days), solver objective equals
-enumerated optimum". This is that gate, in both stages -- (a) feasible and violation sets,
+The gate this layer was written against: "~20 committed micro-instances (N<=6, 3 days),
+solver objective equals enumerated optimum". This is that gate, in both stages -- (a) feasible and violation sets,
 (b) objectives.
 
 The instances live in `micro_instances.py` and are fixed rather than generated. Random

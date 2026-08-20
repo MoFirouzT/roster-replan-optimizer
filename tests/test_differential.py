@@ -495,7 +495,7 @@ def test_structurally_impossible_parameter_returns_a_core():
     core = solve(impossible)
     assert isinstance(core, list) and core, "expected an infeasibility core"
     # `in`, not `==`: CP-SAT returns a *sufficient* set of assumptions, not a guaranteed
-    # minimal one. Genuine minimality needs iterative deletion, which is T4's job.
+    # minimal one. Genuine minimality needs iterative deletion, which is `core.py`'s job.
     assert "R-WEEKLY-REST" in {gate.rule for gate in core}
 
 

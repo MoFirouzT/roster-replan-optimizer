@@ -1,8 +1,8 @@
 """`what if I hire one more flexi-jobber?` — a sweep over machinery that already exists.
 
-`service.md` names this as the question owners actually ask, and it is the one tool in T4's
-surface that is not a wrapper: the others expose a solve, a validation or an explanation that
-already has a caller. This one composes them into an answer to a hypothetical.
+`service.md` names this as the question owners actually ask, and it is the one tool in the
+service's surface that is not a wrapper: the others expose a solve, a validation or an
+explanation that already has a caller. This one composes them into an answer to a hypothetical.
 
 The shape is deliberately narrow. A change is a **named, typed edit to the instance**, not an
 arbitrary patch, for the same reason `explain.py` answers from the checker: a tool an LLM can

@@ -126,7 +126,7 @@ total hours over four weeks; they differ only in whether those hours may be dist
 allowed to — so the pooled budget is not inert, and the solver does spend it the way a flat ceiling
 forbids. Coverage is identical on every case at both ends of the tightness axis.
 
-So the approximation `rules.md` has made since T1 is **confirmed on evidence rather than assumed**,
+So the approximation `rules.md` has made from the start is **confirmed on evidence rather than assumed**,
 which is the last thing in that section standing on an assertion. Collapsing a reference period into
 a weekly rate loses a freedom the optimiser will use and cannot convert into a staffed shift.
 

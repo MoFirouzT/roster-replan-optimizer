@@ -102,7 +102,6 @@ METRIC_STUDY = "benchmarks/metrics.py"
 PATTERNS = "benchmarks/patterns.py"
 LADDER = "roster_replan/ladder.py"
 JOBS = "roster_replan/service/jobs.py"
-COMPILED = "roster_replan/compiled.py"
 MILP = "benchmarks/milp.py"
 ANNEAL = "benchmarks/anneal.py"
 ANNEAL_STUDY = "benchmarks/anneal_study.py"
@@ -117,6 +116,7 @@ DOMAIN = "roster_replan/domain.py"
 NL = "roster_replan/nl.py"
 NL_EVAL = "benchmarks/nl_eval.py"
 FOREIGN = "benchmarks/foreign.py"
+FIGURE = "benchmarks/figure.py"
 
 # A mutant whose defect was gone by the time the tests ran. Not a survivor and not a
 # catch: nothing was tested, and the run cannot vouch for the file (`D-139`).
@@ -569,7 +569,7 @@ MUTANTS: tuple[Mutant, ...] = (
         "        attempts.append(GREEDY)\n        return Answer(\n            roster=frozenset(),\n            rung=EXACT,",
         "tests/test_ladder.py",
     ),
-    # --- The T3 boundary -------------------------------------------------------------
+    # --- The service boundary -------------------------------------------------------------
     # Fairness and the replay round trip are both claims no single response can show, so
     # both would ship on a code review without these.
     Mutant(
@@ -629,58 +629,6 @@ MUTANTS: tuple[Mutant, ...] = (
         "    return max(1, (os.cpu_count() or 1) // max(1, concurrency))",
         "    return max(1, os.cpu_count() or 1)",
         "tests/test_service.py",
-    ),
-    # --- The compiled-model cache ----------------------------------------------------
-    # Every defect here returns a legal, plausible roster that answers the wrong question:
-    # a stale objective, or a model built from a payload before the disruption. Nothing in
-    # a status code, a violation count or a gap would show it.
-    Mutant(
-        "cache-blind-to-unavailability",
-        "cache",
-        COMPILED,
-        '            f"{[(i.start, i.end) for i in person.unavailability]};"',
-        '            f"{[]};"',
-        "tests/test_cache.py",
-    ),
-    Mutant(
-        "cache-keeps-a-stale-hint",
-        "cache",
-        COMPILED,
-        "    model.clear_hints()",
-        "    pass",
-        "tests/test_cache.py",
-    ),
-    Mutant(
-        "cache-blind-to-absences",
-        "cache",
-        COMPILED,
-        '            f"{[(i.start, i.end) for i in person.absences]};"',
-        '            f"{[]};"',
-        "tests/test_cache.py",
-    ),
-    Mutant(
-        "cache-ignores-the-incumbent",
-        "cache",
-        COMPILED,
-        '        parts.append(";".join(map(str, sorted(instance.incumbent))))',
-        "        pass",
-        "tests/test_cache.py",
-    ),
-    Mutant(
-        "cache-is-unbounded",
-        "cache",
-        COMPILED,
-        "        if len(self._entries) > self.capacity:",
-        "        if False:",
-        "tests/test_cache.py",
-    ),
-    Mutant(
-        "cache-leaks-across-tenants",
-        "cache",
-        COMPILED,
-        "        key = (tenant, fingerprint(instance))",
-        "        key = (\"-\", fingerprint(instance))",
-        "tests/test_cache.py",
     ),
     # --- The MILP formulation, D-001's evidence ---------------------------------------
     # A second formulation is only evidence while it means the same thing. Each of these
@@ -1378,6 +1326,27 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if True:\n            patterns.append(pattern)",
         "tests/test_studies.py",
     ),
+    # --- The README's figure --------------------------------------------------------
+    # `D-147`: the drawing is committed, so it can go stale, and it carries counts in its
+    # own caption, so it can lie. One mutant per failure -- a mark drawn in the wrong
+    # state, and a boundary drawn in the wrong column.
+    Mutant(
+        "figure-drops-and-adds-swapped",
+        "figure",
+        FIGURE,
+        '        elif key in roster:\n            states[key] = "added"',
+        '        elif key in roster:\n            states[key] = "dropped"',
+        "tests/test_figure.py",
+    ),
+    Mutant(
+        "figure-pinned-boundary-off-by-a-day",
+        "figure",
+        FIGURE,
+        "            if start >= instance.now:",
+        "            if start >= instance.now - 24:",
+        "tests/test_figure.py",
+    ),
+
 )
 
 

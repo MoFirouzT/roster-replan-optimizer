@@ -105,7 +105,7 @@ mutation harness carries a mutant per rung.
 
 The ladder's first version reported one as the other, because `solve` returned an empty
 `list[Gate]` for both. See the record; the fix is a third return type, and the distinction
-matters most to T4's explainer, which is specified to turn a core into prose.
+matters most to the explainer, which is specified to turn a core into prose.
 
 <a id="telemetry"></a>
 ## Telemetry `[built — GET /v1/health]`
@@ -149,19 +149,27 @@ once and its result discarded, so the caller's contract holds, but the search ru
 budget. Interrupting needs a solution callback wired through `model.solve`. `[TODO]`, and
 stated because the misreading — that `DELETE` frees a core — only shows up under load.
 
-**Per-tenant compiled-model cache `[built — and it does not help replanning]`.** The premise
-here was right and the remedy was not ([`D-093`](../decisions.md#d-093)). Building does cost more than solving, but a
-replan is triggered by a change to the model's own inputs — an absence changes which pairs
-survive presolve, which changes the variables — so the cache **hits 0 of 144 replan solves**.
-It ships enabled because a miss costs 0.6% of a build and a hit saves 170×, and because
-`what_if`, replay and retries do repeat an instance. It is **thread-local**: `CpModel` is not
-thread-safe, and a shared cache would hand one model to two concurrent solves.
+**Per-tenant compiled-model cache `[built, then deleted]`.** The premise here was right and the
+remedy was not ([`D-093`](../decisions.md#d-093)), and the remedy has since been removed entirely ([`D-149`](../decisions.md#d-149)). Building does cost
+more than solving, but a replan is triggered by a change to the model's own inputs — an
+absence changes which pairs survive presolve, which changes the variables — so the cache
+**hit 0 of 144 replan solves**.
+
+It is gone because a cache key is a claim about what changes a model, and that claim went
+stale without anything noticing: eight `Employee` fields carrying hard rules were added after
+the fingerprint was written and none of them reached it, so two instances differing only in a
+granted day off shared a key. The service answered `OPTIMAL` on an instance that was in fact
+infeasible, and only the independent checker caught it. A component measured at zero benefit
+is not worth a hazard of that shape, so **nothing memoises a built model any more**. A caller
+that wants to reuse one passes it to `model.solve(built=...)` and owns the consequences;
+`benchmarks/` does exactly that.
 
 The latency win that was actually available came from profiling rather than from caching:
 memoising `Instance.window` removed 20% of build time ([`D-092`](../decisions.md#d-092)), which is larger than presolve
-and larger than every level-1 lever in T2. See
+and larger than every level-1 lever in the benchmark set. See
 [`studies/model-cache.md`](../studies/model-cache.md).
 
+<a id="tool-surface"></a>
 ## Tool surface `[built — roster_replan/service/tools.py]`
 
 `solve`, `replan`, `explain_infeasibility`, `what_if`, `validate_profile`, enumerable at
@@ -192,6 +200,7 @@ parameter without a recorded derogation basis is rejected by `validation.py` bef
 solve, so `what_if` cannot reply *just shorten the rest gap* — the most dangerous output
 available from a tool a planner might trust.
 
+<a id="shortfall-recommendations"></a>
 ## Shortfall recommendations `[built — roster_replan/whatif.py:recommend]`
 
 A shortfall says who was blocked and by which rule. `recommend()` answers the next question a
