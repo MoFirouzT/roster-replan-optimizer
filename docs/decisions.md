@@ -175,6 +175,7 @@ A record can sit under more than one theme — the grouping is not a partition.
 | [`D-141`](#d-141) | Fourteen mutants were never tested, because CPython could not see the edit |
 | [`D-142`](#d-142) | A day off is not an interval, and that is a rule rather than a workaround |
 | [`D-143`](#d-143) | A catch against a red catcher is not a catch, and CI found it before the harness did |
+| [`D-144`](#d-144) | Two overrides of different provenance are not one ranking, and the sweep was paying twice |
 
 ## By theme
 
@@ -187,7 +188,7 @@ A record can sit under more than one theme — the grouping is not a partition.
 | Rules, legal encoding and provenance | [`D-008`](#d-008), [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-030`](#d-030), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142) |
 | The benchmark set and its method | [`D-068`](#d-068), [`D-069`](#d-069), [`D-070`](#d-070), [`D-071`](#d-071), [`D-072`](#d-072), [`D-073`](#d-073), [`D-074`](#d-074), [`D-075`](#d-075), [`D-076`](#d-076), [`D-079`](#d-079), [`D-080`](#d-080), [`D-081`](#d-081), [`D-082`](#d-082), [`D-083`](#d-083), [`D-084`](#d-084), [`D-096`](#d-096), [`D-105`](#d-105), [`D-107`](#d-107) |
 | Reproducibility and CI | [`D-096`](#d-096), [`D-114`](#d-114), [`D-117`](#d-117), [`D-118`](#d-118), [`D-119`](#d-119), [`D-121`](#d-121), [`D-124`](#d-124) |
-| Explaining an answer — shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-048`](#d-048), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100) |
+| Explaining an answer — shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-048`](#d-048), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100), [`D-144`](#d-144) |
 | The LLM boundary and profile configuration | [`D-012`](#d-012), [`D-013`](#d-013), [`D-099`](#d-099), [`D-101`](#d-101), [`D-102`](#d-102), [`D-103`](#d-103) |
 | Service, runtime and the fallback ladder | [`D-010`](#d-010), [`D-011`](#d-011), [`D-090`](#d-090), [`D-091`](#d-091), [`D-094`](#d-094), [`D-122`](#d-122) |
 | Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-110`](#d-110), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131) |
@@ -217,8 +218,8 @@ What remains here is what is still owed.
 
 | ID | Decision | Tier |
 | --- | --- | --- |
-| — | A `whatif.Change` kind for every hard rule an employee's own data can carry — availability, weekend cap, days off, period hours, shift-type cap, consecutive-days-worked, flexi/dimona eligibility — not only skills and daily/weekly hours. `whatif.recommend()` (quickstart.md) already ranks people blocked by these and would test them the same way it tests R-SKILL, R-MAX-DAILY and R-MAX-WEEKLY today, but it cannot yet build a `Change` for the rest | T4 |
-| — | A priority order across rule *kinds*, for the case `recommend()`'s disruption sort cannot reach: two candidates it cannot test against each other because one's rule has no `Change` kind yet, or a candidate whose rule is statutory (R-REST-GAP) rather than operational, where the cheaper disruption number is not the only thing that should decide which ask is preferable | T4 |
+| — | A `whatif.Change` kind for the hard rules that are **lawfully relaxable** and have none: `R-DAY-OFF`, `R-MAX-WEEKENDS`, `R-MIN-DAYS-OFF`, `R-MAX-SHIFT-TYPE`, `R-CONSEC-DAYS` — all operational/CBA, all carried on an employee's own data. `whatif.recommend()` already ranks people blocked by them and would test them as it tests R-SKILL, R-MAX-DAILY and R-MAX-WEEKLY today, but cannot build a `Change` for them. **Deliberately excluded, not merely unbuilt:** a declared absence under `R-AVAIL`, which `rules.md` splits by provenance precisely because an absence is never relaxable, and `R-REST-GAP`, where the lawful move is a recorded derogation rather than an override a solver may offer | T4 |
+| — | **Policy-change analysis: what a tenant's new policy does before they adopt it.** `compare()` already answers it for one instance, and that is the trap — a verdict from a single week is a verdict about that week. The analysis owed is the aggregate: run the old and new profile over a **corpus** of weeks and report which rules newly bind and how often, how coverage and shortfall move, who carries the change (the fairness machinery from [`D-108`](#d-108) already measures this), and how many absences a week still absorbs before going short. `whatif.recommend()` contributes the finding no single what-if can — the rule a tenant keeps having to override, which is an argument about their skill matrix rather than a solver setting. **Blocked on `capture.md`**, specified and unbuilt: without real weeks this measures the generator. No cost axis either, while the rate is flat ([`D-050`](#d-050)) | T5 |
 
 ---
 
@@ -3588,3 +3589,34 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   is under a minute against fourteen.
 - **Study.** [`docs/studies/mutation-harness.md`](studies/mutation-harness.md)
 - **Date.** 2026-08-17.
+
+
+<a id="d-144"></a>
+## D-144 — Two overrides of different provenance are not one ranking, and the sweep was paying twice
+
+- **Decision.** `whatif.recommend()` carries the `rule` it would relax and that rule's `provenance`,
+  and sorts **within** a provenance rather than across one: operational asks first, then statutory,
+  cheapest-first inside each group. It solves the unchanged instance **once** for the sweep rather
+  than once per candidate, and tests at most five people by default.
+- **Alternatives.** The flat cheapest-first list that shipped, whose demo output put a statutory
+  relaxation on the top line, tied on points with two operational ones. Dropping statutory candidates,
+  which hides a lawful option a planner may weigh. An order over rule kinds, which this project cannot
+  derive from disruption.
+- **Reason.** **Disruption cannot order two asks of different kinds.** Ignoring a skill requirement is
+  a judgement the planner already owns; asking somebody to work further into a budget a statute caps
+  is a different question at any price. A single sorted list says otherwise by its shape — the top
+  line reads as the recommendation.
+
+  **Nothing unlawful ever reached the list**: `validate_instance` refuses a cap above the absolute
+  ceiling and `compare` returns that refusal, dropping the candidate. The defect was presenting
+  lawful-but-different asks as comparable.
+
+  **The cost was avoidable.** The baseline does not depend on which override is tested, yet `compare`
+  re-solved it per candidate: 2N solves where N+1 does. Five candidates fell from 78 ms to 49 ms,
+  output unchanged. Uncapped, the sweep is a solve per blocked person.
+- **Consequences.** Two gaps remain, and are why the Open table's second row retires here rather than
+  being answered: a candidate whose rule has no `Change` kind cannot be placed against one that has,
+  and inside the statutory group disruption is still the only order, though `R-MAX-WEEKLY` and
+  `R-MAX-DAILY` are not equally easy things to ask of a person. `compare` gains an optional `baseline`
+  and an obligation with it — one from another instance or seed breaks the pairing.
+- **Date.** 2026-08-20.

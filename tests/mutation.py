@@ -870,8 +870,37 @@ MUTANTS: tuple[Mutant, ...] = (
         "whatif-baseline-uses-a-different-seed",
         "whatif",
         WHATIF,
-        "    baseline = _measure(instance, seed=seed, time_limit=time_limit)",
-        "    baseline = _measure(instance, seed=seed + 1, time_limit=time_limit)",
+        "        baseline = _measure(instance, seed=seed, time_limit=time_limit)",
+        "        baseline = _measure(instance, seed=seed + 1, time_limit=time_limit)",
+        "tests/test_whatif.py",
+    ),
+    # --- recommend (`D-144`) -------------------------------------------------------------
+    # The first two are the same species as the unlawful hypothetical above: an output a
+    # planner would act on, wrong in a way the numbers do not show. The third is a cost
+    # guard rather than a correctness one, and is here because an uncapped sweep is a solve
+    # per blocked person.
+    Mutant(
+        "recommend-ranks-statutory-against-operational",
+        "whatif",
+        WHATIF,
+        '            key=lambda r: (r.provenance != "operational", r.disruption_delta, r.employee),',
+        "            key=lambda r: (r.disruption_delta, r.employee),",
+        "tests/test_whatif.py",
+    ),
+    Mutant(
+        "recommend-resolves-the-baseline-per-candidate",
+        "whatif",
+        WHATIF,
+        "            instance, (change,), seed=seed, time_limit=time_limit, baseline=baseline",
+        "            instance, (change,), seed=seed, time_limit=time_limit",
+        "tests/test_whatif.py",
+    ),
+    Mutant(
+        "recommend-ignores-the-candidate-cap",
+        "whatif",
+        WHATIF,
+        "        if tested >= max_candidates:",
+        "        if False:",
         "tests/test_whatif.py",
     ),
     Mutant(

@@ -255,13 +255,21 @@ def compare(
     *,
     seed: int = 7,
     time_limit: float = 30.0,
+    baseline: Outcome | None = None,
 ) -> Comparison:
     """Solve the instance as it is and as it would be, and report the difference.
 
     Both solves use the same seed and the same incumbent, so a difference in disruption is
     the change's doing rather than the search's.
+
+    `baseline` lets a caller comparing several changes against **the same instance** supply
+    the unchanged solve it already has, instead of paying for an identical one per change.
+    Passing a baseline measured from a different instance or a different seed would break
+    the pairing the whole comparison rests on, so it is the caller's obligation that it came
+    from this instance at this seed — `recommend` below is the caller this exists for.
     """
-    baseline = _measure(instance, seed=seed, time_limit=time_limit)
+    if baseline is None:
+        baseline = _measure(instance, seed=seed, time_limit=time_limit)
 
     variant_instance = instance
     for change in changes:
@@ -308,6 +316,20 @@ def _missing(roster, instance: Instance, day: int, shift: int) -> int:
     return max(0, required - sum(1 for _, d, s in roster if (d, s) == (day, shift)))
 
 
+# The provenance of each rule `recommend` can build a `Change` for, from the registry table
+# in `rules.md`. It is carried on the recommendation because disruption alone cannot order
+# these asks: ignoring a skill requirement is an operational judgement a planner owns, while
+# raising someone's weekly budget moves a parameter a statute sets the ceiling for, and a
+# cheaper number does not make the second the preferable ask. Nothing unlawful reaches this
+# point — `validate_instance` refuses a cap above the absolute ceiling and `compare` returns
+# the refusal, so the candidate is already gone — but lawful is not the same as equivalent.
+_PROVENANCE = {
+    "R-SKILL": "operational",
+    "R-MAX-WEEKLY": "statutory",
+    "R-MAX-DAILY": "statutory",
+}
+
+
 @dataclass(frozen=True, slots=True)
 class Recommendation:
     """One candidate for closing a shortfall, and what it would cost.
@@ -315,11 +337,25 @@ class Recommendation:
     Nothing here has happened — `recommend` only ran `compare` against a throwaway instance
     for each candidate. Acting on a recommendation is a separate, later step: publishing it
     is a caller's decision, not this module's.
+
+    `rule` and `provenance` are here so a caller can see *what kind of ask* a number prices.
+    A list sorted on `disruption_delta` alone would put a statutory relaxation above an
+    operational one for the sake of a few points, which is the trade-off the sort is not
+    entitled to make on a planner's behalf.
     """
 
     employee: int
     action: str
     disruption_delta: int
+    rule: str
+    provenance: str
+
+
+# A candidate costs a solve, so an uncapped sweep is a solve per blocked person and its
+# worst case is the time limit multiplied by a tenant's headcount. The list is read as
+# *the cheapest few* anyway — nobody acts on the eleventh-best override — so the default
+# bounds the work rather than leaving it to the size of the payload.
+MAX_CANDIDATES = 5
 
 
 def recommend(
@@ -328,9 +364,13 @@ def recommend(
     *,
     seed: int = 7,
     time_limit: float = 30.0,
+    max_candidates: int = MAX_CANDIDATES,
 ) -> tuple[Recommendation, ...]:
     """Rank the people closest to filling one shortfall by what ignoring their one blocker
     would actually cost, confirmed by solving rather than assumed from the rule count.
+
+    Ranked **within a provenance, not across one**: operational asks first, then statutory
+    ones, each group cheapest-first. See `Recommendation`.
 
     Restricted to people blocked by exactly one rule: `by_employee()` already says these are
     the cheapest to ask, in the sense of needing one override instead of several, and a
@@ -340,16 +380,26 @@ def recommend(
 
     Every candidate is a fresh, disposable instance solved independently — the incumbent
     roster and every employee's real record are exactly as they were before this ran.
+
+    At most `max_candidates` people are tested, in employee order, and the unchanged
+    instance is solved once for all of them rather than once per candidate.
     """
     shift_type = instance.shift_types[shortfall.shift]
     open_shift = next(
         o for o in instance.open_shifts if (o.day, o.shift) == (shortfall.day, shortfall.shift)
     )
 
+    # The one solve every candidate is measured against. It does not depend on which
+    # override is being tested, so paying for it per candidate bought nothing but time.
+    baseline = _measure(instance, seed=seed, time_limit=time_limit)
+
     results = []
+    tested = 0
     for blocked in shortfall.blocked:
         if len(blocked.rules) != 1:
             continue
+        if tested >= max_candidates:
+            break
         rule = blocked.rules[0]
         employee = instance.employees[blocked.employee]
 
@@ -368,7 +418,10 @@ def recommend(
         else:
             continue
 
-        comparison = compare(instance, (change,), seed=seed, time_limit=time_limit)
+        tested += 1
+        comparison = compare(
+            instance, (change,), seed=seed, time_limit=time_limit, baseline=baseline
+        )
         if comparison.refused or comparison.shortfall_delta >= 0:
             continue
 
@@ -377,7 +430,18 @@ def recommend(
                 employee=blocked.employee,
                 action=action,
                 disruption_delta=comparison.disruption_delta,
+                rule=rule,
+                provenance=_PROVENANCE[rule],
             )
         )
 
-    return tuple(sorted(results, key=lambda r: (r.disruption_delta, r.employee)))
+    # Operational asks first, then statutory ones, and cheapest-first *within* a provenance
+    # rather than across the whole list. The two groups are not on one scale, so the sort
+    # keeps them apart instead of interleaving them by a number that cannot decide between
+    # them; a caller that wants a flat ranking can still sort the tuple itself.
+    return tuple(
+        sorted(
+            results,
+            key=lambda r: (r.provenance != "operational", r.disruption_delta, r.employee),
+        )
+    )

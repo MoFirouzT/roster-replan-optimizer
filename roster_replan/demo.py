@@ -95,9 +95,17 @@ def main(argv: list[str] | None = None) -> int:
             instance, finding.day, finding.shift, weekday_of_day_zero=args.weekday_of_day_zero
         )
         print(f"\nCheapest single overrides that would fill {where}:")
+        # Printed under a provenance heading rather than as one list, because that is how
+        # `recommend` sorts them and a flat list would invite reading the top line as the
+        # answer. An operational override is a planner's call; asking somebody to work
+        # further into a statutory budget is a different kind of ask at any price.
+        shown = ""
         for rec in recommendations:
+            if rec.provenance != shown:
+                shown = rec.provenance
+                print(f"  {shown}:")
             name = instance.employees[rec.employee].name
-            print(f"  {name:<4} {rec.action:<32} disruption {rec.disruption_delta:+d}")
+            print(f"    {name:<4} {rec.action:<32} disruption {rec.disruption_delta:+d}")
 
     if result.violations:
         # Only reachable on the `incumbent` rung, where returning a broken roster is the

@@ -184,14 +184,86 @@ def test_recommend_only_names_candidates_confirmed_to_close_the_shortfall(scarce
         assert comparison.shortfall_delta < 0, rec
 
 
-def test_recommend_is_sorted_cheapest_first(scarce_tenant):
+def test_recommend_is_sorted_cheapest_first_within_a_provenance(scarce_tenant):
+    """Cheapest-first inside each group, operational before statutory, and never
+    interleaved: a statutory relaxation must not outrank an operational one because it
+    scored a few points lower. Disruption cannot order two asks of different kinds."""
     solved = solve(scarce_tenant, seed=7, time_limit=30.0)
     shortfall = next(s for s in explain_module.explain(solved.roster, scarce_tenant) if s.short)
 
     recommendations = whatif.recommend(scarce_tenant, shortfall, seed=7, time_limit=30.0)
 
-    deltas = [r.disruption_delta for r in recommendations]
-    assert deltas == sorted(deltas)
+    groups = [r.provenance for r in recommendations]
+    assert groups == sorted(groups, key=lambda p: p != "operational")
+    for provenance in set(groups):
+        deltas = [r.disruption_delta for r in recommendations if r.provenance == provenance]
+        assert deltas == sorted(deltas)
+
+
+def test_recommend_solves_the_unchanged_instance_once(scarce_tenant, monkeypatch):
+    """The baseline does not depend on which override is being tested, so N candidates cost
+    N+1 solves, not 2N. Guards the reuse against a later edit quietly restoring the pairing
+    per candidate."""
+    solved = solve(scarce_tenant, seed=7, time_limit=30.0)
+    shortfall = next(s for s in explain_module.explain(solved.roster, scarce_tenant) if s.short)
+    candidates = sum(1 for b in shortfall.blocked if len(b.rules) == 1)
+
+    solves, tested = 0, 0
+    real_solve, real_compare = whatif.solve, whatif.compare
+
+    def counted_solve(*args, **kwargs):
+        nonlocal solves
+        solves += 1
+        return real_solve(*args, **kwargs)
+
+    def counted_compare(*args, **kwargs):
+        nonlocal tested
+        tested += 1
+        return real_compare(*args, **kwargs)
+
+    monkeypatch.setattr(whatif, "solve", counted_solve)
+    monkeypatch.setattr(whatif, "compare", counted_compare)
+    whatif.recommend(scarce_tenant, shortfall, seed=7, time_limit=30.0)
+
+    # One baseline plus one variant each, not a baseline and a variant each. `tested` is at
+    # most `candidates` — a single-blocker person whose rule has no `Change` kind is skipped
+    # before any solving — so the second assertion is what pins the reuse.
+    assert 0 < tested <= candidates
+    assert solves == tested + 1
+
+
+def test_recommend_tests_no_more_than_max_candidates(scarce_tenant, monkeypatch):
+    """An uncapped sweep is a solve per blocked person; the cap bounds the work by a number
+    the caller sets rather than by the tenant's headcount."""
+    solved = solve(scarce_tenant, seed=7, time_limit=30.0)
+    shortfall = next(s for s in explain_module.explain(solved.roster, scarce_tenant) if s.short)
+
+    tested = 0
+    real = whatif.compare
+
+    def counted(*args, **kwargs):
+        nonlocal tested
+        tested += 1
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(whatif, "compare", counted)
+    whatif.recommend(scarce_tenant, shortfall, seed=7, time_limit=30.0, max_candidates=1)
+
+    assert tested == 1
+
+
+def test_recommend_reports_the_rule_and_its_provenance(scarce_tenant):
+    """The number alone does not say what kind of ask it prices, so every recommendation
+    carries the rule it would relax and where that rule's authority comes from."""
+    solved = solve(scarce_tenant, seed=7, time_limit=30.0)
+    shortfall = next(s for s in explain_module.explain(solved.roster, scarce_tenant) if s.short)
+
+    recommendations = whatif.recommend(scarce_tenant, shortfall, seed=7, time_limit=30.0)
+
+    assert recommendations
+    for rec in recommendations:
+        assert rec.provenance == whatif._PROVENANCE[rec.rule]
+        assert rec.provenance in {"operational", "statutory"}
 
 
 def test_recommend_drops_a_candidate_that_does_not_actually_close_the_shortfall(
@@ -211,7 +283,7 @@ def test_recommend_drops_a_candidate_that_does_not_actually_close_the_shortfall(
         unexplained=(),
     )
 
-    def fake_compare(instance, changes, *, seed=7, time_limit=30.0):
+    def fake_compare(instance, changes, *, seed=7, time_limit=30.0, baseline=None):
         return whatif.Comparison(
             described=("stub",),
             baseline=whatif.Outcome(0, 0, 0, (), frozenset()),

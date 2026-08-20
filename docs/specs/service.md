@@ -192,6 +192,65 @@ parameter without a recorded derogation basis is rejected by `validation.py` bef
 solve, so `what_if` cannot reply *just shorten the rest gap* — the most dangerous output
 available from a tool a planner might trust.
 
+## Shortfall recommendations `[built — roster_replan/whatif.py:recommend]`
+
+A shortfall says who was blocked and by which rule. `recommend()` answers the next question a
+planner asks — *which single override would actually fill it, and what would that cost* — by
+composing the explainer and `compare()`. It is a **library function, not a sixth tool**; the
+reason is below.
+
+**Input** is one `Shortfall` and the instance it came from. **Output** is a tuple of
+`Recommendation`, each carrying the employee, the action in planner language, the
+`disruption_delta` it was measured at, the `rule` it would relax and that rule's `provenance`.
+
+### Which candidates are tested
+
+Only people the explainer records as blocked by **exactly one** rule, and only where that rule
+has a `Change` kind — `R-SKILL`, `R-MAX-DAILY`, `R-MAX-WEEKLY` today:
+
+```
+tested = { e ∈ shortfall.blocked : |rules(e)| = 1 ∧ rules(e) ⊆ _PROVENANCE }
+```
+
+One blocker is `by_employee()`'s own hint about who is cheapest to ask, and a person with two
+blockers cannot be tested by relaxing one of them. **The hint is checked, not trusted**: each
+candidate is re-solved and kept only if the shift actually closes. A rule count of one does not
+mean the solver can use the person once the rest of the week is re-optimised around them.
+
+At most `MAX_CANDIDATES` people are tested, five by default. Uncapped, the sweep is a solve per
+blocked person for a list nobody reads far into ([`D-144`](../decisions.md#d-144)).
+
+### Ranked within a provenance, never across one ([`D-144`](../decisions.md#d-144))
+
+Operational asks first, then statutory, cheapest-first inside each group:
+
+```
+sort key = (provenance ≠ operational, disruption_delta, employee)
+```
+
+Disruption cannot order two asks of different kinds. Ignoring a skill requirement is a judgement
+the planner already owns; asking somebody to work further into a budget a statute caps is a
+different question at any price. A single flat list says otherwise by its shape — the top line
+reads as the recommendation.
+
+Nothing unlawful reaches the list: a cap above the absolute ceiling is refused by
+`validate_instance` and `compare` returns that refusal, so the candidate is dropped before it can
+be printed. **Lawful is not the same as equivalent**, which is what the grouping carries.
+
+### Nothing is applied, and nothing is decided
+
+Every candidate is a fresh, disposable instance. The incumbent and every employee's real record
+are exactly as they were. *Ignoring* a rule for one solve is not the same as changing somebody's
+record, and publishing an override is a caller's later act.
+
+**Why this is not a tool.** The tool surface's standing rule is that nothing there ranks options
+or decides. A ranked list of ways to override labour rules, handed to a model, is read as an
+instruction however it is grouped — and the exclusions the list depends on are invisible to a
+caller: a person blocked by `R-AVAIL` or `R-REST-GAP` never appears, and a rule with no `Change`
+kind is silently untested. A planner reading the demo output has that context. If it is ever
+exposed, the shape that survives the boundary is a **directed** query — the caller names the
+employee and the rule, the tool prices that one override — not a ranking.
+
 ## Boundary discipline
 
 Everything around the solver stays deliberately boring — endpoints, validation, queue handling,

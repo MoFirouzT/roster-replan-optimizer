@@ -10,9 +10,13 @@ people whose shifts were never in question are moved so the solver can shave a m
 
 This service answers it differently:
 **reproduce the roster with minimum disruption to everyone else.**
-Past shifts are pinned, and published shifts are penalised for changing; that penalty is what produces the low-disruption result.
-The solve is also warm-started from the roster it is repairing, purely for speed.
-The benchmarks measure the two effects separately and confirm the split.
+Past shifts are pinned, and published shifts are penalised for changing which produces the low-disruption result.
+
+Nothing comes back unexplained or unchecked.
+Every roster is re-verified against every rule by a plain function with no solver involved, a short shift names the rule that blocked each person who could have filled it, and a policy written in plain English is accepted or rejected before it can produce a roster.
+
+The reasoning is on the record too:
+every design choice that could have gone the other way is a numbered decision, and the ones that turned on evidence are written up as studies; including the several that overturned what the specs first claimed.
 
 > Generation is not a separate feature.
 > It is the cold-start case of replanning; a replan from an empty roster.
@@ -31,6 +35,7 @@ The benchmarks measure the two effects separately and confirm the split.
   name the rule that blocked every person who could have filled it, in planner language:
   *6 of the 12 staff do not hold a skill the shift requires; 5 would not get the minimum rest*.
   This is the common case: with a soft coverage floor a shift comes back **priced** rather than refused.
+  Where a single override would close the shift, say which — ranked by what it would cost, confirmed by re-solving rather than assumed from the blocker count.
 - **Explain infeasibility:**
   in the rare case where no legal roster exists, return the *minimal* set of blocking rules with the day, shift and employee involved.
 - **Answer a hypothetical:**
@@ -95,7 +100,9 @@ roster, `short` is positions left unstaffed.
 | Cold solve, disruption objective | 3.58 ms | 10.7 ms | 65.3 | 2.40 | 0.15 |
 | **Warm-started replan (this)** | 3.31 ms | 8.6 ms | 65.3 | 2.40 | 0.15 |
 
-**The objective is what does the work**, not the warm start. Against a cold cost re-solve on identical
+**The objective is what does the work**, not the warm start. The solve is also warm-started from the
+roster it is repairing, but purely for speed, and the two rows above measure the effects separately to
+confirm that split. Against a cold cost re-solve on identical
 instances with identical coverage, the disruption objective cuts the score from 307 to 65 and the
 number of people moved from 12.4 to 2.4. The warm start is worth about 9% of a 3 ms search — real,
 paired on 662 of 756 runs, and small enough that the honest framing is the one above.
