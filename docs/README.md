@@ -10,6 +10,8 @@
 | [`rules.md`](guide/rules.md) | every rule a roster is checked against |
 | [`limits.md`](guide/limits.md) | what it guarantees, what it was measured at, what it does not do |
 
+Reaching further: the objective these pages configure is stated in full in [`internals/model.md`](internals/model.md). It is the other door — how the service works now, not what it promises — and worth the click if you want to see what *minimum disruption* means as a formulation.
+
 **Working on it** — [`internals/`](internals)
 
 | | |

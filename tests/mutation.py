@@ -602,8 +602,8 @@ MUTANTS: tuple[Mutant, ...] = (
         "service-round-trip-drops-the-unpopular-prior",
         "service",
         CONTRACTS,
-        "                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,\n                max_weekends=e.max_weekends,\n                min_consecutive_days_off=e.min_consecutive_days_off,\n                min_consecutive_days_worked=e.min_consecutive_days_worked,\n                max_shifts_per_type=(\n                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)\n                ),\n                min_hours_this_period=e.min_hours_this_period,\n                max_consecutive_days=e.max_consecutive_days,\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
-        "                max_weekends=e.max_weekends,\n                min_consecutive_days_off=e.min_consecutive_days_off,\n                min_consecutive_days_worked=e.min_consecutive_days_worked,\n                max_shifts_per_type=(\n                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)\n                ),\n                min_hours_this_period=e.min_hours_this_period,\n                max_consecutive_days=e.max_consecutive_days,\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
+        "                unpopular_shifts_before_horizon=e.unpopular_shifts_before_horizon,\n                max_weekends=e.max_weekends,\n                min_consecutive_days_off=e.min_consecutive_days_off,\n                min_consecutive_days_worked=e.min_consecutive_days_worked,\n                max_shifts_per_type=(\n                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)\n                ),\n                min_hours_this_period=e.min_hours_this_period,\n                max_consecutive_days=e.max_consecutive_days,\n                days_off=frozenset(e.days_off),\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
+        "                max_weekends=e.max_weekends,\n                min_consecutive_days_off=e.min_consecutive_days_off,\n                min_consecutive_days_worked=e.min_consecutive_days_worked,\n                max_shifts_per_type=(\n                    None if e.max_shifts_per_type is None else dict(e.max_shifts_per_type)\n                ),\n                min_hours_this_period=e.min_hours_this_period,\n                max_consecutive_days=e.max_consecutive_days,\n                days_off=frozenset(e.days_off),\n                flexi_eligible=(\n                    None if e.flexi_eligible is None else frozenset(e.flexi_eligible)\n                ),",
         "tests/test_service.py",
     ),
     Mutant(
@@ -911,6 +911,27 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if person.unpopular_shifts_before_horizon >= fair.tiers",
         "        if False",
         "tests/test_profile.py",
+    ),
+    # --- The guide's worked example -----------------------------------------------------
+    # `configuring.md` shows a profile and quotes a verdict. Both are checked against what
+    # the code produces, because a pasted example is a claim nothing re-reads. One mutant
+    # per failure -- a quoted message reworded, and a shown value drifting from the
+    # scenario the reader is told it came from.
+    Mutant(
+        "profile-remark-text-reworded",
+        "specs",
+        PROFILE,
+        'f"a {days}-day horizon, so it forbids nothing"',
+        'f"a {days}-day horizon, so it does nothing"',
+        "tests/test_specs.py",
+    ),
+    Mutant(
+        "wire-drops-the-break-from-a-shift",
+        "specs",
+        CONTRACTS,
+        "                break_hours=s.break_hours,\n            )\n            for s in payload.shift_types",
+        "                break_hours=0.0,\n            )\n            for s in payload.shift_types",
+        "tests/test_specs.py",
     ),
     # --- Minimal cores ------------------------------------------------------------------
     # A core that is smaller but no longer explains anything is the failure here, and it

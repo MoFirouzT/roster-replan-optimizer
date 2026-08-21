@@ -31,6 +31,10 @@ Every time quantity — shift bounds, `now`, `published_through`, interval endpo
 
 Calendar timestamps belong in your system, not this one. **This domain has no calendar:** a week is a position in the horizon and never a Monday.
 
+**Compute an offset by subtracting two zone-aware instants — never as `day * 24 + hour`.** A local day is not always 24 hours: in `Europe/Brussels` the last Sunday of March is 23 and the last Sunday of October is 25, so on those two weeks the horizon is 167 or 169 hours long and every offset after the change is an hour out if it was multiplied. What reads those offsets is `R-REST-GAP` and `R-WEEKLY-REST`, measured to the hour, so an hour of drift is a rest gap this service certifies and an inspector does not.
+
+**Nothing here can catch that.** The checker verifies a roster against the numbers you sent — see [`limits.md`](limits.md#what-it-guarantees).
+
 ### What you send
 
 | Field | Carries |
@@ -64,7 +68,7 @@ A one-week payload cannot see the history that constrains its own first day. Som
 
 ### Omitted is never defaulted
 
-`max_hours_this_week`, `max_daily_hours`, `last_shift_end_before_horizon`, `flexi_eligible` and `dimona_ok` are optional in the container and **mandatory in practice**. Leave one out where a rule needs it and the request is rejected — nothing is substituted.
+`max_hours_this_week`, `max_daily_hours`, `last_shift_end_before_horizon`, `flexi_eligible` and `dimona_ok` are optional in the schema and **mandatory in practice**. Leave one out where a rule needs it and the request is rejected — nothing is substituted.
 
 The failure this avoids is specific: an empty `flexi_eligible` would *deny* eligibility where you merely forgot to say, which is a different answer wearing the same shape. Neither it nor a defaulted weekly budget is detectable downstream, because both produce a perfectly plausible roster.
 

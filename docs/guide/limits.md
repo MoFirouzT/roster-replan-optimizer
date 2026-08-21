@@ -8,11 +8,13 @@ What this service promises, what it has been measured at, and what it deliberate
 
 **Something always comes back on a replan.** exact → time-boxed with the gap reported → greedy repair → last known good. See [`api.md`](api.md#the-answer). A *cold* solve cannot make this promise — greedy needs an incumbent to repair.
 
-**A roster is reproducible offline, on any machine.** Every solve's input, profile version and seed are persisted by you, and the same input returns the same roster — not merely the same objective value. That is a repaired claim rather than an assumed one: the optimum was degenerate, so the model now pins the optimal value *and* picks one point on the optimal face by a canonical criterion. CI proves it on a different `ortools` build from the one every committed artifact was recorded with.
+**A roster is reproducible offline, on any machine.** Every solve's input, profile version and seed are persisted by you, and the same input returns the same roster — not merely the same objective value. That is a repaired claim rather than an assumed one: the optimum was degenerate, so the model now pins the optimal value *and* picks one point in the optimal set by a canonical criterion. CI proves it on a different `ortools` build from the one every committed artifact was recorded with.
 
 **A shortfall is priced, not hidden.** Coverage has a soft floor, so an impossible week comes back one person short with an explanation instead of coming back empty.
 
 **Nothing unlawful is offered.** Relaxing a statutory parameter with no recorded derogation basis is refused before any solve, in `what_if` and in the override recommendations alike.
+
+**Every guarantee above starts at the payload, and none of them reaches behind it.** The model and the checker are independent of each other, but they read the same input. A time offset converted wrong — a week containing a clock change treated as `day * 24 + hour` ([`api.md`](api.md#time-is-hours-from-the-horizon-start)) — or a `max_hours_this_week` resolved wrong from the reference period is planned against and then certified against, and the two agree. Independence catches a rule read two ways. It cannot catch a week described wrong, and that description is computed in your system, where nothing here tests it.
 
 ## Measured
 
@@ -45,6 +47,8 @@ Every performance figure above is a statement about a **one-week horizon**. Inst
 
 Five definitions, each nesting the one before it. **D2 is the shipped default.**
 
+Each is a term in the objective the solver minimises. The formulation those terms sit in — the decision variable, what the objective sums, and why coverage shortfall must dominate — is [`model.md`](../internals/model.md#objective), on the internals side: it describes how the service works today and is **not part of the contract**, so read it to understand the choice below, not to depend on it.
+
 | ID | Definition | Status |
 | --- | --- | --- |
 | D0 | Count of changed assignments | rejected — a published cancellation and an unpublished move score alike |
@@ -68,7 +72,7 @@ Four levels, and only two of them trade:
 | Hard rules | Constraints. Not in the objective at all |
 | Coverage and qualification shortfall | Priced, and **must dominate** |
 | Disruption | D2 by default |
-| Cost | Traded against disruption at `cost_weight` |
+| Cost | Traded against disruption at `cost_weight`, which ships at `0` and stays inert until employees carry different rates — see below |
 
 **`shortfall_weight` must dominate, and the bound is derived rather than chosen.** Understaffing reduces disruption — an unstaffed shift is a shift nobody was moved onto — so a shortfall weight set too low means the optimiser buys stability by leaving shifts empty. That looks like a tuning problem and is an ordering error:
 
@@ -80,14 +84,18 @@ A weight scale that breaks this is rejected as a malformed request, not accepted
 
 **`cost_weight` ships at `0`.** The cost model is `Σ work_minutes × hourly_rate`, with no overtime premium, no flexi wage cap, no weekend or night differential, and no distinction between marginal and sunk labour. A weight on a number that cannot tell two equal-hours rosters apart would add noise and no signal, so the shipped objective is pure disruption. Read the cost axis as *paid hours*, not as euros.
 
+**Why it cannot tell them apart, exactly.** `hourly_rate` is optional and nothing supplies it — not the demo scenario, not the generator — so every employee costs `1.0` and every assignment of a 7.5-hour shift costs the same whoever takes it. Coverage cannot exceed `required`, because `R-COVER`'s ceiling is gated to zero overage. So at equal coverage the total is a constant, and switching cost on reorders nothing: every method in the table above reports the same **284.5 paid hours**. The one thing the term can still move is coverage itself — fewer people rostered is cheaper — which is why `shortfall_weight` must dominate it by a derived bound rather than a chosen number.
+
+**It is an extension point, not a hole.** Give two employees different rates and the term becomes live immediately, with no model change: a flexi-jobber and a full-timer on the same shift stop being interchangeable, and cost starts trading against disruption at whatever `cost_weight` says. What is missing is the wage data, not the encoding. The term also stays in the objective for a second reason — the cold-cost baseline the headline claim is measured against is *defined* by switching it on ([`benchmarks.md`](../archive/benchmarks.md)), so it is exercised on all 84 cases even though no tenant profile uses it.
+
 The default exchange rate, if you switch cost on: **one published change at short notice ≈ two hours of overtime premium.** That is a hypothesis written down so it can be argued with, not a measurement.
 
 ## What is deliberately absent
 
 | Gap | Why |
 | --- | --- |
-| Five rules declared but not encoded — `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | Each is sourced to an instrument but has no predicate yet. Enabling one is rejected rather than silently ignored |
-| A real cost model | Needs wage data |
+| Five rules declared but not encoded — `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | Each is sourced to an instrument but has no predicate — no conditions written out — yet. Enabling one is rejected rather than silently ignored |
+| A real cost model | Needs wage data. The term is in the objective and inert on uniform rates — see `cost_weight` above |
 | Preferences that reach past one week | The objective is measured inside the horizon. A rolling weekend balance carries across, but nothing else does |
 | Capture and replay of real rosters | Needs authorization and real vendor payloads |
 | A horizon over four weeks | Answered, but no committed benchmark case runs at more than one |

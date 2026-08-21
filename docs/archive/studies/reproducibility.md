@@ -6,7 +6,7 @@ Nothing had tested it, because everything ran on one machine.
 **Answer.** **No — the optimum was degenerate, and the promise was false.**
 Four solver seeds returned the same objective value every time and **a different roster on 24 of the 84 replans and on all 84 cold weeks**.
 The value was fully determined by the model; the choice among equal optima was determined by nothing anybody had written down.
-Fixed by pinning the optimal value and minimising a canonical criterion over the optimal face, at a cost of **61% of search time** ([`D-119`](../decisions.md#d-119)).
+Fixed by pinning the optimal value and minimising a canonical criterion over the optimal set, at a cost of **61% of search time** ([`D-119`](../decisions.md#d-119)).
 It now holds across solver builds, which is the part that needed a foreign binary to test ([`D-121`](../decisions.md#d-121)).
 
 ## How it was found
@@ -34,7 +34,7 @@ A cold week has no incumbent to pin it, so nothing in the model preferred one ro
 
 ## The fix
 
-`model.solve` runs a second phase on every proved optimum: the optimal objective value is pinned as a constraint, and a canonical criterion is minimised over the optimal face.
+`model.solve` runs a second phase on every proved optimum: the optimal objective value is pinned as a constraint, and a canonical criterion is minimised over the optimal set.
 The roster is therefore a function of the model rather than of the search, and **nothing about what is optimal changes** — every committed objective value is untouched by construction.
 
 **The criterion is `Σ ordinal² · x`, and the exponent was measured rather than chosen.**
@@ -70,7 +70,7 @@ That is the claim [`D-119`](../decisions.md#d-119) could not make from one machi
 
 ## The boundary, stated
 
-Phase two is a real search — it minimises a criterion over a face that can hold millions of points — so it can run out of budget.
+Phase two is a real search — it minimises a criterion over a set that can hold millions of points — so it can run out of budget.
 It receives the **remaining** budget rather than a fresh one, and when it cannot prove its criterion optimal in the time left, phase one's roster stands and `Solution.canonical` is `False` ([`D-126`](../decisions.md#d-126)).
 
 So the unqualified claim is true with a stated boundary: every instance in the committed set canonicalises in milliseconds, and an instance large enough to exhaust the budget returns an optimum that is not canonical **and says so**.

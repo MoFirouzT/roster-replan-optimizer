@@ -85,7 +85,7 @@ def test_the_solved_half_of_the_manifest_matches_regeneration(committed):
     of the ortools build that wrote them.
 
     **`D-119` removed the reason.** The roster is now a function of the model: the optimal
-    value is pinned and a canonical criterion picks a single point on the optimal face, and
+    value is pinned and a canonical criterion picks a single point in the optimal set, and
     degeneracy across this set measures zero on both cold weeks and replans. So the mark
     comes off, and this test is what says whether that holds on a *different binary* rather
     than merely a different seed (`D-121`). If it fails in CI, the canonical optimum does

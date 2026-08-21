@@ -187,6 +187,7 @@ plan itself is [`archive/PLAN.md`](PLAN.md).
 | [`D-147`](#d-147) | Where the model stops is where this Python stops, and the sentence now says so |
 | [`D-148`](#d-148) | The README draws the claim it used to only tabulate |
 | [`D-149`](#d-149) | The model cache is deleted, because its key was a claim that went stale |
+| [`D-150`](#d-150) | The guarantee starts at the payload, and the clock in front of it is the caller's |
 
 ## By theme
 
@@ -202,7 +203,7 @@ plan itself is [`archive/PLAN.md`](PLAN.md).
 | Explaining an answer — shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-048`](#d-048), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100), [`D-144`](#d-144) |
 | The LLM boundary and profile configuration | [`D-012`](#d-012), [`D-013`](#d-013), [`D-099`](#d-099), [`D-101`](#d-101), [`D-102`](#d-102), [`D-103`](#d-103) |
 | Service, runtime and the fallback ladder | [`D-010`](#d-010), [`D-011`](#d-011), [`D-090`](#d-090), [`D-091`](#d-091), [`D-094`](#d-094), [`D-122`](#d-122) |
-| Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-110`](#d-110), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131) |
+| Horizon and cross-week reach | [`D-014`](#d-014), [`D-150`](#d-150), [`D-029`](#d-029), [`D-081`](#d-081), [`D-110`](#d-110), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131) |
 | The foreign instance | [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
 | Capture and replay (specified, not built) | [`D-016`](#d-016), [`D-017`](#d-017) |
 | Scope and declarations | [`D-095`](#d-095), [`D-104`](#d-104) |
@@ -2880,7 +2881,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 ## D-119 — The optimum is canonical, because the model should decide the roster and the search should not
 
 - **Decision.** `model.solve` runs a second phase on every proved optimum: the optimal objective value
-  is pinned as a constraint and a canonical criterion is minimised over the optimal face. The roster
+  is pinned as a constraint and a canonical criterion is minimised over the optimal set. The roster
   returned is therefore a function of the model, not of the search. Nothing about *what is optimal*
   changes, so every committed objective value is untouched by construction.
 - **Alternatives.** Canonicalise cold solves only. A dominated tie-break folded into the primary
@@ -3096,7 +3097,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Alternatives.** Give phase two its own full budget and keep raising. Return the feasible-but-unproven
   phase-two roster. Skip canonicalisation above some instance size.
 - **Reason.** [`D-119`](#d-119) added the phase and asserted it unreachable. That is true about
-  **feasibility** and says nothing about **optimality** — phase two minimises a criterion over a face
+  **feasibility** and says nothing about **optimality** — phase two minimises a criterion over a set
   that can hold millions of points, and proving a minimum there is a real search.
 
   Two defects were behind it and only one was visible. The other is that phase two was handed a fresh
@@ -3750,3 +3751,28 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   supply is a field no test exercises, and `test_optional_rules.py` says as much in its own
   docstring. Two boundaries have now failed that way.
 - **Date.** 2026-08-20.
+
+<a id="d-150"></a>
+## D-150 — The guarantee starts at the payload, and the clock in front of it is the caller's
+
+- **Decision.** No calendar or timezone handling enters this service. Instead two live documents say
+  where the guarantee begins: [`api.md`](../guide/api.md#time-is-hours-from-the-horizon-start) states how an offset is produced — by subtracting two
+  zone-aware instants, never as `day * 24 + hour` — and [`limits.md`](../guide/limits.md#what-it-guarantees) states that model/checker
+  independence does not reach behind the payload.
+- **Alternatives.** Accepting civil timestamps plus an IANA zone at the wire boundary and converting
+  here, which reverses [`D-135`](#d-135) and moves the boundary without removing it, since the caller owns the
+  system of record either way. Shipping a tested reference converter beside `demo.py` — the only
+  option that makes the conversion testable, and the only one that costs a dependency and a second
+  contract. Leaving it, which is where this sat.
+- **Reason.** A local day is not always 24 hours. In `Europe/Brussels` the last Sunday of March is 23
+  and the last Sunday of October 25, so on two weeks a year a caller multiplying days by 24 puts every
+  offset after the change an hour out, and `R-REST-GAP` reads those offsets to the hour. `api.md` gave
+  the unit and never the method. The deeper point is that [`D-003`](#d-003)'s independence buys nothing here:
+  the model and the checker are independent of each other and read the *same* input, so a week
+  described wrong is planned against and then certified against, and both agree. `limits.md` claimed
+  every guarantee and scoped none of them — it did not contain the word *caller*.
+- **Consequences.** The strongest claim this project makes is now bounded in the document that makes
+  it. The same boundary already carries [`D-014`](#d-014)'s four quantities, so this scopes those too rather than
+  naming only the clock. A tested converter stays **open, not rejected**: it is the one fix that turns
+  an untested part into a tested part, and it waits for a second caller to say what shape it needs.
+- **Date.** 2026-08-21.

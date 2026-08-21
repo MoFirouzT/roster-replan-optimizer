@@ -5,7 +5,8 @@ uv sync
 uv run python -m roster_replan.demo scenarios/saturday_sick_call.json
 ```
 
-E02 has called in sick for a Saturday evening shift. The roster for the rest of the week is already published.
+E02 has called in sick for a Saturday evening shift.
+The roster for the rest of the week is already published.
 
 ```text
 tenant horeca-demo, profile horeca-2026.1
@@ -36,17 +37,26 @@ Cheapest single overrides that would fill Sat 15:00-23:00 (E):
 
 ## What you are looking at
 
-**One assignment changed.** Everyone else keeps the shift they were told about. That is the whole point of the service: it reproduces the published roster with the least deviation from it, rather than re-solving the week for the cheapest legal answer.
+**One assignment changed.**
+Everyone else keeps the shift they were told about.
+That is the whole point of the service:
+it reproduces the published roster with the least deviation from it, rather than re-solving the week for the cheapest legal answer.
 
-**The shift stays short, and that is the honest outcome.** Nobody could legally replace E02. Coverage is a priced floor rather than a hard requirement, so the solver returns a roster one person short instead of returning nothing — and then says why, person by person, against the rule that blocked each one.
+**The shift stays short, and that is the honest outcome.**
+Nobody could legally replace E02.
+Coverage is a priced floor rather than a hard requirement, so the solver returns a roster one person short instead of returning nothing and then says why, person by person, against the rule that blocked each one.
 
-**Every line of the explanation is derived.** The blocker counts come from the checker re-verifying the roster; the overrides come from re-solving a disposable copy of the instance. No model wrote any of it.
+**Every line of the explanation is derived.**
+The blocker counts come from the checker re-verifying the roster;
+the overrides come from re-solving a disposable copy of the instance.
+No model wrote any of it.
 
-**Overrides are grouped by where the rule's authority comes from, never ranked across the groups.** Ignoring a skill requirement is a call the planner already owns. Asking somebody to work further into a budget a statute caps is a different kind of ask, and being no more expensive does not make it the one to try first.
+**Overrides are grouped by where the rule's authority comes from, never ranked across the groups.**
+Ignoring a skill requirement is a call the planner already owns.
+Asking somebody to work further into a budget a statute caps is a different kind of ask, and being no more expensive does not make it the one to try first.
 
-## The scenario file
-
-`scenarios/saturday_sick_call.json` is the real wire format, so it doubles as a worked example of what a caller sends. [`api.md`](api.md) describes it field by field.
+> `scenarios/saturday_sick_call.json` is the real wire format, so it doubles as a worked example of what a caller sends.
+> [`api.md`](api.md) describes it field by field.
 
 ## Next
 

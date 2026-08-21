@@ -22,18 +22,14 @@ Every roster is re-verified against every rule by a plain function with no solve
 
 ## The difference, on one week
 
+E05 calls in sick for Sunday evening.
+Both rosters are legal, both staff every shift, and both are optimal for the objective they were given.
+
 ![One week of a 12-person roster, drawn twice. A cold cost re-solve moves six assignments; the minimum-disruption replan moves two.](docs/saturday-sick-call.svg)
 
-E05 calls in sick for Sunday evening. Both rosters are legal, both staff every shift, and both are optimal for the objective they were given.
-
-The replan drops E05 and calls E04 in — the absence, and its replacement. The cold re-solve also moves **E01, E07 and E08**, three people whose shifts were never in question, because nothing in a cost objective prefers the roster they were already told about.
-
-That is one case. Across 72 cases the means are **12.4 assignments moved against 2.4**.
-
-```bash
-uv sync
-uv run python -m roster_replan.demo scenarios/saturday_sick_call.json
-```
+**Result:**
+The replan drops E05 and calls E04 in; the absence, and its replacement.
+The cold re-solve also moves **E01, E07 and E08**, three people whose shifts were never in question, because nothing in a cost objective prefers the roster they were already told about.
 
 ---
 

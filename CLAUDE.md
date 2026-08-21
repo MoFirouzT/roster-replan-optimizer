@@ -55,8 +55,9 @@ list; anything outside it is fair game for simplification.
 | **presolve** | Removing impossible `(employee, shift)` pairs before the solver sees them |
 | **core** | The set of assumption literals CP-SAT returns to explain an infeasibility |
 | **slack** | An explicit variable absorbing a shortfall so it can be priced instead of refused |
-| **gate** | An assumption literal a hard constraint is conditioned on, so it can be reported or relaxed |
+| **gate** | The boolean a hard constraint is conditioned on, so it can be reported or relaxed. CP-SAT's own name for it is an *assumption literal* |
 | **disruption** | The objective: deviation from the incumbent, as defined in `docs/internals/model.md` |
+| **predicate** | The exact conditions a rule imposes — the fenced block in `rules.md`. Not the rule, which also has an ID, a provenance and parameters, and not its encoding in the model or the checker. The model/checker independence claim is stated in this word, so it is grep-able on purpose |
 | **provenance** | Where a rule's authority comes from — a statute, a CBA, or nothing (operational) |
 | **derogation** | A lawful relaxation of a statutory parameter, requiring a recorded basis |
 
@@ -79,6 +80,7 @@ Three rules follow:
 - **A component is not done until its documentation matches its code.** When they diverge, decide which is wrong and fix that one — do not leave a live document describing intent.
 - **Reasoning goes in a record, not in a live document.** The exception is [`docs/internals/design.md`](docs/internals/design.md), which exists to be the bridge: it states the current design as one argument and links the record behind each claim. It is the only live document that cites records heavily.
 - **The archive is retargeted, never rewritten.** When a document moves, links into the archive are fixed mechanically. No sentence inside it changes.
+  The one carve-out is **a term of art renamed everywhere at once**: if a word is wrong in the live documents it is wrong in the archive too, and leaving the old one there makes a reader think two things were meant. It is allowed only when the rename lands across live documents, code and archive in a single change, and only when no claim, number, decision or reason moves with it — the sentence must mean exactly what it meant before. Anything that changes what a record *says* is a supersession, and takes a new record.
 
 Every live document ends with a footer naming where its reasoning lives.
 

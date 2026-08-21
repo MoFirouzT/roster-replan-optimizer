@@ -41,7 +41,7 @@ Symbols come from [`model.md`](../internals/model.md).
 
 An ID that links to a section below is specified there. The five that do not — `R-STUDENT-QUOTA`,
 `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` — are declared and sourced but not yet specified;
-each still needs an exact predicate, its parameters and their per-tenant configurability, a
+each still needs an exact predicate (the conditions it imposes, written out), its parameters and their per-tenant configurability, a
 hard/soft classification, and the failure message the explainer renders.
 Every rule marked *optional* is profile-gated: a tenant that does not enable it never pays for it.
 

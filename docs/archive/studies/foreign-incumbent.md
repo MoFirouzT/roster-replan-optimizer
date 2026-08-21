@@ -141,7 +141,7 @@ The ladder's `incumbent` rung exists for exactly this and now has evidence rathe
 
 Canonicalising the optimum ([`D-119`](../decisions.md#d-119)) added a second solve phase and asserted that it could not fail:
 *the phase-one solution satisfies every constraint here, including the pin*. True of feasibility, and
-silent about proving a criterion optimal over a face with millions of points. Instance 10 — 40
+silent about proving a criterion optimal over a set with millions of points. Instance 10 — 40
 employees, four weeks — raised that assertion on first contact ([`D-126`](../decisions.md#d-126)).
 
 Two defects, not one. Phase two could exceed the caller's budget, because it was given a fresh copy

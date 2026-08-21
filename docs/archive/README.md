@@ -10,6 +10,7 @@ This is where it comes from: the choices, the measurements, and the several occa
 A later decision amends an earlier record in place with the supersession named.
 A record that gets edited whenever the world moves is not a record.
 That applies to the words; file paths are retargeted when documents move, which is not a rewrite.
+Neither is renaming a term of art, provided it is renamed here, in the live documents and in the code at once, and nothing but the word changes.
 
 | Document | What it is |
 | --- | --- |

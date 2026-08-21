@@ -1,6 +1,6 @@
 # Why the system is shaped this way
 
-> **A derived reading, not a source of truth.** Nothing here owns a claim. [`rules.md`](../guide/rules.md) owns every rule predicate, [`model.md`](model.md) owns the formulation, [`api.md`](../guide/api.md) owns the contract. This page exists so that a reader meets the argument before the notation.
+> **A derived reading, not a source of truth.** Nothing here owns a claim. [`rules.md`](../guide/rules.md) owns every rule predicate (the conditions each rule imposes), [`model.md`](model.md) owns the formulation, [`api.md`](../guide/api.md) owns the contract. This page exists so that a reader meets the argument before the notation.
 >
 > Every load-bearing sentence links the record that settled it. Those records are in [`decisions.md`](../archive/decisions.md), and following them is the point.
 
@@ -106,7 +106,7 @@ Override recommendations are **grouped by provenance and never ranked across the
 
 **The ladder imports no web layer.** The intricate part stays small and testable; the boundary stays boring, so a non-specialist can read and change it.
 
-Reproducibility needed repair rather than assertion. The optimum was **degenerate**: the same input returned different rosters at the same objective value, and no test could see it because none looked at *which* optimum. The model now pins the value and picks one point on the optimal face by a canonical criterion ([`D-119`](../archive/decisions.md#d-119)) — at 61% of search time, paid deliberately. CI runs a **different `ortools` build** from the one every committed artifact was recorded with, because a claim about determinism across machines needs a foreign binary to test it ([`D-121`](../archive/decisions.md#d-121)).
+Reproducibility needed repair rather than assertion. The optimum was **degenerate**: the same input returned different rosters at the same objective value, and no test could see it because none looked at *which* optimum. The model now pins the value and picks one point in the optimal set by a canonical criterion ([`D-119`](../archive/decisions.md#d-119)) — at 61% of search time, paid deliberately. CI runs a **different `ortools` build** from the one every committed artifact was recorded with, because a claim about determinism across machines needs a foreign binary to test it ([`D-121`](../archive/decisions.md#d-121)).
 
 Fixing it then **blinded two test layers**, and the mutation harness is what noticed ([`D-124`](../archive/decisions.md#d-124)). Reproducibility and observability were trading against each other and only one side had been priced.
 

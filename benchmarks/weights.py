@@ -20,7 +20,7 @@ at all — only the fact that it clears the bound.
 
 **A flat optimum.** `D-118` measured this model's objective as degenerate: many rosters shared
 one objective value, and which came back was decided by the search. `D-119` fixed that by
-minimising a canonical criterion over the optimal face, so the roster is now a function of the
+minimising a canonical criterion over the optimal set, so the roster is now a function of the
 model. That is what makes this measurement meaningful — without it, a roster changing between
 two weights could be the solver rather than the weight — and it is also why a *band* of
 weights can map to one roster rather than a point.

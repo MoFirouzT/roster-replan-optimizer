@@ -622,7 +622,7 @@ def test_a_proved_optimum_says_whether_it_is_the_canonical_one():
     it has (`D-126`)."""
     answer = solve(week())
     assert answer.status == "OPTIMAL"
-    assert answer.canonical, "an ordinary proved optimum should reach the canonical face"
+    assert answer.canonical, "an ordinary proved optimum should reach the canonical point"
 
 
 def test_canonicalising_is_skipped_rather_than_overrunning_the_budget():
@@ -630,7 +630,7 @@ def test_canonicalising_is_skipped_rather_than_overrunning_the_budget():
 
     An earlier version asserted the opposite — *the phase-one solution satisfies every
     constraint here* — which is true of feasibility and says nothing about proving a
-    criterion optimal over a face with millions of points. A foreign instance of 40
+    criterion optimal over a set with millions of points. A foreign instance of 40
     employees over four weeks raised that assertion within minutes of first contact
     (`D-126`).
 

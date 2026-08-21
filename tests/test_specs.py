@@ -294,3 +294,92 @@ def test_no_record_exceeds_the_word_cap():
         f"{len(over)} records over the {RECORD_CAP}-word cap "
         f"(move the analysis to the study): {dict(sorted(over.items(), key=lambda kv: -kv[1]))}"
     )
+
+
+# --- The worked profile in configuring.md --------------------------------------------
+
+
+def _demo_profile():
+    """`horeca-2026.1`, assembled from the scenario the quickstart runs.
+
+    Not a fixture built by hand: the point of the example in `configuring.md` is that it
+    is the profile a reader can run, so it is read from the same file `demo.py` reads.
+    """
+    import json
+
+    from roster_replan import profile as P
+    from roster_replan.service import contracts
+
+    payload = json.loads((ROOT / "scenarios" / "saturday_sick_call.json").read_text())
+    request = contracts.ReplanRequest.model_validate(payload)
+    instance = contracts.to_domain(request.instance)
+    return P.Profile(
+        version=request.profile_version,
+        shift_types=instance.shift_types,
+        params=instance.params,
+        disruption=instance.disruption,
+        fairness=instance.fairness,
+    ), instance
+
+
+def test_the_worked_profile_matches_the_scenario():
+    """Every value shown in `configuring.md`'s profile is the one in the scenario file.
+
+    A pasted example is a claim about code that nothing re-reads. This one is small enough
+    to check field by field, and the failure it prevents is the quiet one: a weight changes
+    in the scenario and the guide keeps teaching the old number.
+    """
+    profile, _ = _demo_profile()
+    shown = re.search(
+        r"```python\n(Profile\(.*?)\n```", _text(GUIDE / "configuring.md"), re.DOTALL
+    )
+    assert shown, "no worked profile in configuring.md -- has the fence moved?"
+    block = shown.group(1)
+
+    assert f'version="{profile.version}"' in block
+    for shift in profile.shift_types:
+        assert (
+            f'ShiftType(label="{shift.label}", start_hour={shift.start_hour}, '
+            f"span_hours={shift.span_hours}, break_hours={shift.break_hours})"
+        ) in block, f"{shift.label} differs from the scenario"
+
+    for field in ("min_rest_hours", "min_weekly_rest_hours", "min_period_hours", "max_consecutive_days"):
+        assert f"{field}={getattr(profile.params, field)}," in block, field
+    for field in ("metric", "published_weight", "draft_weight", "shortfall_weight", "cost_weight"):
+        value = getattr(profile.disruption, field)
+        rendered = f'"{value}"' if isinstance(value, str) else value
+        assert f"{field}={rendered}," in block, field
+    for band in profile.disruption.notice_bands:
+        within = "inf" if band.within_hours == float("inf") else band.within_hours
+        assert f"NoticeBand(within_hours={within}, multiplier={band.multiplier})" in block
+
+    assert (profile.fairness is None) == ("fairness=None" in block)
+
+
+def test_the_quoted_remarks_are_what_review_returns():
+    """`configuring.md` quotes the subsumption verdict; this re-derives it.
+
+    The remark text is prose inside `profile.py` and reads like something safe to reword.
+    It is quoted in the guide, so rewording it silently makes the guide describe output the
+    service no longer produces.
+    """
+    import dataclasses
+
+    from roster_replan import profile as P
+
+    profile, instance = _demo_profile()
+    loosened = dataclasses.replace(
+        profile, params=dataclasses.replace(profile.params, max_consecutive_days=9)
+    )
+    produced = {remark.field: remark.message for remark in P.remarks(loosened, sample=instance)}
+
+    quoted = re.search(r"```text\n(params\.max_consecutive_days.*?)\n```",
+                       _text(GUIDE / "configuring.md"), re.DOTALL)
+    assert quoted, "no remarks block in configuring.md"
+    block = " ".join(quoted.group(1).split())
+
+    for field, message in produced.items():
+        assert f"{field} {message}" in block, f"{field}: guide and `remarks` disagree"
+    assert len(produced) == block.count("params.") + block.count("disruption."), (
+        "the guide shows a different number of remarks than `review` returns"
+    )

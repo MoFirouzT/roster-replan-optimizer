@@ -930,7 +930,7 @@ class Solution:
     # (`service.md`).
     bound: int = 0
 
-    # Whether this roster is the canonical point on the optimal face, or merely *an*
+    # Whether this roster is the canonical point in the optimal set, or merely *an*
     # optimum (`D-126`). False when the answer was not proved optimal at all, and when the
     # canonicalising phase ran out of the caller's budget. It is the difference between a
     # roster that reproduces on any machine and one that reproduces on this build, and a
@@ -1045,7 +1045,7 @@ def solve(
     bound = round(solver.best_objective_bound)
     seconds = solver.wall_time
 
-    # Only a proved optimum has an optimal face to canonicalise over. A time-boxed
+    # Only a proved optimum has an optimal set to canonicalise over. A time-boxed
     # `FEASIBLE` is a roster the search happened to reach, and pinning its value would
     # canonicalise the wrong set -- the caller is already told, by `status` and `gap`, that
     # this answer is not proven.
@@ -1092,7 +1092,7 @@ def _objective(built: Built, instance: Instance):
 # That falsified a claim: a roster could not be reproduced from its input, seed and profile
 # version, only its objective value could. This is the second phase that makes the original
 # claim true. The optimal value is pinned as a constraint and a canonical criterion is
-# minimised over the optimal face, so **nothing about what is optimal changes** -- every
+# minimised over the optimal set, so **nothing about what is optimal changes** -- every
 # committed objective value is untouched by construction, and the roster becomes a function
 # of the model rather than of the search.
 #
@@ -1112,7 +1112,7 @@ def _canonical_criterion(built: Built):
 def _canonicalise(
     built: Built, expression, value: int, solver: cp_model.CpSolver, *, budget: float
 ) -> tuple[Roster | None, bool]:
-    """Re-solve on the optimal face, minimising the canonical criterion.
+    """Re-solve over the optimal set, minimising the canonical criterion.
 
     Returns `(roster, canonical)`. A `None` roster means phase two produced nothing and the
     caller keeps phase one's answer, which is still a proved optimum and simply not the
@@ -1130,7 +1130,7 @@ def _canonicalise(
     **Phase two is a real optimisation and can run out of budget** (`D-126`). An earlier
     version asserted this unreachable — "the phase-one solution satisfies every constraint
     here" — which is true of *feasibility* and says nothing about proving the criterion
-    optimal over a face with millions of points. A foreign instance of 40 employees over
+    optimal over a set with millions of points. A foreign instance of 40 employees over
     four weeks found that within minutes of first contact.
     """
     if budget <= 0:
@@ -1139,12 +1139,12 @@ def _canonicalise(
     snapshot = type(built.model.proto)()
     snapshot.copy_from(built.model.proto)
     try:
-        return _on_the_optimal_face(built, expression, value, solver, budget=budget)
+        return _on_the_optimal_set(built, expression, value, solver, budget=budget)
     finally:
         built.model.proto.copy_from(snapshot)
 
 
-def _on_the_optimal_face(
+def _on_the_optimal_set(
     built: Built, expression, value: int, solver: cp_model.CpSolver, *, budget: float
 ) -> tuple[Roster | None, bool]:
     built.model.add(expression == value)
@@ -1156,7 +1156,7 @@ def _on_the_optimal_face(
     status = solver.solve(built.model)
 
     if status != cp_model.OPTIMAL:
-        # Feasible-but-unproven is a *better* point on the optimal face than phase one
+        # Feasible-but-unproven is a *better* point in the optimal set than phase one
         # found, and still not the canonical one. Returning it would be reproducible only
         # by accident, so phase one's answer stands and the caller is told.
         return None, False

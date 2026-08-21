@@ -41,7 +41,7 @@ markers = [
     "machine: asserts an artifact recorded on this machine's hardware or solver build",
 ]
 
-# The independence rule from docs/specs/rules.md, mechanised. The module boundary is
+# The independence rule from docs/guide/rules.md, mechanised. The module boundary is
 # enforceable; the no-shared-thresholds half is a review obligation no linter can
 # discharge, since none can tell a shared constant from a coincidentally equal one.
 [tool.importlinter]
