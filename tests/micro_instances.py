@@ -49,7 +49,7 @@ SHIFTS = (
 # horizon, so a 3-day instance cannot hold one alongside work on more than a single day --
 # the rule would bind everywhere for a reason that belongs to the horizon rather than
 # of the roster. Lowering the parameter instead would need a derogation basis, and inventing
-# a legal one to quiet the validator is exactly the dishonesty `rules.md` exists to prevent.
+# a legal one to quiet the validator is exactly the dishonesty `guide/rules.md` exists to prevent.
 #
 # Enumeration cost is `2 ** (employees x open_shifts)` and does not depend on `days`, so a
 # long horizon is free. Statutory parameters throughout, and the one real derogation carries
@@ -250,7 +250,7 @@ def _weekly_rest_binds() -> Instance:
     The only instance here on a short horizon, and the exception proves the rule above:
     working both mornings leaves a longest free run of 33 hours, so somebody must be free
     for a whole day. That is over-strict against the statute -- the window may legally
-    straddle the horizon edge -- and `rules.md` records the conservatism. Kept because it
+    straddle the horizon edge -- and `guide/rules.md` records the conservatism. Kept because it
     is the only shape that exercises the candidate-window encoding at all.
     """
     return instance(
@@ -292,8 +292,8 @@ def _weekly_budget_distinguishes_net_from_span() -> Instance:
     """A budget of exactly 15 hours against two shifts of 7.5 net hours and 8.0 gross.
 
     Net fits exactly; gross does not. So this is the instance that pins `R-MAX-WEEKLY` to
-    `work_hours` rather than `span` -- the distinction `model.md` carries two symbols for,
-    and the one a single `hours(d, s)` would have got wrong by a break per shift.
+    `work_hours` rather than `span` -- the distinction `internals/model.md` carries two symbols
+    for, and the one a single `hours(d, s)` would have got wrong by a break per shift.
 
     Needs its own instance because the discrimination is narrow: any budget outside
     [15.0, 16.0) admits the same shift count either way, and the two nearby threshold
@@ -669,7 +669,7 @@ def _a_shift_may_not_follow_another() -> Instance:
     is already refused by `R-REST-GAP` — 23:00 to 07:00 is eight hours — so an instance built
     that way would pass with `R-SUCCESSION` deleted and prove nothing. Morning-then-evening
     leaves 24 hours, which the gap rule permits, so this pair is refused by the succession
-    rule **alone**. That is what `rules.md` means by the two overlapping without one
+    rule **alone**. That is what `guide/rules.md` means by the two overlapping without one
     subsuming the other.
     """
     return instance(

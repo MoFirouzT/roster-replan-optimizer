@@ -11,7 +11,7 @@ profile defect. It becomes a real constraint if shift boundaries ever become dec
 variables rather than data.
 
 This module may hold statutory baselines -- it is not one of the two independent
-readings, so `rules.md`'s no-shared-thresholds discipline does not reach it. The model
+readings, so `guide/rules.md`'s no-shared-thresholds discipline does not reach it. The model
 and the checker still receive every parameter explicitly through the payload.
 """
 
@@ -68,7 +68,7 @@ def validate_instance(instance: Instance) -> list[InputDefect]:
 # So a shortfall weight that is too low lets the optimiser buy stability by leaving
 # shifts empty -- a failure that looks like a tuning problem and is an ordering error.
 #
-# `replan.md` derives the bound rather than choosing it, which makes it checkable, so it
+# `internals/model.md` derives the bound rather than choosing it, which makes it checkable, so it
 # is checked. A weight scale that violates it is a malformed request, not a preference.
 #
 # **Fairness pays for understaffing too** (`D-108`). An unstaffed unpopular shift is one
@@ -123,7 +123,7 @@ def _min_shift(instance: Instance) -> list[InputDefect]:
 
 
 # --- Derogations --------------------------------------------------------------------
-# A legality claim with no named source is exactly what `rules.md` exists to prevent, so
+# A legality claim with no named source is exactly what `guide/rules.md` exists to prevent, so
 # any parameter looser than its statutory baseline must carry one. Stricter than
 # statute is always lawful and needs nothing.
 

@@ -6,7 +6,7 @@ against a formulation that means something *else* is not a comparison, it is a c
 
 So what is asserted here is equivalence, and the equivalence is strong: the MILP must reach
 the **same optimal objective** as CP-SAT on every case it is run against, and its roster must
-pass the same independent checker. That makes it a third reading of `rules.md` alongside the
+pass the same independent checker. That makes it a third reading of `guide/rules.md` alongside the
 model and the checker, and a disagreement between any two of the three is a real finding
 about one of them.
 

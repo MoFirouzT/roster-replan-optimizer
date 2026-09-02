@@ -1,6 +1,6 @@
 """The job queue: enqueue, poll, cancel, and fair scheduling across tenants.
 
-`service.md` asks for an async job queue rather than synchronous HTTP, because a solve that
+`guide/api.md` asks for an async job queue rather than synchronous HTTP, because a solve that
 can take 30 seconds produces timeouts, retries that re-trigger expensive solves, request
 pile-up, no progress feedback and no cancellation. This module is that queue.
 
@@ -20,7 +20,7 @@ there is a reason for one.
 
 ## Solver threads against container cores
 
-`service.md`: *CP-SAT with 8 workers in a 1-vCPU container is slower.* Two numbers have to
+`guide/api.md`: *CP-SAT with 8 workers in a 1-vCPU container is slower.* Two numbers have to
 agree — how many solves run at once, and how many threads each is given. Their product is
 bounded by the cores actually available, so concurrency is chosen first and each solve gets
 an equal share of what is left.
@@ -28,7 +28,7 @@ an equal share of what is left.
 ## Two limits of an in-process queue, stated
 
 **It is single-process.** State lives in a dict, so two replicas do not share a queue and a
-restart loses it. That is the correct shape for the tier — `service.md` demands the *solver*
+restart loses it. That is the correct shape for the tier — `guide/api.md` demands the *solver*
 be stateless, and it is: `run_job` takes a payload and returns a payload, reads no database,
 and would behave identically behind Redis or SQS. Swapping the store is a contained change
 and is where a real deployment goes next.
@@ -69,8 +69,8 @@ TERMINAL = (SUCCEEDED, FAILED, CANCELLED, REJECTED)
 class Job:
     """One replan request and everything needed to replay it.
 
-    `request` is kept in full after completion on purpose. `PLAN.md` requires every solve's
-    input, profile version and seed to be persisted for replay, and a job that has discarded
+    `request` is kept in full after completion on purpose. Replay needs every solve's
+    input, profile version and seed persisted (`specs/README.md`), and a job that has discarded
     its input cannot be replayed however good its telemetry is.
     """
 
@@ -208,7 +208,7 @@ def _plain(value):
 def solver_workers(concurrency: int) -> int:
     """CP-SAT threads per solve, so that concurrency times threads fits the cores.
 
-    Over-subscribing is not merely wasteful, it is slower: `service.md` names the case
+    Over-subscribing is not merely wasteful, it is slower: `guide/api.md` names the case
     directly, and CP-SAT's portfolio search assumes the threads it was promised.
     """
     return max(1, (os.cpu_count() or 1) // max(1, concurrency))

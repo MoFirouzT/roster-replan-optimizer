@@ -6,8 +6,8 @@
 `benchmarks.md` names the weak point of every number in this repo, and it has not moved: **the incumbent is
 solved by the system under test.** A replan is measured against a roster this model would
 produce, which cannot show that it repairs what real planners
-publish. `capture.md` was written to close that with a captured corpus, and is blocked on an
-authorization this project does not control.
+publish. Capture and replay was written to close that with a captured corpus and is blocked on an
+authorization this project does not control (`specs/README.md`).
 
 This is the half that is not blocked. The nurse-rostering benchmark instances at
 schedulingbenchmarks.org ship with **published solutions** — rosters produced by other
@@ -409,7 +409,7 @@ def score_their_objective(roster, instance: Instance, unencoded: Unencoded) -> i
 def their_violations(roster, instance: Instance, unencoded: Unencoded) -> list[str]:
     """Their **constraints**, checked against a roster. One reading, and deliberately so.
 
-    This is not a second `checker.py`. `rules.md`'s independence rule governs rules this
+    This is not a second `checker.py`. `guide/rules.md`'s independence rule governs rules this
     product enforces, and none of these is one — they are somebody else's operational limits,
     read here to answer a single question before any of them is encoded: **would they bind on
     a roster this project produces?** Encoding seven rules in two readings to discover they
@@ -420,7 +420,7 @@ def their_violations(roster, instance: Instance, unencoded: Unencoded) -> list[s
     and a wrong one is caught by data it did not choose (`D-134`).
 
     Returned as rule-name strings rather than `Violation` objects, because these have no rule
-    IDs — giving them one would put them in `rules.md`'s registry, which is the decision this
+    IDs — giving them one would put them in `guide/rules.md`'s registry, which is the decision this
     measurement exists to inform rather than to pre-empt.
     """
     by_employee: dict[int, dict[int, int]] = {}
@@ -766,9 +766,9 @@ def compare(*, budget: float = 300.0) -> None:
     differ, which nobody doubted.
 
     **Their formulation prices overstaffing and this project forbids it.** `D-018` makes the
-    coverage ceiling hard, so solving their problem exactly means relaxing that one rule —
-    and relaxing a named rule for a stated reason is precisely what the assumption literals
-    exist for (`rules.md`: *"relaxation is explicit, per-instance and reportable, never hidden
+    coverage ceiling hard, so solving their problem exactly means relaxing that one rule — and
+    relaxing a named rule for a stated reason is precisely what the assumption literals exist
+    for (`guide/rules.md`: *"relaxation is explicit, per-instance and reportable, never hidden
     inside a weight"*). The `R-COVER` gates are dropped from the assumption set and nothing
     else is, so the solve answers their question rather than a neighbouring one.
     """
@@ -833,7 +833,7 @@ def _their_objective_terms(built, instance: Instance, unencoded: Unencoded) -> l
 
     The counterpart of `score_their_objective`, and deliberately not sharing code with it:
     the assertion in `compare` that the two agree is only worth making because they are two
-    readings, which is `rules.md`'s independence rule applied to somebody else's objective.
+    readings, which is `guide/rules.md`'s independence rule applied to somebody else's objective.
     """
     terms = []
     for slot, short in built.shortfall.items():

@@ -1,19 +1,20 @@
-"""Generation mode: the cold-start case of replanning (`replan.md`, `D-109`).
+"""Generation mode: the cold-start case of replanning (`internals/model.md`, `D-109`).
 
-Generation was planned as a separate mode, and `replan.md` answered it in advance — generation
-is a replan from an empty incumbent, so there is no second formulation to build. That is a
-strong claim and it was never tested. This file tests it, and the three consequences the spec
-derives from it.
+Generation was planned as a separate mode and was answered in advance — generation is a
+replan from an empty incumbent, so there is no second formulation to build
+(`specs/fairness-generation.md`). That is a strong claim and it was never tested. This
+file tests it, and the three consequences drawn from it.
 
-**Two of those three turned out to be true for a different reason than the spec gives**, which
-is the whole reason to write the tests rather than trust the derivation. `disruption_of`
+**Two of those three turned out to be true for a different reason than the derivation
+gave**, which is the whole reason to write the tests rather than trust it. `disruption_of`
 short-circuits to zero when there is no incumbent, so cold disruption is not the constant
-`draft_weight × |roster|` the spec derives — it is identically nothing, and the shortfall
-caveat the spec attaches to it cannot arise. See `D-109`; the spec now says what the code does.
+`draft_weight × |roster|` that was derived — it is identically nothing, and the shortfall
+caveat attached to it cannot arise. See `D-109`; `internals/model.md` now says what the
+code does.
 
-What this file does *not* do is add an endpoint. `replan.md` argues there is one formulation,
-so a `/v1/rosters` beside `/v1/replans` would be a second surface over the same solve — the
-tests below pin generation through the surfaces that already exist instead.
+What this file does *not* do is add an endpoint. `internals/model.md` argues there is one
+formulation, so a `/v1/rosters` beside `/v1/replans` would be a second surface over the
+same solve — the tests below pin generation through the surfaces that already exist.
 """
 
 from __future__ import annotations
@@ -56,7 +57,7 @@ def test_generation_solves_to_proven_optimality(cold):
 
 
 def test_generation_needs_no_second_code_path(cold):
-    """The claim `replan.md` makes and this file exists to hold: the same `solve` produces
+    """The claim `internals/model.md` makes and this file exists to hold: the same `solve` produces
     a roster from nothing, with no mode flag and no separate builder."""
     generated = solve(cold, seed=7, time_limit=30.0)
     replanned = solve(
@@ -115,7 +116,7 @@ def test_a_cold_shortfall_cannot_buy_a_lower_disruption(cold):
 
 def test_the_tie_breaker_is_what_ranks_a_cold_roster(cold):
     """With disruption flat and `cost_weight` at 0 (`D-050`), the objective a cold solve
-    actually minimises is the peak-workload tie-breaker. `replan.md` said it reduces to
+    actually minimises is the peak-workload tie-breaker. `internals/model.md` said it reduces to
     cost; today cost is switched off, so it reduces to the thing beneath it."""
     solution = solve(cold, seed=7, time_limit=30.0)
     scored = score(solution.roster, cold)
@@ -137,7 +138,7 @@ def test_generation_reaches_the_exact_rung(cold):
 
 
 def test_the_lower_rungs_are_replan_only_and_generation_lives_with_that(cold):
-    """`service.md` states it: greedy repairs an incumbent and last-known-good returns one,
+    """`guide/api.md` states it: greedy repairs an incumbent and last-known-good returns one,
     so "never return nothing" is a promise about replanning. A cold solve keeps it only
     because a cold solve cannot be infeasible — the empty roster satisfies every hard rule,
     since the coverage floor is soft (`D-018`)."""

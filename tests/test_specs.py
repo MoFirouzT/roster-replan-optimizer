@@ -1,14 +1,14 @@
 """The specs, checked mechanically. The finish declaration's evidence rather than its claim.
 
-`PLAN.md`: *a component is not done until its spec matches its code*, and the finish
-declaration asserts that of every spec at once. An assertion like that is worth what it can
+`CLAUDE.md`: *a component is not done until its documentation matches its code*, and the finish
+declaration asserted that of every spec at once. An assertion like that is worth what it can
 be checked against, so what can be checked is checked here rather than read once and
 declared true.
 
 Four things are mechanisable, and each corresponds to a way the documentation has drifted or
 could drift:
 
-1. **Every rule the registry says is encoded exists in both readings.** `rules.md` is the
+1. **Every rule the registry says is encoded exists in both readings.** `guide/rules.md` is the
    day-1 artifact and the one document every other file cites; a rule ID that no longer
    appears in `checker.py` and `model.py` is the registry describing a system that is gone.
 2. **Every decision ID referenced anywhere has exactly one record.** A dangling `D-0NN` sends
@@ -25,6 +25,7 @@ the reconcile beat, done by reading, and these tests do not pretend to replace i
 
 from __future__ import annotations
 
+import importlib.util
 import pathlib
 import re
 
@@ -59,7 +60,7 @@ def _text(path: pathlib.Path) -> str:
 
 @pytest.fixture(scope="module")
 def registry() -> set[str]:
-    """Rule IDs from the registry table in `rules.md`."""
+    """Rule IDs from the registry table in `guide/rules.md`."""
     ids = set()
     for line in _text(GUIDE / "rules.md").splitlines():
         # The ID cell links to the rule's own section where one exists, and is bare
@@ -294,8 +295,9 @@ def test_every_fragment_link_resolves():
 def test_the_studies_index_and_the_studies_agree():
     """A row with no file sends the reader nowhere; a file with no row cannot be found.
 
-    Both existed: `reproducibility.md`, `warm-start.md` and `time-budget.md` were indexed
-    for months as plain text, and `README.md` named the first as the one thing to read.
+    Both existed: `studies/reproducibility.md`, `studies/warm-start.md` and
+    `studies/time-budget.md` were indexed for months as plain text, and `README.md` named the
+    first as the one thing to read.
     """
     index = _text(STUDIES / "README.md")
     linked = set(re.findall(r"\[`([a-z-]+\.md)`\]\(\1\)", index))
@@ -339,7 +341,7 @@ def test_no_record_exceeds_the_word_cap():
 def _demo_profile():
     """`horeca-2026.1`, assembled from the scenario the quickstart runs.
 
-    Not a fixture built by hand: the point of the example in `configuring.md` is that it
+    Not a fixture built by hand: the point of the example in `guide/configuring.md` is that it
     is the profile a reader can run, so it is read from the same file `demo.py` reads.
     """
     import json
@@ -360,7 +362,7 @@ def _demo_profile():
 
 
 def test_the_worked_profile_matches_the_scenario():
-    """Every value shown in `configuring.md`'s profile is the one in the scenario file.
+    """Every value shown in `guide/configuring.md`'s profile is the one in the scenario file.
 
     A pasted example is a claim about code that nothing re-reads. This one is small enough
     to check field by field, and the failure it prevents is the quiet one: a weight changes
@@ -394,7 +396,7 @@ def test_the_worked_profile_matches_the_scenario():
 
 
 def test_the_quoted_remarks_are_what_review_returns():
-    """`configuring.md` quotes the subsumption verdict; this re-derives it.
+    """`guide/configuring.md` quotes the subsumption verdict; this re-derives it.
 
     The remark text is prose inside `profile.py` and reads like something safe to reword.
     It is quoted in the guide, so rewording it silently makes the guide describe output the
@@ -420,3 +422,44 @@ def test_the_quoted_remarks_are_what_review_returns():
     assert len(produced) == block.count("params.") + block.count("disruption."), (
         "the guide shows a different number of remarks than `review` returns"
     )
+
+
+# --- Documentation citations in source ------------------------------------------------
+
+
+def _lint_module():
+    """`scripts/lint_docs.py` is a script rather than a package, so it is loaded by path."""
+    spec = importlib.util.spec_from_file_location("lint_docs", ROOT / "scripts" / "lint_docs.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_a_citation_resolves_against_the_root_then_docs():
+    """The rule `D-152` fixed, asserted in both directions.
+
+    Asserting only that the tree is clean would pass just as well if the rule accepted
+    everything, which is exactly the failure the 88 dead citations were: a claim nothing
+    could reject. So the negative cases are the point of this test, and the unqualified
+    rules filename is the one that matters: it is a real file twice over, under `guide/`
+    and under `specs/`, and it is a path to neither.
+    """
+    lint = _lint_module()
+
+    assert lint.citation_resolves("CLAUDE.md")
+    assert lint.citation_resolves("decisions.md")
+    assert lint.citation_resolves("guide/rules.md")
+    assert lint.citation_resolves("internals/model.md")
+    assert lint.citation_resolves("studies/presolve.md")
+
+    assert not lint.citation_resolves("rules.md")
+    assert not lint.citation_resolves("replan.md")
+    assert not lint.citation_resolves("PLAN.md")
+
+
+def test_no_source_citation_names_a_missing_document():
+    """The regression guard over the tree, after `D-152`'s 153 were repointed."""
+    lint = _lint_module()
+    errors: list[str] = []
+    lint.check_source_citations(errors)
+    assert not errors, "dead documentation citations:\n  " + "\n  ".join(errors)

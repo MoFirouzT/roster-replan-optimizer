@@ -1,10 +1,15 @@
 # What this file is for: `README.md`, `docs/guide/rules.md`, `docs/internals/testing.md` and
 # `docs/decisions.md` all say the model/checker independence is "enforced in CI". Until this
-# workflow existed, that was a claim about a linter nobody ran on a schedule. Two of the jobs
-# below are the two halves of it -- the suite, and the import contracts that carry the
-# independence rule. The third holds the documentation to the charter in `CLAUDE.md`.
+# workflow existed, that was a claim about a linter nobody ran on a schedule. That claim has
+# two halves: the suite, and the import contracts that carry the independence rule. The
+# contracts job below is one of them, and the doc lint holds the documentation to the charter
+# in `CLAUDE.md`.
 #
-# The mutation harness is deliberately not here. It rewrites source files and takes tens of
+# The other half, the suite, is in `tests.yml`. A GitHub badge is workflow-scoped, so while
+# the suite sat here no badge could say "the tests pass" without also going red for a stale
+# `*Assumes:*` line. The split is what makes `README.md`'s tests badge mean the tests.
+#
+# The mutation harness is deliberately in neither. It rewrites source files and takes tens of
 # minutes, and `CLAUDE.md` says to run it when a test layer is added or is about to be
 # trusted, which is a judgement rather than a trigger.
 name: CI
@@ -20,43 +25,6 @@ env:
   UV_PYTHON: "3.12"
 
 jobs:
-  suite:
-    name: tests (${{ matrix.label }})
-    # Back on linux x86-64, which is a claim rather than a preference (`D-121`). `D-118`
-    # moved CI to macOS because the committed artifacts carried the ortools build that made
-    # them; `D-119` made the roster a function of the model instead of the search, so they
-    # should not any more. This runner is the experiment: a different binary from the one
-    # every artifact here was recorded on. If the six scenario tests and the manifest agree,
-    # the canonical optimum travels; if they do not, it does not.
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Both halves of the optional-extra contract. Without `nl`, every deterministic
-          # layer must still pass -- that is the import contract restated as a test run.
-          # With it, the parse's schema tests actually execute rather than skipping, which
-          # is the layer that caught `D-101`. Neither job has an API key, because nothing
-          # in the suite calls a model.
-          - label: no extras
-            extras: ""
-          - label: nl extra
-            extras: "--extra nl"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      # `--frozen` so a lockfile that has drifted from `pyproject.toml` fails here rather
-      # than resolving to something nobody committed.
-      - run: uv sync --frozen ${{ matrix.extras }}
-      # `-m "not machine"` drops the tests that assert an artifact against the machine that
-      # recorded it: the timing guards, because a runner is slower at Python and at CP-SAT
-      # by different factors (`D-114`), and the solved half of the benchmark manifest,
-      # because the optimum is degenerate and which roster comes back is a property of the
-      # ortools build (`D-117`). The generated half of the manifest is still checked here.
-      - run: uv run pytest -q -m "not machine"
-
   contracts:
     name: import contracts
     # Back on linux x86-64, which is a claim rather than a preference (`D-121`). `D-118`

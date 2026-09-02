@@ -1,10 +1,10 @@
 """The service boundary: contracts, job lifecycle, fairness, telemetry.
 
-`service.md` wants this layer boring, and boring code still has three things worth testing
+`internals/design.md` wants this layer boring, and boring code still has three things worth testing
 that a code review does not settle.
 
-**The round trip must be the identity.** `PLAN.md` requires every solve's input, profile
-version and seed to be persisted for replay. If the wire format cannot express something the
+**The round trip must be the identity.** Replay needs every solve's input, profile
+version and seed persisted (`specs/README.md`). If the wire format cannot express something the
 solver can, a persisted payload no longer reconstructs the solve it recorded, and the replay
 guarantee fails silently -- the payload still parses, it just describes a slightly different
 problem.
@@ -253,7 +253,7 @@ async def test_cancelling_a_queued_job(client, request_body):
 
 
 def test_one_large_tenant_cannot_starve_a_small_one(scenario):
-    """The requirement `service.md` states, asserted against the rotation directly.
+    """The requirement `guide/api.md` states, asserted against the rotation directly.
 
     A plain FIFO passes every other test in this file and fails this one, which is why it
     is here: the failure is invisible in any single response.
@@ -297,7 +297,7 @@ def test_a_cancelled_job_does_not_consume_a_slot(scenario):
 
 
 def test_solver_threads_are_sized_against_concurrency():
-    """`service.md`: CP-SAT with 8 workers in a 1-vCPU container is slower. Concurrency
+    """`guide/api.md`: CP-SAT with 8 workers in a 1-vCPU container is slower. Concurrency
     times threads must not exceed what the box has."""
     import os
 
@@ -453,8 +453,8 @@ async def test_validate_profile_reports_without_saving(client, scenario):
 
 @pytest.mark.anyio
 async def test_generation_goes_through_the_replan_endpoint(client):
-    """Generation is a replan with an empty incumbent (`replan.md`, `D-109`), so it needs no
-    second route — a caller generates by omitting `incumbent` and `now`.
+    """Generation is a replan with an empty incumbent (`internals/model.md`, `D-109`), so
+    it needs no second route — a caller generates by omitting `incumbent` and `now`.
 
     Asserted here rather than only at the model layer because "no second formulation" is a
     claim about the *product surface* as much as about the solver: if the service could not

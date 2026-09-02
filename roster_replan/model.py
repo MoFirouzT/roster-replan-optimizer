@@ -342,7 +342,7 @@ def _rest_gap_boundary(built: Built, instance: Instance) -> None:
 def _rest_gap_intervals(built: Built, instance: Instance) -> None:
     """`R-REST-GAP` as one `add_no_overlap` per employee `[study only]`.
 
-    The alternative `rules.md` deferred to a study: an optional interval per (employee,
+    The alternative `guide/rules.md` deferred to a study: an optional interval per (employee,
     shift instance), inflated by `min_rest_hours`, so that a global propagator enforces
     what the pairwise encoding states one pair at a time. It should scale better as the
     horizon grows, because the conflicting-pair set grows quadratically in the slots.
@@ -746,7 +746,7 @@ def _days_off(built: Built, instance: Instance) -> None:
 
 
 # --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------
-# The textbook encoding of a sequence rule, and `model.md` calls it a study rather than
+# The textbook encoding of a sequence rule, and `internals/model.md` calls it a study rather than
 # an assumption precisely so it has to earn the swap. See `studies/regular-constraint.md`.
 
 
@@ -837,7 +837,7 @@ def _orbits(instance: Instance) -> list[list[int]]:
 
     Two employees therefore join an orbit only when every attribute the model reads matches
     *and* their incumbent rows match. `studies/symmetry-breaking.md` reports how often that
-    happens, which is the number `model.md` asks for rather than assumes.
+    happens, which is the number `internals/model.md` asks for rather than assumes.
     """
     incumbent = instance.incumbent or frozenset()
     groups: dict[tuple, list[int]] = defaultdict(list)
@@ -927,7 +927,7 @@ class Solution:
     # when the search stopped at a time limit, which is exactly when a caller needs it.
     # Carried here rather than derived by the caller because it is only available from the
     # solver object, and a service that cannot report its gap is a service that hides it
-    # (`service.md`).
+    # (`guide/api.md`).
     bound: int = 0
 
     # Whether this roster is the canonical point in the optimal set, or merely *an*
@@ -994,7 +994,7 @@ def solve(
     what remains necessary. That reduction belongs with the explainer rather than here,
     but the gap is real and should not be discovered then.
 
-    `hint` is the warm start of `replan.md`, and it is a **separate argument from
+    `hint` is the warm start of `internals/model.md`, and it is a **separate argument from
     `instance.incumbent` on purpose**. The two are the same roster in the shipped replan,
     and keeping them one parameter would have made the benchmark's central measurement impossible to
     state: the disruption objective and the hint are two independent reasons a replan
@@ -1070,7 +1070,7 @@ def solve(
 
 
 def _objective(built: Built, instance: Instance):
-    """Delegated to `disruption.py`, which owns the model's reading of `replan.md`.
+    """Delegated to `disruption.py`, which owns the model's reading of `internals/model.md`.
 
     Returns the expression as well as setting it, because `_canonicalise` has to pin it.
     """

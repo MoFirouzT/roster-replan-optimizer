@@ -1,6 +1,6 @@
 """Findings rendered in planner language, deterministically and with nothing added.
 
-`rules.md` specifies the target text rule by rule — *"Sat 15:00–23:00 (Evening) is 1 short of
+`guide/rules.md` specifies the target text rule by rule — *"Sat 15:00–23:00 (Evening) is 1 short of
 its 3 required staff."* — and `explain.py` computes the finding behind it. This module is the
 step between, and it is **pure**: a function of the finding and the instance, with no model
 call, no solver, and no source of fact other than what it was handed.
@@ -32,7 +32,7 @@ is the right dependency.
 ## The rule sentences live here, and a test holds them to the registry
 
 `RULE_TEXT` is code, not prose duplicated from a spec — but its *keys* are a claim about
-`rules.md`, so `tests/test_prose.py` asserts the two agree in both directions: every rule the
+`guide/rules.md`, so `tests/test_prose.py` asserts the two agree in both directions: every rule the
 registry marks encoded has a sentence, and no sentence names a rule the registry does not
 have.
 """
@@ -47,7 +47,7 @@ from .explain import Shortfall
 WEEKDAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
 # One clause per rule, phrased as *what stopped these people*, plural and count-led, because
-# the shortfall case is an aggregate: `rules.md` notes that R-SKILL surfaces through R-COVER
+# the shortfall case is an aggregate: `guide/rules.md` notes that R-SKILL surfaces through R-COVER
 # as scarcity rather than as a fact about one person.
 RULE_TEXT: dict[str, str] = {
     "R-AVAIL": "are absent or unavailable then",

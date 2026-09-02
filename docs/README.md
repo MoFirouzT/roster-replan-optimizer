@@ -26,8 +26,8 @@ Reaching further: the objective these pages configure is stated in full in [`int
 | | |
 | --- | --- |
 | [`STATE.md`](STATE.md) | where the project stands, what is closed, and what is still not done |
-| [`specs/README.md`](specs/README.md) | the ledger: one row per component, where it lives, and what it found |
-| [`decisions.md`](decisions.md) | 137 curated records: what was chosen, what was rejected, why. Enter by [ID](decisions.md#lookup), or [by theme](decisions.md#by-theme) for the records that make one argument together. An ID that is no longer a record is in [Merged and retired](decisions.md#merged-and-retired), which says where it went |
+| [`specs/`](specs/README.md) | one work order per component (scope, the test contract, the gate it passed, the decision trail) and the [ledger](specs/README.md) indexing them: one row per component, where it lives, and what it found |
+| [`decisions.md`](decisions.md) | 138 curated records: what was chosen, what was rejected, why. Enter by [ID](decisions.md#lookup), or [by theme](decisions.md#by-theme) for the records that make one argument together. An ID that is no longer a record is in [Merged and retired](decisions.md#merged-and-retired), which says where it went |
 | [`studies/`](studies/README.md) | eighteen analyses, **including the nulls and the rejected alternatives**. A measured null is a stronger signal than an unmeasured win |
 | [`benchmarks.md`](benchmarks.md) | the committed instance set, the four methods compared, the results and their caveats |
 

@@ -64,11 +64,25 @@ list; anything outside it is fair game for simplification.
 ## Documentation
 
 **The unit of work is the component**: one capability, specified before it is built and reconciled
-against its code afterwards. [`docs/specs/README.md`](docs/specs/README.md) is the ledger, one row
+against its code afterwards. It carries two documents. [`docs/specs/`](docs/specs) holds its **work
+order**, from [`_TEMPLATE.md`](docs/specs/_TEMPLATE.md): the scope, the interfaces, the test
+contract, the acceptance gate and the decision trail. A live document in `guide/` or `internals/`
+says what the thing does now. [`docs/specs/README.md`](docs/specs/README.md) is the ledger, one row
 per component, and a component is not finished until it has a row saying what it found, including
 where the answer was no.
 
-Documents come in four kinds and they do not mix.
+**A spec cites the canonical documents and never restates them.** A predicate, a formulation section
+or a rule parameter has one owner, and two documents owning one claim is how the unread one goes
+stale ([`D-151`](docs/decisions.md#d-151), [`D-152`](docs/decisions.md#d-152)). The twelve specs for
+components built before 2026-09-02 are reconstructions and say so on their Status line.
+
+Documents come in five kinds and they do not mix.
+
+**Work orders**: [`docs/specs/`](docs/specs), one per component.
+Scope, interfaces, the test contract, the gate and the decision trail.
+Frozen at approval and then reconciled: a spec marked `Implemented` may carry no unrecorded box, and
+the linter enforces that, because *we meant to tick it* and *it passed* are indistinguishable six
+weeks later.
 
 **Live documents**: [`docs/guide/`](docs/guide) for people using the service, [`docs/internals/`](docs/internals) for people changing it, and [`docs/STATE.md`](docs/STATE.md) for where the project stands.
 Present tense, short, and reconciled against the code.
@@ -104,8 +118,11 @@ The enforceable half of the charter above is a script rather than a habit:
 uv run python scripts/lint_docs.py
 ```
 
-It gates em dashes, coined `-able` words, the 600-line cap, the `*Assumes:*` lines and every
-cross-document anchor. Everything else in this file is review judgment. A line may opt out of the
+It gates em dashes, coined `-able` words, the 600-line cap, the `*Assumes:*` lines, every
+cross-document anchor, and **every documentation citation in a source file**: a backticked
+`<name>.md` in `roster_replan/`, `tests/`, `benchmarks/` or `scripts/` resolves against the
+repository root first and then `docs/`, so write `guide/rules.md` or `specs/rules.md` and never the
+bare name ([`D-152`](docs/decisions.md#d-152)). Everything else in this file is review judgment. A line may opt out of the
 per-line checks with a trailing `<!-- lint-ok -->`, which is for quoting a banned word, not for
 keeping one.
 
@@ -116,8 +133,13 @@ that contract is turned off.
 
 **Decision records keep numeric IDs.** The contract names records by subject and drops numbering, so
 that one can be merged or retired without leaving a gap. Here they are `D-nnn` with an explicit
-`<a id="d-nnn">` anchor each, because the numbering is load-bearing: 324 links across the
-documentation, 328 backticked citations in code and tests, and five checks built on the anchors.
+`<a id="d-nnn">` anchor each, because the numbering is load-bearing: **547 links from the
+documentation into the records, 518 more inside `decisions.md` itself, 340 backticked citations in
+code and tests**, and five checks built on the anchors. Those are counts of Markdown links to a
+`#d-nnn` anchor, from outside `decisions.md` and from inside it, and of `` `D-nnn` `` under
+`roster_replan/`, `tests/`, `benchmarks/` and `scripts/`, so they are re-measurable rather than
+folklore. They were 324 and 328 on 2026-09-02
+before the specs were written; the specs cite records heavily, which is most of the difference.
 The gap the contract worries about is answered directly instead: a merged or retired ID keeps its
 anchor in [Merged and retired](docs/decisions.md#merged-and-retired), on a row saying where its
 reasoning went, so a reference to it lands somewhere that answers the reader.

@@ -4,7 +4,7 @@
     uv run python -m benchmarks.nl_eval --round-trip
     uv run python -m benchmarks.nl_eval -k dutch
 
-`config.md` promised this eval and said precisely what it is worth, which is the reason it
+`specs/nl.md` promised this eval and said precisely what it is worth, which is the reason it
 comes in two halves that are reported separately rather than as one number.
 
 **The round trip is close to a tautology, and is run anyway.** `describe` renders a profile
@@ -14,7 +14,7 @@ forgets, or one the schema cannot carry, fails the trip. That is a real check on
 failure, and it needs no API judgement to interpret.
 
 **The free-form half is the one that means something.** Its cases are written the way a
-tenant would say it — including in Dutch, which `config.md` asks for and which no other test
+tenant would say it — including in Dutch, which `specs/nl.md` asks for and which no other test
 in this repo exercises — and each case declares the **whole** expected payload. That is what
 makes the strongest assertion here possible:
 
@@ -81,7 +81,7 @@ CASES: tuple[Case, ...] = (
         "rest-dutch",
         "Tussen twee diensten zit minstens elf uur.",
         P(min_rest_hours=11.0),
-        "`config.md` says plain Dutch or English, and nothing else here tests Dutch",
+        "`specs/nl.md` asks for Dutch cases, and nothing else here tests Dutch",
     ),
     Case(
         "consecutive-days-dutch",

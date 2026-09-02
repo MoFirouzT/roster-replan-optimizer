@@ -15,7 +15,7 @@ by the scenario, whatever the method itself optimised. Scoring a method under it
 objective would make the comparison a tautology -- each method wins the axis it was
 pointed at, and the table says nothing.
 
-**The two baselines separate two effects.** `replan.md` is explicit that a warm-started
+**The two baselines separate two effects.** `internals/model.md` is explicit that a warm-started
 replan beats a cold cost solve for two independent reasons -- the objective has its
 optimum near the incumbent, and the hint starts the search there. `cold-disruption` is
 the only thing that tells them apart, and without it a warm-start speedup claim is
@@ -214,7 +214,7 @@ def _measure(
 
 
 def paid_hours(roster: Roster, instance: Instance) -> float:
-    """The cost axis, as `replan.md` says to read it until wage data arrives: paid hours,
+    """The cost axis, as `internals/model.md` says to read it until wage data arrives: paid hours,
     rate-weighted where a rate is supplied, not euros."""
     total = 0.0
     for employee, _, shift in roster:

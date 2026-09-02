@@ -1,6 +1,6 @@
 """The golden record: committed objective values, and how to regenerate them.
 
-`validation.md`: *committed scenarios with committed objective values; a diff fails CI until
+`internals/testing.md`: *committed scenarios with committed objective values; a diff fails CI until
 a `decisions.md` entry justifies it.* This module owns the record's shape and its
 regeneration, so the workflow is a command rather than folklore:
 

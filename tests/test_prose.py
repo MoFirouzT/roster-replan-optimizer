@@ -6,7 +6,7 @@ presentation choice and asserting it letter by letter makes every improvement a 
 What is worth testing:
 
 **The rule sentences agree with the registry**, in both directions. `RULE_TEXT` is code, but
-its keys are a claim about `rules.md` — that every rule the registry marks encoded can be
+its keys are a claim about `guide/rules.md` — that every rule the registry marks encoded can be
 explained to a planner. A rule with no sentence renders as a bare ID, which is the
 engineer-language failure this module exists to remove.
 

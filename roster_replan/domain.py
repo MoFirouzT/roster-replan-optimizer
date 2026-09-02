@@ -4,7 +4,7 @@ This module is the *only* thing those two readings may share, and what it may co
 is fixed by `docs/internals/design.md`:
 
 - data containers, so the differential harness can feed both readings one instance;
-- the conventions `rules.md` fixes by definition -- half-open overlap, start-day
+- the conventions `guide/rules.md` fixes by definition -- half-open overlap, start-day
   attribution, ``work_hours = span - break_hours``.
 
 It contains **no rule predicate and no rule threshold**. There is deliberately no
@@ -42,7 +42,7 @@ DAYS_PER_WEEK = 7
 class Interval:
     """A half-open interval of hours from the horizon start.
 
-    Half-open is a `rules.md` convention rather than a rule: two shifts where one ends
+    Half-open is a `guide/rules.md` convention rather than a rule: two shifts where one ends
     exactly as the other begins do not overlap.
     """
 
@@ -64,7 +64,7 @@ class ShiftType:
 
     @property
     def work_hours(self) -> float:
-        """Net working time. Breaks are not working time -- see `rules.md`."""
+        """Net working time. Breaks are not working time -- see `guide/rules.md`."""
         return self.span_hours - self.break_hours
 
 
@@ -104,7 +104,7 @@ class Employee:
     absences: tuple[Interval, ...] = ()
     unavailability: tuple[Interval, ...] = ()
 
-    # Caller-computed, per `model.md`. None means "not supplied", which input
+    # Caller-computed, per `internals/model.md`. None means "not supplied", which input
     # validation rejects rather than defaulting -- never a silent zero.
     max_hours_this_week: float | None = None
     max_daily_hours: float | None = None
@@ -187,7 +187,7 @@ class NoticeBand:
 
 @dataclass(frozen=True, slots=True)
 class Disruption:
-    """Objective parameters. `replan.md` owns the semantics; nothing here is a rule.
+    """Objective parameters. `internals/model.md` owns the semantics; nothing here is a rule.
 
     Weights are integers in "disruption points" -- CP-SAT is integral, and rounding a
     float weight at build time is a silent way for the model and an independent scorer
@@ -227,7 +227,7 @@ class Disruption:
 
 
 def shipped_d2(**overrides) -> Disruption:
-    """The shipped default profile, as specified in `replan.md`.
+    """The shipped default profile, as specified in `internals/model.md`.
 
     This is **data**, not a rule threshold: both readings receive it through the payload
     and neither derives anything from it, so a shared default cannot hide an encoding
@@ -260,8 +260,8 @@ def shipped_d2(**overrides) -> Disruption:
 class Fairness:
     """Rolling balance of unpopular shifts. Separate from `Disruption` on purpose.
 
-    `replan.md` scopes this as fairness *beyond* disruption concentration, and the two answer
-    different questions: D4 spreads the **changes** a replan makes, this spreads the
+    `internals/model.md` scopes this as fairness *beyond* disruption concentration, and the two
+    answer different questions: D4 spreads the **changes** a replan makes, this spreads the
     **shifts nobody wants** across weeks. A tenant can want either without the other, and
     folding them into one dataclass would make that impossible to express (`D-108`).
 
@@ -406,7 +406,7 @@ class Instance:
     def day_anchor(self, day: int) -> int:
         """The shift type anchoring publication state and notice for a whole day.
 
-        A `replan.md` convention, shared for the same reason half-open overlap is: D3
+        A `internals/model.md` convention, shared for the same reason half-open overlap is: D3
         prices changes per (employee, day), so it needs one slot per day to read `P` and
         `N` from. It must be **solution-independent** -- anchoring on the earliest
         *affected* slot would make the weight depend on which slots changed, which is

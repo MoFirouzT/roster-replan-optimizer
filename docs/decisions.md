@@ -179,6 +179,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-149`](#d-149) | The model cache is deleted, because its key was a claim that went stale |
 | [`D-150`](#d-150) | The guarantee starts at the payload, and the clock in front of it is the caller's |
 | [`D-151`](#d-151) | The documentation becomes two doors, and the reconciled specs move into them |
+| [`D-152`](#d-152) | `docs/specs/` holds work orders again, and the twelve are reconstructions |
 
 ## By theme
 
@@ -197,7 +198,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-108`](#d-108), [`D-109`](#d-109), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131), [`D-150`](#d-150) |
 | The foreign instance | [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
 | Capture and replay (specified, not built) | [`D-015`](#d-015), [`D-016`](#d-016), [`D-017`](#d-017) |
-| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151) |
+| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151), [`D-152`](#d-152) |
 
 ---
 
@@ -3562,4 +3563,35 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   the ledger both cited [`D-146`](#d-146) for it: the trim that preceded it, which decides something
   else. Both citations now point here. A decision this size leaving no record is what the curation
   pass was for.
+- **Superseded in part by [`D-152`](#d-152).** The move stands; the clause that `docs/specs/` stops
+  holding work orders does not, because the build record went with the specs.
 - **Date.** 2026-08-20.
+
+<a id="d-152"></a>
+## D-152. `docs/specs/` holds work orders again, and the twelve are reconstructions
+
+- **Decision.** Every built component gets a spec file here, holding what a live document does not:
+  the scope, the interfaces, the test contract, the gate it passed, what it ruled out, and the
+  decision trail. Predicates, formulation and contract stay in [`guide/`](guide/rules.md) and
+  [`internals/`](internals/model.md) and are cited, never restated. The twelve written on 2026-09-02
+  are **reconstructions** and say so on their Status line.
+- **Alternatives.** Leave the directory a ledger, as [`D-151`](#d-151) left it. Restore the seven
+  deleted files. Move the predicates back into specs and make the live documents summaries.
+- **Reason.** [`D-151`](#d-151)'s first half stands and its second does not. A reconciled spec is a
+  description of the system, so moving it into the two doors was right. **What went with it was the
+  build record**, and no live document carries that, because a live document says what is so now for
+  a reader who was not there.
+
+  Checked rather than assumed: the seven files deleted in `48e86d3` have no Status line, no build
+  tasks, no gate, no out-of-scope and no decisions section. **This project never had a build record
+  in this directory**, so the change creates a tier rather than restoring one, and restoring the
+  seven verbatim would put a second owner on every predicate.
+- **Consequences.** A reconstruction may not present itself as a work order, so three rules bind: the
+  Status line names it one and its sources; a gate box is ticked only against evidence that exists
+  now, cited on the line; the Decisions section cites records rather than inventing a trail.
+
+  The sweep also found **88 citations in `roster_replan/`, `tests/` and `benchmarks/` naming a spec
+  file deleted on 2026-08-20**, behind a green suite and a green linter, because the anchor check
+  reads only Markdown links inside the doc set. Repointing them is a separate unit.
+- **Spec.** [`docs/specs/spec-reconstruction.md`](specs/spec-reconstruction.md)
+- **Date.** 2026-09-02.

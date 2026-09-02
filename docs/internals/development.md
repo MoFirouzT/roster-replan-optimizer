@@ -16,6 +16,8 @@ uv run lint-imports
 
 The second is the eleven contracts that carry the independence rule: the model and the checker never reaching each other's rule logic, the greedy baseline staying solver-free, the service never importing a language model.
 
+The two run in **separate workflows**, `tests.yml` and `ci.yml`, and that is about the badge rather than about the build: a GitHub badge covers a whole workflow, so the suite has to be alone in one for `README.md`'s tests badge to mean the tests and not also the doc linter. `ci.yml` keeps the contracts and the doc lint.
+
 CI runs pytest with `-m "not machine"`, which drops the three timing guards calibrated to this hardware. Everything else runs everywhere, including the benchmark manifest's solved half: that one was deselected too until the optimum became canonical and stopped carrying the build that produced it.
 
 The mutation harness is separate and deliberate; see [`testing.md`](testing.md#the-mutation-harness).

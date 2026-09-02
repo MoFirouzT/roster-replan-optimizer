@@ -23,9 +23,10 @@ answer, and a tool that answered it would be laundering a business decision thro
 
 ## Read-only, and deliberately
 
-None of the five writes. `validate_profile` checks and reports; it does not save. `config.md`
-describes a profile being probed for feasibility *before* it is saved, and the save is the
-caller's — a tool an LLM can call should not be able to persist a tenant's scheduling policy.
+None of the five writes. `validate_profile` checks and reports; it does not save.
+`guide/configuring.md` describes a profile being probed for feasibility *before* it is saved,
+and the save is the caller's — a tool an LLM can call should not be able to persist a tenant's
+scheduling policy.
 """
 
 from __future__ import annotations
@@ -56,7 +57,7 @@ VALIDATE_PROFILE = "validate_profile"
 
 
 class SolveIn(Strict):
-    """A cold solve. Generation is the replan case with an empty incumbent (`replan.md`),
+    """A cold solve. Generation is the replan case with an empty incumbent (`internals/model.md`),
     so this differs from `replan` only in what the caller supplies, not in what runs."""
 
     instance: InstanceIn
@@ -124,7 +125,7 @@ def _explain(payload: ExplainIn) -> dict:
 
     `D-047` re-scoped this tool before it was written: with a soft coverage floor a cold
     solve is essentially never infeasible, so its ordinary answer is *why a shift is short*.
-    The name is `PLAN.md`'s and is kept, but the response says plainly which question it
+    The name predates that rescoping and is kept, but the response says plainly which question it
     answered — a tool called `explain_infeasibility` that silently explains something else
     would be worse than one with an awkward name.
     """
@@ -213,7 +214,7 @@ def _side(outcome) -> dict:
 
 
 def _validate(payload: ValidateIn) -> dict:
-    """Stages 2 to 4 of `config.md`, and never stage 1.
+    """Stages 2 to 4 of `guide/configuring.md`, and never stage 1.
 
     Structural lawfulness, then the profile's own contradictions and inert rules, then a
     probe if a sample week was supplied. All deterministic: *"deterministic profile editing

@@ -3,7 +3,7 @@
 Two things are being tested, and they are different. That each metric is *encoded*
 correctly is checked by comparing `disruption.py` against `scoring.py` -- the same
 independence discipline the rules get. That the five metrics are *distinct* is checked by
-showing they choose different rosters, which is the claim `replan.md` makes and
+showing they choose different rosters, which is the claim `internals/model.md` makes and
 `studies/disruption-metrics.md` quantifies.
 """
 
@@ -209,7 +209,7 @@ def move_or_call_in():
          an unpaired cancellation plus a call-in.
 
     D2 counts slots and prefers B. D3 pairs and prices by type, and prefers A. The
-    divergence is the point: both answers are defensible, which is exactly `replan.md`'s
+    divergence is the point: both answers are defensible, which is exactly `internals/model.md`'s
     claim about the five definitions.
     """
     from roster_replan.domain import (
@@ -257,7 +257,7 @@ def move_or_call_in():
 
 
 def test_d2_and_d3_choose_different_rosters():
-    """`replan.md`'s central claim, demonstrated rather than asserted."""
+    """`internals/model.md`'s central claim, demonstrated rather than asserted."""
     from roster_replan.checker import check
 
     instance = move_or_call_in()

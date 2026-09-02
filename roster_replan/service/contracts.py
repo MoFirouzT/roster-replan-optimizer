@@ -1,6 +1,6 @@
 """The wire format: Pydantic at the boundary, and the translation to `domain.py`.
 
-`service.md` asks for versioned contracts "so a model change never breaks a caller", and
+`guide/api.md` asks for versioned contracts "so a model change never breaks a caller", and
 that sentence is the whole design of this module. **The wire schema is a separate schema
 from the domain dataclasses, not a serialisation of them.** Reusing `domain.Instance`
 directly would be less code and would silently publish every internal field as public API:
@@ -215,11 +215,11 @@ class InstanceIn(Strict):
 class ReplanRequest(Strict):
     """What a caller POSTs.
 
-    `tenant` is required and is not derived from anything -- fairness scheduling and the
-    per-tenant model cache both key on it, and inferring it would make two operational
-    behaviours depend on a guess.
+    `tenant` is required and is not derived from anything -- the round-robin queue keys on
+    it, and inferring it would make an operational behaviour depend on a guess. The
+    per-tenant model cache keyed on it too, until it was deleted (`D-149`).
 
-    `seed` and `profile_version` are recorded with every job because `PLAN.md` requires
+    `seed` and `profile_version` are recorded with every job because replay requires
     seeded determinism end to end: an input, a profile version and a seed are what make a
     solve replayable, and a solve that cannot be replayed cannot be debugged.
     """

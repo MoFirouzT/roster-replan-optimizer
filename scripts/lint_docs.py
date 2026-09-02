@@ -22,6 +22,7 @@ loudly instead:
   - a spec's ``pkg.x.y`` references name real modules or attributes   [if configured]
   - a ``<canonical>.md §<ID>`` reference anywhere in the repo names a section that
     file actually has                                                 [if configured]
+  - a backticked ``<name>.md`` in a source file names a document that exists
   - math renders on GitHub: no LaTeX spacing control symbols, no ``$ x$``
 
 A line may suppress the per-line checks (em dashes, forbidden words, math) with a
@@ -59,11 +60,11 @@ LINE_CAP_EXEMPT: set[str] = {"docs/decisions.md"}
 # links: leaving it out would mean two doc sets that disagree about what is a doc.
 DOC_PATHS = sorted((ROOT / "docs").glob("**/*.md")) + [ROOT / "README.md", ROOT / "CLAUDE.md"]
 
-# Canonical docs that must orient their reader: the ones that own a claim, and the ones
-# a reader is sent to for evidence. The derived readings (`design.md`, `testing.md`,
-# `quickstart.md`) are deliberately not here, because they own nothing and say so.
-# `STATE.md` is not here either: it is rewritten every session and assumes nothing.
-# Paths relative to ROOT.
+# Canonical docs that must orient their reader: the ones that own a claim, and the ones a
+# reader is sent to for evidence. The derived readings (`internals/design.md`,
+# `internals/testing.md`, `guide/quickstart.md`) are deliberately not here, because they own
+# nothing and say so. `STATE.md` is not here either: it is rewritten every session and assumes
+# nothing. Paths relative to ROOT.
 CANONICAL: list[str] = [
     "docs/guide/rules.md",              # the registry, the sources, the reference period
     "docs/guide/rules-operational.md",  # owns the operational predicates
@@ -108,6 +109,14 @@ PHASE_ID = re.compile(r"\bR\d+\.\d+[a-z]?\b")
 # repository root rather than under `src/`, so SRC_DIR is ROOT.
 PACKAGE = "roster_replan"
 SRC_DIR = ROOT
+
+# Source trees whose docstrings cite documentation. A citation is a path resolved against
+# the repository root first and then `docs/`, so `CLAUDE.md` and `guide/rules.md` are both
+# written the short way. A bare `rules.md`, which is neither, fails, and that is  # lint-ok
+# what forces the `guide/` or `specs/` prefix exactly where a name is ambiguous.
+CITING_DIRS = ["roster_replan", "tests", "benchmarks", "scripts"]
+CITATION_ROOTS = [ROOT, ROOT / "docs"]
+DOC_CITATION = re.compile(r"`([A-Za-z0-9_./-]+\.md)`")
 
 # The canonical source-of-truth document(s), if sections in them are cited by ID from
 # elsewhere in the repo (docstrings included). Set GLOB to "" to disable.
@@ -453,6 +462,48 @@ def check_canonical_sections(errors: list[str]) -> None:
                 errors.append(f"{rel(path)}:{line_no}: `{name}` has no §{section} section{where}")
 
 
+def citation_resolves(cited: str) -> bool:
+    """Whether a cited document name names a file: root first, then ``docs/``.
+
+    Split out from the check because it is the part worth testing directly. A check that
+    walks the tree can only be asserted against the tree as it happens to be, and a rule
+    that has never been shown to reject anything is not known to reject anything.
+    """
+    return any((root / cited).is_file() for root in CITATION_ROOTS)
+
+
+def check_source_citations(errors: list[str]) -> None:
+    """A backticked ``<name>.md`` in a source file names a document that exists.
+
+    The code cites its documentation constantly, and the citations carry weight: a
+    docstring saying a module is written from a named document is where the independence
+    claim sits, at the point somebody might break it. None of that was checked. When the
+    specs moved on 2026-08-20 (``D-151``) 88 citations were left naming a deleted file,
+    ``scoring.py`` among them, and neither the suite nor this script could see one.
+
+    Resolution is the repository root first, then ``docs/`` (``D-152``), which needs no
+    rule about ambiguity: a bare ``rules.md`` is not a path under either, so it  # lint-ok
+    fails and has to say ``guide/rules.md`` or ``specs/rules.md``.
+    """
+    for name in CITING_DIRS:
+        for path in sorted((ROOT / name).rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            lines = path.read_text(encoding="utf-8").splitlines()
+            for n, line in enumerate(lines, 1):
+                if "lint-ok" in line:
+                    continue
+                for match in DOC_CITATION.finditer(line):
+                    cited = match.group(1)
+                    if citation_resolves(cited):
+                        continue
+                    errors.append(
+                        f"{rel(path)}:{n}: `{cited}` names no document; a citation resolves "
+                        "against the repository root and then `docs/`, so write the path "
+                        "(`guide/rules.md`, `internals/model.md`, `specs/model.md`)"
+                    )
+
+
 def main() -> int:
     errors: list[str] = []
 
@@ -533,6 +584,7 @@ def main() -> int:
     check_anchors(errors)
     check_canonical_sections(errors)
     check_spec_status(errors)
+    check_source_citations(errors)
 
     if errors:
         print("Doc lint: FAIL")

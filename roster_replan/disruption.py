@@ -1,6 +1,6 @@
 """The objective, as a CP-SAT expression.
 
-The model's reading of `replan.md`, and the counterpart to `scoring.py`. Neither imports
+The model's reading of `internals/model.md`, and the counterpart to `scoring.py`. Neither imports
 the other: brute-force stage (b) compares the optimum this module produces against the
 minimum that module measures, and a shared helper would make that comparison an identity.
 
@@ -164,7 +164,7 @@ def fairness_terms(
     instance: Instance,
     x: dict[tuple[int, int, int], cp_model.IntVar],
 ) -> list:
-    """Rolling balance of unpopular shifts (`replan.md`, `D-108`).
+    """Rolling balance of unpopular shifts (`internals/model.md`, `D-108`).
 
     The same convex trick as `_concentration`, on a different quantity: an employee's
     unpopular count is what they worked before the horizon plus what this roster gives
@@ -208,7 +208,7 @@ def fairness_terms(
 
 
 def _cost(instance: Instance, x, params: Disruption) -> list:
-    """Placeholder: paid minutes at a flat rate. See `replan.md` -- overtime premiums,
+    """Placeholder: paid minutes at a flat rate. See `internals/model.md` -- overtime premiums,
     flexi rates and shift differentials all wait on the wage data that would make
     them mean something."""
     terms = []

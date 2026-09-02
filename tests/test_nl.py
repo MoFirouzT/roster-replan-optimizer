@@ -1,4 +1,4 @@
-"""Stage 1 of `config.md`: the parse, and the things that must be true around it.
+"""Stage 1 of `guide/configuring.md`: the parse, and the things that must be true around it.
 
 The layer under test is the one place a language model is allowed to touch, so what is
 tested is mostly **confinement** rather than parsing. Three claims carry it:
@@ -16,8 +16,9 @@ defaults is the quiet way a tenant loses a policy they still hold.
 **Nothing a model says is saved.** `propose` ends in a verdict. The deterministic layers
 decide, and the only test that matters here is that a rejected candidate stays rejected.
 
-Every test runs with a stub client and no API key, which is the same property `config.md`
-demands of the product: the NL layer is an accelerator, never a dependency.
+Every test runs with a stub client and no API key, which is the same property
+`guide/configuring.md` demands of the product: the NL layer is an accelerator, never a
+dependency.
 """
 
 from __future__ import annotations
@@ -311,8 +312,8 @@ def distinctive(base):
 
 
 def test_the_rendering_states_every_figure_the_schema_can_carry(distinctive):
-    """The coverage claim `config.md` says the round trip is worth — asserted here without
-    an API, so the live eval only has to add *can the model read it back*."""
+    """The coverage claim `studies/nl-parse.md` says the round trip is worth, asserted
+    here without an API, so the live eval only has to add *can the model read it back*."""
     text = nl.describe(distinctive)
 
     for figure in ("13", "41", "6", "5", "18", "9"):
@@ -536,8 +537,9 @@ def test_the_round_trip_reports_a_field_that_did_not_survive():
 
 
 def test_a_proposal_carries_what_produced_it(base):
-    """`config.md` wants the model and prompt version to travel with a config change, for the
-    reason a solve carries its seed: an output nobody can reproduce cannot be argued with."""
+    """`guide/configuring.md` wants the model and prompt version to travel with a config
+    change, for the reason a solve carries its seed: an output nobody can reproduce cannot
+    be argued with."""
     proposal = nl.propose("...", StubClient(nl.StatedPolicy()), version="v2", base=base)
 
     assert proposal.model == nl.MODEL
@@ -545,8 +547,8 @@ def test_a_proposal_carries_what_produced_it(base):
 
 
 def test_a_proposal_saves_nothing(base):
-    """`config.md`: accepting is the caller's. The check is that the base is untouched --
-    a model-driven path must not be able to persist a tenant's policy."""
+    """`guide/configuring.md`: accepting is the caller's. The check is that the base is
+    untouched -- a model-driven path must not be able to persist a tenant's policy."""
     before = dataclasses.asdict(base)
     nl.propose(
         "eight days running is fine",

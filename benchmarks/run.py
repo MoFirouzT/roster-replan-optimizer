@@ -38,7 +38,7 @@ RESULTS_PATH = pathlib.Path(__file__).with_name("results.json")
 # set at every time budget.
 SOLVER_SEEDS = (7, 11, 13)
 
-# The budgets `PLAN.md` asks the quality curve for.
+# The budgets the quality curve is drawn at (`studies/time-budget.md`).
 BUDGETS = (1.0, 5.0, 30.0)
 
 

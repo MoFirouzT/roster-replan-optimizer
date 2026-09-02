@@ -1,0 +1,58 @@
+# The suite, in its own workflow so `README.md`'s tests badge means the tests and nothing
+# else. A GitHub badge is workflow-scoped, so while this job sat in `ci.yml` beside the
+# import contracts and the doc linter, no badge could say "the tests pass" without also
+# going red for a stale `*Assumes:*` line. The other two halves of what CI enforces are in
+# `ci.yml`, which keeps its own badge.
+#
+# The mutation harness is deliberately not here either. It rewrites source files and takes
+# tens of minutes, and `CLAUDE.md` says to run it when a test layer is added or is about to
+# be trusted, which is a judgement rather than a trigger.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # The version `docs/benchmarks.md` records for the committed numbers.
+  UV_PYTHON: "3.12"
+
+jobs:
+  suite:
+    name: tests (${{ matrix.label }})
+    # Back on linux x86-64, which is a claim rather than a preference (`D-121`). `D-118`
+    # moved CI to macOS because the committed artifacts carried the ortools build that made
+    # them; `D-119` made the roster a function of the model instead of the search, so they
+    # should not any more. This runner is the experiment: a different binary from the one
+    # every artifact here was recorded on. If the six scenario tests and the manifest agree,
+    # the canonical optimum travels; if they do not, it does not.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Both halves of the optional-extra contract. Without `nl`, every deterministic
+          # layer must still pass -- that is the import contract restated as a test run.
+          # With it, the parse's schema tests actually execute rather than skipping, which
+          # is the layer that caught `D-101`. Neither job has an API key, because nothing
+          # in the suite calls a model.
+          - label: no extras
+            extras: ""
+          - label: nl extra
+            extras: "--extra nl"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # `--frozen` so a lockfile that has drifted from `pyproject.toml` fails here rather
+      # than resolving to something nobody committed.
+      - run: uv sync --frozen ${{ matrix.extras }}
+      # `-m "not machine"` drops the tests that assert an artifact against the machine that
+      # recorded it: the timing guards, because a runner is slower at Python and at CP-SAT
+      # by different factors (`D-114`), and the solved half of the benchmark manifest,
+      # because the optimum is degenerate and which roster comes back is a property of the
+      # ortools build (`D-117`). The generated half of the manifest is still checked here.
+      - run: uv run pytest -q -m "not machine"

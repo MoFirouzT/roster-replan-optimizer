@@ -1,12 +1,12 @@
 """The fallback ladder: exact, time-boxed with the gap reported, greedy, last known good.
 
-`service.md`'s rule is **never return nothing**. A planner whose Saturday just fell apart is
+`guide/api.md`'s rule is **never return nothing**. A planner whose Saturday just fell apart is
 not served by `INFEASIBLE`, and a solver that answers only when it can answer perfectly is a
 solver that answers rarely. So each rung is a weaker promise than the one above it, every
 rung says which one it is, and the answer carries what it cost.
 
-This module is deliberately importable **without the web layer**. `service.md` asks for the
-boundary to stay boring and the intricate part to stay small and heavily tested, and the
+This module is deliberately importable **without the web layer**. `internals/design.md` asks for
+the boundary to stay boring and the intricate part to stay small and heavily tested, and the
 ladder is the intricate part. It knows nothing about HTTP, jobs or queues.
 
 ## The rungs
@@ -67,7 +67,7 @@ GREEDY = "greedy"
 INCUMBENT = "incumbent"
 
 # Descending strength. A rung's index is how far the answer fell, which is the number
-# `service.md` wants aggregated as a fallback rate.
+# `guide/api.md` wants aggregated as a fallback rate.
 RUNGS = (EXACT, TIME_BOXED, GREEDY, INCUMBENT)
 
 

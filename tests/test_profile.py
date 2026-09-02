@@ -1,8 +1,8 @@
 """Profile review: contradictions, inert rules, and the probe.
 
-`config.md` puts the LLM in stage 1 only and says the rest must work without it. These are
-stages 3 and 4, so every test here runs with no model available — which is the property being
-asserted as much as the logic.
+`guide/configuring.md` puts the LLM in stage 1 only and says the rest must work without it.
+These are stages 3 and 4, so every test here runs with no model available — which is the
+property being asserted as much as the logic.
 
 Three things are worth holding to:
 
@@ -17,7 +17,7 @@ that is not, and nothing else in the system will ever tell them.
 
 **Enabling an unencoded rule is a defect, not a courtesy.** The five profile-gated rules are
 declared in the registry and none is encoded. Accepting one silently would promise
-enforcement that never happens — the failure `rules.md` exists to prevent, arriving through
+enforcement that never happens — the failure `guide/rules.md` exists to prevent, arriving through
 configuration instead of through documentation.
 """
 
@@ -166,7 +166,7 @@ def test_a_declared_fairness_term_that_works_draws_no_remark(shipped):
 
 
 def test_priors_past_the_tiers_are_reported_as_flat(shipped, sample):
-    """`replan.md`'s stated limit, now checked rather than asserted (`D-131`).
+    """`internals/model.md`'s stated limit, now checked rather than asserted (`D-131`).
 
     `g` is convex only up to `tiers`; past that its marginal cost is constant, so a window
     long enough to push the workforce past it switches fairness off while appearing to be
@@ -213,8 +213,8 @@ def test_the_probe_is_skipped_when_the_profile_contradicts_itself(shipped, sampl
 
 
 def test_the_probe_reports_the_rules_that_blocked_staffing(shipped, sample):
-    """Rejection returns through the explainer, as `config.md` asks, so a config error and a
-    Saturday-morning shortfall are described by the same machinery."""
+    """Rejection returns through the explainer, as `guide/configuring.md` asks, so a config
+    error and a Saturday-morning shortfall are described by the same machinery."""
     result = P.probe(shipped, sample)
     assert result.blocking
     assert all(rule.startswith("R-") for rule in result.blocking)
@@ -243,7 +243,7 @@ def test_a_profile_applied_to_a_week_replaces_only_policy(shipped, sample):
 
 
 def test_a_profile_carries_its_fairness_declaration_onto_the_week(shipped, sample):
-    """`replan.md` has said since `D-108` that the profile names the unpopular shifts. It
+    """`internals/model.md` has said since `D-108` that the profile names the unpopular shifts. It
     could not: `Profile` had no field for them, so the term was reachable only by building an
     `Instance` by hand (`D-131`).
 

@@ -289,7 +289,7 @@ def pattern_study() -> None:
 def rest_gap_study() -> None:
     """Pairwise inequalities against one `add_no_overlap` per employee.
 
-    `rules.md` deferred this to a study and said "measured there, not assumed here",
+    `guide/rules.md` deferred this to a study and said "measured there, not assumed here",
     which is a promise the repo had not kept. The pairwise set grows quadratically in the
     slots, so the interval form should win as the horizon grows -- and the horizon here is
     one week, which is exactly the regime where the naive form is cheapest.
@@ -366,13 +366,13 @@ def coverage_study() -> None:
 # --- The horizon --------------------------------------------------------------------
 # Different in kind from the four above. Those compare two encodings of one problem; this
 # compares two *problems* -- a longer horizon against several short ones -- because that is
-# the shape of the claim `rules.md` makes without a measurement behind it (`D-116`).
+# the shape of the claim `guide/rules.md` makes without a measurement behind it (`D-116`).
 
 
 def _week_slice(instance: Instance, week: int, carried: dict) -> Instance:
     """Week `week` of `instance` as a standalone seven-day instance.
 
-    This is the study playing the caller `model.md` describes: the boundary fields are
+    This is the study playing the caller `internals/model.md` describes: the boundary fields are
     exactly what a caller solving one week at a time would have to compute from the week
     before, and getting them wrong is how a chained solve would flatter itself.
     """
@@ -411,7 +411,7 @@ def _week_slice(instance: Instance, week: int, carried: dict) -> Instance:
 
 def _carry(instance: Instance, roster, week: int) -> dict:
     """What each employee takes into the next week: the trailing run of worked days, and
-    when their last shift ended, stated negatively as `model.md` requires."""
+    when their last shift ended, stated negatively as `internals/model.md` requires."""
     end_of_week = (week + 1) * DAYS_PER_WEEK
     carried = {}
     for index in range(len(instance.employees)):
@@ -431,7 +431,7 @@ def _carry(instance: Instance, roster, week: int) -> dict:
 
 
 def horizon_study() -> None:
-    """The two halves of a claim `rules.md` makes by assertion.
+    """The two halves of a claim `guide/rules.md` makes by assertion.
 
     *"The obvious fix is to extend the solve horizon to the reference period. That is
     rejected: it multiplies instance size by an order of magnitude and destroys the
@@ -518,7 +518,7 @@ def horizon_study() -> None:
                 f"{chained_short:>9} {chained_ms:>11.1f}"
             )
 
-    # The third arm, and the question `rules.md` is actually about (`D-123`). Both arms
+    # The third arm, and the question `guide/rules.md` is actually about (`D-123`). Both arms
     # above hold the same weekly ceiling, so what they compare is horizon *length*. A
     # caller resolving a rolling quarter supplies a pool as well as a rate, and the pool is
     # the thing a chained weekly solve cannot spend unevenly. Here the same total hours are

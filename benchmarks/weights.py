@@ -13,7 +13,7 @@ prior and looks like a result.
 multiplied by the same positive constant. So weights are recoverable at best *up to scale*,
 which makes rank correlation the honest comparison and absolute error meaningless.
 
-**Domination.** `shortfall_weight` must satisfy the bound in `replan.md` so that coverage
+**Domination.** `shortfall_weight` must satisfy the bound in `internals/model.md` so that coverage
 outranks every disruption term (`D-057`), and `validation.py` checks it rather than trusting
 it. Above that bound every value behaves identically, so its magnitude carries no information
 at all — only the fact that it clears the bound.

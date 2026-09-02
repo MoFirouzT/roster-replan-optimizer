@@ -1,12 +1,12 @@
 """The independent checker: a second reading of `docs/guide/rules.md`.
 
 Imports no solver. Imports only `domain`, which carries the payload schema and the
-conventions `rules.md` fixes by definition. Every rule predicate here is written from
+conventions `guide/rules.md` fixes by definition. Every rule predicate here is written from
 the spec, not from the model -- that duplication is what makes the differential harness
 meaningful, so resist any urge to factor a helper out of this module and into a place
 the model could reach.
 
-Three prohibitions from `validation.md`, restated because each is a way a checker
+Three prohibitions from `internals/testing.md`, restated because each is a way a checker
 quietly stops testing the roster:
 
 1. Never recompute a caller-supplied quantity (budgets, streak history, eligibility).
@@ -513,7 +513,7 @@ def _max_daily(roster: Roster, instance: Instance) -> list[Violation]:
 
 
 # --- R-CONSEC-DAYS ----------------------------------------------------------------
-# Operational/CBA, not statutory -- see the provenance correction in `rules.md`. The
+# Operational/CBA, not statutory -- see the provenance correction in `guide/rules.md`. The
 # streak is initialised from history, because a week boundary is an artifact of the
 # payload rather than of the employee's working life. Reported once per breaching run.
 

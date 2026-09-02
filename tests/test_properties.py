@@ -307,9 +307,9 @@ def test_relabelling_maps_the_score_of_a_specific_roster_exactly():
 def decoupled_week() -> Instance:
     """A cold instance whose days do not interact, which day permutation needs.
 
-    `validation.md` claimed day permutation "stays structure-consistent" without
-    qualification, and that is too strong. Permuting days is **not** an invariance in
-    general, because three things couple days together:
+    An early statement of this layer claimed day permutation "stays structure-consistent"
+    without qualification, and that is too strong (`D-061`). Permuting days is **not** an
+    invariance in general, because three things couple days together:
 
       - `R-REST-GAP` and `R-WEEKLY-REST` constrain adjacent and consecutive days;
       - `R-CONSEC-DAYS` counts runs, and {0,1,2} is a run of three where {0,2,4} is three

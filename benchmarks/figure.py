@@ -9,7 +9,7 @@ of those tables has been reconstructing that grid in their head.
 
 ## Why a benchmark case and not the demo scenario
 
-The obvious source is `scenarios/saturday_sick_call.json`, which `quickstart.md` already
+The obvious source is `scenarios/saturday_sick_call.json`, which `guide/quickstart.md` already
 walks through. It cannot carry this figure: at `now = 129` the whole week before Saturday
 morning is pinned by `R-PIN-PAST`, so a cold cost re-solve has almost nothing left it is
 allowed to move and returns **the same single change** the replan does. That is a true

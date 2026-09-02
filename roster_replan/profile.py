@@ -1,6 +1,6 @@
 """The tenant profile, and the two checks that reject a bad one before it is saved.
 
-`config.md` gives four stages, and confines the LLM to the first: parse, validate
+`guide/configuring.md` gives four stages, and confines the LLM to the first: parse, validate
 structurally, validate semantically, probe feasibility. Stages 2 to 4 are deterministic, so
 they are built first and work with no model available — *"deterministic profile editing
 works fully with no LLM; the NL layer is an accelerator, never a dependency."*
@@ -39,7 +39,7 @@ from .explain import explain
 from .model import solve
 from .validation import InputDefect, validate_instance
 
-# The rules `rules.md` marks optional. A tenant that does not enable one never pays for it,
+# The rules `guide/rules.md` marks optional. A tenant that does not enable one never pays for it,
 # which is the whole reason the profile carries them as data rather than the model carrying
 # them as code.
 OPTIONAL_RULES = (
@@ -56,7 +56,8 @@ class Profile:
     """What "optimal" means for one tenant, as a document.
 
     `version` is carried so a solve can record which profile produced it, which is what
-    `PLAN.md`'s replay requirement needs: an input, a seed and a profile version.
+    replay needs: an input, a seed and a profile version. Capture and replay is specified
+    and not built (`specs/README.md`).
     """
 
     version: str
@@ -66,17 +67,15 @@ class Profile:
     enabled_optional_rules: frozenset[str] = field(default_factory=frozenset)
 
     # Which shifts nobody wants, and what balancing them is worth. Here rather than on the
-    # request because it is policy: `replan.md` has said since `D-108` that unpopularity is
-    # *declared* by the tenant and cannot be derived from the clock, and the profile is
-    # where this project keeps everything that is policy rather than law.
-    #
-    # `None` means the tenant has not declared any, which is different from declaring an
-    # empty set at zero weight only in intent -- both leave the term inert, and `remarks`
-    # says so when the intent looks like the first and the parameters like the second.
-    #
-    # The indices in `unpopular_shifts` point into `shift_types`, which is why both live on
-    # this object: a profile that carried the set without the catalogue would be a set of
-    # numbers whose meaning depends on whichever week it was applied to.
+    # request because it is policy: `internals/model.md` has said since `D-108` that
+    # unpopularity is *declared* by the tenant and cannot be derived from the clock, and the
+    # profile is where this project keeps everything that is policy rather than law.  `None`
+    # means the tenant has not declared any, which is different from declaring an empty set at
+    # zero weight only in intent -- both leave the term inert, and `remarks` says so when the
+    # intent looks like the first and the parameters like the second.  The indices in
+    # `unpopular_shifts` point into `shift_types`, which is why both live on this object: a
+    # profile that carried the set without the catalogue would be a set of numbers whose
+    # meaning depends on whichever week it was applied to.
     fairness: Fairness | None = None
 
     def applied_to(self, instance: Instance) -> Instance:
@@ -202,7 +201,7 @@ def contradictions(profile: Profile) -> list[InputDefect]:
 
     # Every optional rule is declared in the registry and none is encoded yet, so enabling
     # one promises enforcement that does not exist. Silently accepting it is the failure
-    # `rules.md` warns about: a registry that describes intent rather than code.
+    # `guide/rules.md` warns about: a registry that describes intent rather than code.
     unenforced = profile.enabled_optional_rules & set(OPTIONAL_RULES)
     if unenforced:
         found.append(
@@ -307,7 +306,7 @@ def remarks(
 
 
 # --- Fairness, which has two ways to be configured and inert -------------------------
-# `replan.md` states both and this is where they are caught. The first is the ordinary
+# `internals/model.md` states both and this is where they are caught. The first is the ordinary
 # inertness this stage exists for: `Fairness.active` needs a weight, a tier count and a
 # shift, and any one of them missing switches the term off while the object looks set.
 #
@@ -390,7 +389,7 @@ class Probe:
 def probe(profile: Profile, sample: Instance, *, seed: int = 7, time_limit: float = 30.0) -> Probe:
     """Solve a sample week under the candidate profile, and report what blocked it.
 
-    Rejection returns through the explainer, as `config.md` asks: the same machinery a
+    Rejection returns through the explainer, as `guide/configuring.md` asks: the same machinery a
     planner sees at 09:00 is the machinery a config error is caught by, so the two cannot
     drift into describing the rules differently.
     """

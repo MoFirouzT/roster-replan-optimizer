@@ -23,10 +23,10 @@ Work since then has been documentation and correction, not capability.
 
 | | At the declaration, 2026-08-13 | Now |
 | --- | --- | --- |
-| Tests | 567 | 933, of which 47 skip without fetched benchmark data |
-| Mutants, each naming the layer that must catch it | 59 | 136 |
+| Tests | 567 | 937, of which 47 skip without fetched benchmark data |
+| Mutants, each naming the layer that must catch it | 59 | 137 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 137, none open, 14 merged or retired |
+| Decision records | 94, 2 open | 138, none open, 14 merged or retired |
 | Studies, including nulls | 8 | 18 |
 | Python | ~12,000 lines | ~24,600 lines |
 
@@ -36,6 +36,10 @@ it mutated were already modified or were written back after the restore:
 `benchmarks/weights.py`, `roster_replan/disruption.py`, `roster_replan/model.py`
 ([`D-112`](decisions.md#d-112)). The catches are probably real and are not vouched for. Re-run
 those layers before trusting them, per [`CLAUDE.md`](../CLAUDE.md).
+
+**The 137th mutant has not been in a full run.** `citation-rule-accepts-anything` was added on
+2026-09-02 and caught by its named catcher in a 3-mutant `-k specs` run, itself `unverifiable`
+because the tree was dirty ([`doc-citations.md`](specs/doc-citations.md)).
 
 ## What is still not done
 
@@ -59,7 +63,7 @@ closed the half of that which was not blocked.
 
 ## The documentation
 
-Three rearrangements, and they are done.
+Five rearrangements, and they are done.
 
 **2026-08-20**: the specs were rewritten as two doors ([`D-151`](decisions.md#d-151)): a
 [guide](guide) for people using the service and [internals](internals) for people changing it.
@@ -80,6 +84,22 @@ Every removed ID keeps its anchor in [Merged and retired](decisions.md#merged-an
 link or docstring citing one had to move. The spec is
 [`decision-curation.md`](specs/decision-curation.md) and what it found is its
 [ledger row](specs/README.md).
+
+**2026-09-02**: every built component now has a **work order** in [`specs/`](specs), holding what a
+live document does not: the scope, the interfaces, the test contract, the gate it passed and the
+decision trail ([`D-152`](decisions.md#d-152)). Twelve were written on that date and **they are
+reconstructions**, from the code, the live documents, the records, the studies and the commits, and
+each says so on its Status line. Nothing moved out of [guide](guide) or [internals](internals).
+
+The sweep found **88 citations in `roster_replan/`, `tests/` and `benchmarks/` naming a spec file
+deleted on 2026-08-20**. They sat behind a green suite and a green linter for two weeks, because
+the anchor check reads only Markdown links inside the doc set.
+
+**2026-09-02**: those citations are repointed, and the real count was **153**, because a bare
+`rules.md` is not a path either and is ambiguous now that a spec has that name. <!-- lint-ok: it names the form that was repointed --> A citation now
+resolves against the repository root and then `docs/`, and `scripts/lint_docs.py` checks it. The
+spec is [`doc-citations.md`](specs/doc-citations.md), and it found **four claims stale in content
+rather than only in citation**, which is what its [ledger row](specs/README.md) records.
 
 ## Known blockers
 

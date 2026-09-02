@@ -3,7 +3,7 @@
     uv run python -m benchmarks.metrics            # summary to stdout
     uv run python -m benchmarks.metrics --write    # and metrics.json
 
-`replan.md` defines five metrics and ships D2, and says the fact that they produce
+`internals/model.md` defines five metrics and ships D2, and says the fact that they produce
 different rosters is the deliverable rather than a problem to settle. This module is that
 claim, measured. `D-060` adds the constraint that makes the measurement possible at all:
 they can only diverge where there is slack, because a tightly covered week has one legal
@@ -71,7 +71,7 @@ METRICS = ("D0", "D1", "D2", "D3", "D4")
 def as_metric(instance: Instance, metric: str) -> Instance:
     """The same instance read under a different metric, and **nothing else changed**.
 
-    Every weight, band and threshold is held: `replan.md` makes each metric nest the one
+    Every weight, band and threshold is held: `internals/model.md` makes each metric nest the one
     before it, so D1 with equal weights is D0 and D2 with a flat multiplier is D1. Varying
     a weight alongside the metric would measure the weight.
     """

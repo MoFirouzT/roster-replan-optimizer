@@ -1,4 +1,5 @@
-"""Stage 1 of `config.md`: a policy described in English, turned into a candidate profile.
+"""Stage 1 of `guide/configuring.md`: a policy described in English, turned into a
+candidate profile.
 
 The only part of this project that needs a language model. Every
 stage downstream of it — structural validation, contradiction and subsumption checks, the
@@ -27,15 +28,15 @@ cannot express is a field the model **cannot** report, however clearly the text 
 against the Python type that looks right.
 
 **Nothing is saved.** `propose` returns a candidate and its review. Accepting it is the
-caller's, exactly as `config.md` requires — a model-driven path must not be able to persist a
-tenant's scheduling policy.
+caller's, exactly as `guide/configuring.md` requires — a model-driven path must not be able to
+persist a tenant's scheduling policy.
 
 ## Why this works without a key
 
 `parse` takes an injected client. The tests drive it with a stub, so the whole pipeline —
 schema, conversion, review, rejection — is exercised with no API access at all. That is the
-same property `config.md` demands of the product: *deterministic profile editing works fully
-with no LLM; the NL layer is an accelerator, never a dependency.*
+same property `guide/configuring.md` demands of the product: *deterministic profile editing
+works fully with no LLM; the NL layer is an accelerator, never a dependency.*
 """
 
 from __future__ import annotations
@@ -51,9 +52,9 @@ from .validation import InputDefect
 
 MODEL = "claude-opus-5"
 
-# Bumped whenever SYSTEM or the schema changes. `config.md` requires the model and prompt
-# version to travel with a config change, for the same reason a solve carries its seed and
-# profile version: an output nobody can reproduce cannot be argued with later.
+# Bumped whenever SYSTEM or the schema changes. `guide/configuring.md` requires the model and
+# prompt version to travel with a config change, for the same reason a solve carries its seed
+# and profile version: an output nobody can reproduce cannot be argued with later.
 PROMPT_VERSION = "nl-2026.2"
 
 SYSTEM = """\
@@ -241,7 +242,7 @@ def to_profile(stated: StatedPolicy, *, version: str, base: Profile | None = Non
         # Carried, and never set from a parse either, for a different reason (`D-131`).
         # Which shifts nobody wants is a social fact about a tenant, and a model asked to
         # infer it from prose would be deriving exactly what `D-108` says cannot be derived.
-        # But a silence must not *delete* it: `config.md`'s round trip is only lossless if
+        # But a silence must not *delete* it: the round trip is only lossless if
         # every field the profile carries survives a parse that does not mention it.
         fairness=base.fairness if base else None,
     )
@@ -252,17 +253,17 @@ def _or(value, fallback):
 
 
 def describe(profile: Profile) -> str:
-    """A profile in canonical English — the other half of `config.md`'s round trip.
+    """A profile in canonical English — the other half of the round trip (`studies/nl-parse.md`).
 
     Deliberately flat and repetitive. This is not the prose a tenant should read; it is the
     text `parse` is asked to read back, and a sentence written to sound natural is a
     sentence that makes a failed round trip ambiguous between the renderer and the parse.
 
-    **What the round trip proves is coverage, not comprehension** — author and reader are
-    the same person here, which is why `config.md` calls it close to a tautology. What it
-    does catch is a field this renderer forgets: the value silently falls back on the way
-    home, and the profiles it is run against disagree with the shipped defaults precisely so
-    that fallback is visible.
+    **What the round trip proves is coverage, not comprehension** — author and reader are the
+    same person here, which is why `studies/nl-parse.md` calls it a tautology by construction.
+    What it does catch is a field this renderer forgets: the value silently falls back on the
+    way home, and the profiles it is run against disagree with the shipped defaults precisely
+    so that fallback is visible.
     """
     params = profile.params
     lines = []
@@ -314,8 +315,8 @@ class Proposal:
     """A candidate profile, the deterministic verdict on it, and where it came from.
 
     Nothing is saved. `model` and `prompt_version` travel with the proposal because
-    `config.md` requires them to accompany a config change, and this layer is not the one
-    that stores things — the caller that accepts a candidate is.
+    `guide/configuring.md` requires them to accompany a config change, and this layer is not
+    the one that stores things — the caller that accepts a candidate is.
 
     `stated` is the response. Structured outputs mean the model's output *is* the schema
     instance, so there is no separate raw text that could disagree with it.
@@ -372,7 +373,8 @@ def propose(
     base: Profile | None = None,
     model: str = MODEL,
 ) -> Proposal:
-    """All four stages of `config.md`, in order, ending in a verdict rather than a save."""
+    """All four stages of `guide/configuring.md`, in order, ending in a verdict rather
+    than a save."""
     stated = parse(text, client, model=model)
     candidate = to_profile(stated, version=version, base=base)
     defects, remarks, probe = review(candidate, sample)

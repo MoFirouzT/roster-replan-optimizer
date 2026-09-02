@@ -79,7 +79,7 @@ def one_shift() -> OpenShift:
 def solved(instance):
     """Solve, and assert the suite-wide invariant on the way out.
 
-    `validation.md` requires every test that produces a solution to assert zero *hard*
+    `internals/testing.md` requires every test that produces a solution to assert zero *hard*
     checker violations on it -- a property of the harness rather than a test of its own.
     This helper is how that is realised: it is enforced wherever it is used, not by magic,
     so a test that calls `model.solve` directly opts out and should have a reason to.

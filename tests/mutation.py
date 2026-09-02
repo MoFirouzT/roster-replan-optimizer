@@ -110,6 +110,7 @@ EXPLAIN = "roster_replan/explain.py"
 PROSE = "roster_replan/prose.py"
 WHATIF = "roster_replan/whatif.py"
 PROFILE = "roster_replan/profile.py"
+LINT = "scripts/lint_docs.py"
 CORE = "roster_replan/core.py"
 CONTRACTS = "roster_replan/service/contracts.py"
 DOMAIN = "roster_replan/domain.py"
@@ -913,10 +914,20 @@ MUTANTS: tuple[Mutant, ...] = (
         "tests/test_profile.py",
     ),
     # --- The guide's worked example -----------------------------------------------------
-    # `configuring.md` shows a profile and quotes a verdict. Both are checked against what
+    # `guide/configuring.md` shows a profile and quotes a verdict. Both are checked against what
     # the code produces, because a pasted example is a claim nothing re-reads. One mutant
     # per failure -- a quoted message reworded, and a shown value drifting from the
     # scenario the reader is told it came from.
+    # The citation rule `D-152` added. A rule that accepts everything is exactly the state
+    # the 88 dead citations were in: a claim nothing could reject, behind a green suite.
+    Mutant(
+        "citation-rule-accepts-anything",
+        "specs",
+        LINT,
+        "    return any((root / cited).is_file() for root in CITATION_ROOTS)",
+        "    return True or any((root / cited).is_file() for root in CITATION_ROOTS)",
+        "tests/test_specs.py",
+    ),
     Mutant(
         "profile-remark-text-reworded",
         "specs",
@@ -993,9 +1004,10 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if False:\n            return False",
         "tests/test_nl.py",
     ),
-    # The renderer is half of `config.md`'s round trip, and a field it drops is invisible in
-    # output that reads perfectly well -- the trip still passes whenever the dropped value
-    # happens to equal the fallback. This is that failure, made to happen on purpose.
+    # The renderer is half of `guide/configuring.md`'s round trip, and a field it drops is
+    # invisible in output that reads perfectly well -- the trip still passes whenever the
+    # dropped value happens to equal the fallback. This is that failure, made to happen on
+    # purpose.
     Mutant(
         "nl-rendering-drops-a-rule",
         "nl",
@@ -1014,9 +1026,9 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if unset_want and not unset_have:\n            pass",
         "tests/test_nl.py",
     ),
-    # --- Generation (the cold-start case) ------------------------------------------------
-    # The first mutant is the interesting one: it makes the code do what `replan.md` used to
-    # *derive* -- cold disruption as a positive constant rather than flat zero. `D-109` found
+    # --- Generation (the cold-start case) ------------------------------------------------ The
+    # first mutant is the interesting one: it makes the code do what the original derivation
+    # expected -- cold disruption as a positive constant rather than flat zero. `D-109` found
     # that gap by measuring, and this is it turned into a defect the layer has to see.
     Mutant(
         "generation-cold-disruption-is-not-flat",

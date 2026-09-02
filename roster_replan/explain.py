@@ -1,10 +1,10 @@
 """Why a shift is short: the explainer's ordinary job.
 
-The explainer was specified as an infeasibility explainer, and `rules.md` re-scoped it before a
-line was written (`D-047`): once the coverage floor is soft, the empty roster satisfies every
-hard rule, so **a cold solve is essentially never infeasible**. A shift nobody can staff
-comes back as a priced shortfall, not a refusal. Measured on the committed set, 16 of 72
-cases return an optimal roster that still leaves a shift short — 24 unstaffed positions —
+The explainer was specified as an infeasibility explainer, and `guide/rules.md` re-scoped it
+before a line was written (`D-047`): once the coverage floor is soft, the empty roster
+satisfies every hard rule, so **a cold solve is essentially never infeasible**. A shift nobody
+can staff comes back as a priced shortfall, not a refusal. Measured on the committed set, 16 of
+72 cases return an optimal roster that still leaves a shift short — 24 unstaffed positions —
 and **none is infeasible**.
 
 So the question a planner actually asks is not *why is there no roster* but *why is nobody
@@ -97,7 +97,7 @@ class Shortfall:
         return dict(sorted(counts.items(), key=lambda item: item[1]))
 
     def summary(self) -> str:
-        """One line, in the shape `rules.md` asks for.
+        """One line, in the shape `guide/rules.md` asks for.
 
         Deliberately plain: this is the string an LLM is handed to phrase, and `D-013` says
         the model never identifies the conflict, only renders one already proved. Everything
@@ -116,7 +116,7 @@ def explain(roster: Roster, instance: Instance) -> tuple[Shortfall, ...]:
 
     Historical slots are skipped: a shift that has already started cannot be repaired, so
     naming who could not have worked it is noise. That is the same exclusion the objective
-    makes (`replan.md`), applied for the same reason.
+    makes (`internals/model.md`), applied for the same reason.
     """
     assigned_to: dict[tuple[int, int], set[int]] = {}
     for employee, day, shift in roster:

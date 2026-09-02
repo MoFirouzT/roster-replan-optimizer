@@ -264,7 +264,7 @@ def test_the_hours_floor_is_the_one_rule_an_empty_roster_breaks():
 
 
 def test_an_unmeetable_floor_is_an_infeasibility_that_names_itself():
-    """The conflict `rules.md` warns about, end to end. There is one shift and a floor two
+    """The conflict `guide/rules.md` warns about, end to end. There is one shift and a floor two
     shifts high, so no legal roster exists — and because the rule is gated, the answer is a
     core naming `R-MIN-HOURS` rather than a shortfall a planner has to interpret.
     """
@@ -282,7 +282,7 @@ def test_an_unmeetable_floor_is_an_infeasibility_that_names_itself():
 
 
 def test_a_forbidden_succession_is_not_a_rest_gap():
-    """The claim `rules.md` makes about the two overlapping without either subsuming the
+    """The claim `guide/rules.md` makes about the two overlapping without either subsuming the
     other, asserted on the pair that separates them.
 
     Evening-then-morning is refused by `R-REST-GAP` anyway — eight hours — so it proves

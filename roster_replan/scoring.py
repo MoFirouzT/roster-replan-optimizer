@@ -1,9 +1,9 @@
 """Independent evaluation of the objective on a concrete roster.
 
-The same discipline `rules.md` imposes on the checker, applied to the objective. Brute
+The same discipline `guide/rules.md` imposes on the checker, applied to the objective. Brute
 force stage (b) compares the solver's optimum against the enumerated one, and that
 comparison is worthless if the enumeration asks the model what a roster is worth. So this
-module scores a roster from `replan.md` directly, imports no solver, and never touches
+module scores a roster from `internals/model.md` directly, imports no solver, and never touches
 `disruption.py`.
 
 Plain Python and integral throughout, matching the model's arithmetic exactly. Any
@@ -21,7 +21,7 @@ from .domain import Disruption, Instance, Roster
 
 @dataclass(frozen=True, slots=True)
 class Score:
-    """The objective, broken into the terms `replan.md` distinguishes.
+    """The objective, broken into the terms `internals/model.md` distinguishes.
 
     Reported separately rather than only as a total, because the coverage/disruption
     frontier needs both axes and a single number cannot be placed on a chart.
@@ -64,7 +64,7 @@ def score(roster: Roster, instance: Instance) -> Score:
 def fairness_of(roster: Roster, instance: Instance) -> int:
     """Rolling balance of unpopular shifts, read independently of the model (`D-108`).
 
-    Deliberately written from `replan.md` rather than from `disruption.py`: this is the
+    Deliberately written from `internals/model.md` rather than from `disruption.py`: this is the
     reading the differential harness compares the encoding against, so sharing a helper
     would make the comparison an identity. `_convex` is reused because it is *this*
     module's convex function, already used by D4.
@@ -89,7 +89,7 @@ def fairness_of(roster: Roster, instance: Instance) -> int:
 
 
 def disruption_of(roster: Roster, instance: Instance) -> int:
-    """D0 through D4, per `replan.md`. Zero when there is no incumbent to deviate from."""
+    """D0 through D4, per `internals/model.md`. Zero when there is no incumbent to deviate from."""
     params = instance.disruption
     if params is None:
         raise ValueError("scoring needs Instance.disruption")
@@ -150,7 +150,7 @@ def _per_event(
     """D3: drops and adds paired into moves, priced per (employee, day).
 
     `P` and `N` are read from the day's anchor slot -- solution-independent by
-    construction, per the stated simplification in `replan.md`.
+    construction, per the stated simplification in `internals/model.md`.
     """
     drops: dict[tuple[int, int], int] = defaultdict(int)
     adds: dict[tuple[int, int], int] = defaultdict(int)
@@ -223,7 +223,7 @@ def _mix_shortfall(roster: Roster, instance: Instance, params: Disruption) -> in
 
 
 def _cost(roster: Roster, instance: Instance, params: Disruption) -> int:
-    """Placeholder cost model -- paid minutes at a flat rate. See `replan.md`."""
+    """Placeholder cost model -- paid minutes at a flat rate. See `internals/model.md`."""
     total = 0
     for employee, _, shift in roster:
         rate = instance.employees[employee].hourly_rate
@@ -249,7 +249,7 @@ def _peak(roster: Roster, instance: Instance, params: Disruption) -> int:
 def max_change_weight(instance: Instance) -> int:
     """The largest disruption a single changed assignment can carry.
 
-    Used by `validation.py` to check the bound in `replan.md`. It lives here rather than
+    Used by `validation.py` to check the bound in `internals/model.md`. It lives here rather than
     there because it is a property of the metric, and the metric is this module's
     subject.
     """

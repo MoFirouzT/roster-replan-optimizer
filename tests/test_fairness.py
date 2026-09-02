@@ -1,4 +1,4 @@
-"""Rolling balance of unpopular shifts (`replan.md`, `D-108`).
+"""Rolling balance of unpopular shifts (`internals/model.md`, `D-108`).
 
 Three things are being tested and only one of them is arithmetic.
 
@@ -109,7 +109,7 @@ def test_history_before_the_horizon_moves_the_load_off_the_loaded(cold, fair):
 
 
 def test_the_escalation_flattens_past_the_tiers(cold):
-    """A stated limit, asserted so it cannot be forgotten (`replan.md`).
+    """A stated limit, asserted so it cannot be forgotten (`internals/model.md`).
 
     `g` is convex only up to `tiers`; past that the marginal cost is constant and the term
     stops distinguishing people. A rolling window long enough to push everyone beyond the

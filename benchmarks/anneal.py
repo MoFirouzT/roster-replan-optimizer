@@ -8,7 +8,7 @@ rule produces a roster that is **cheaply illegal**, and cheaply illegal is not a
 service may return.* `D-003` leans on the same claim to justify the independent checker —
 *under any formulation without hard-constraint guarantees (penalties inside a local search,
 or a time-boxed solve accepting a gap), feasibility is not guaranteed by construction* — and
-[`validation.md`](../docs/internals/testing.md) repeats it a third time.
+[`internals/testing.md`](../docs/internals/testing.md) repeats it a third time.
 
 Three records rest on it and none of them measured it. This module is the formulation those
 sentences describe, so the claim can be checked rather than repeated.

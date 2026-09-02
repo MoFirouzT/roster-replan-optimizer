@@ -247,7 +247,7 @@ def test_every_run_carries_the_fields_the_study_reads(name, artifacts):
 
 
 def test_the_committed_set_still_says_what_the_study_says_it_says(artifacts):
-    """The three claims `penalty-search.md` leads with, asserted against the data.
+    """The three claims `studies/penalty-search.md` leads with, asserted against the data.
 
     Tied together rather than split, because they are one argument: cheap weights are unsafe
     *and* score well, and a dear weight is safe here. If a rerun moves any of them the study

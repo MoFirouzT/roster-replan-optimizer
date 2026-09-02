@@ -15,7 +15,7 @@ project answers.
 becomes `x̄`. A hand-built incumbent would be one the solver finds easy or impossible for
 reasons nobody chose. The cost is stated rather than hidden: the incumbent comes from the
 same solver under test, which is a weaker baseline than a real published roster, and
-replacing it with real ones is exactly what `capture.md` exists to do.
+replacing it with real ones is exactly what capture and replay exists to do (`specs/README.md`).
 
 **Tightness is measured, not asserted.** The parameter below is a *target*: demand as a
 share of workforce capacity. What lands on a scenario is the realised eligibility slack,
@@ -236,7 +236,7 @@ def _demand(rng: random.Random, params: ScenarioParams, people) -> tuple[OpenShi
 
     if slots < len(grid):
         # A loose week is not a full grid with thin demand -- it is a week that does not
-        # open every shift. `O` is the set of pairs with `req > 0` (`model.md`), so
+        # open every shift. `O` is the set of pairs with `req > 0` (`internals/model.md`), so
         # closing a slot is how low demand is actually expressed. Forcing all 21 open
         # would floor the achievable ratio and quietly cap how loose a scenario can be.
         opened = _sample(rng, grid, weights, slots)

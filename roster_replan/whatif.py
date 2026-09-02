@@ -1,6 +1,6 @@
 """`what if I hire one more flexi-jobber?` — a sweep over machinery that already exists.
 
-`service.md` names this as the question owners actually ask, and it is the one tool in the
+`guide/api.md` names this as the question owners actually ask, and it is the one tool in the
 service's surface that is not a wrapper: the others expose a solve, a validation or an
 explanation that already has a caller. This one composes them into an answer to a hypothetical.
 
@@ -317,7 +317,7 @@ def _missing(roster, instance: Instance, day: int, shift: int) -> int:
 
 
 # The provenance of each rule `recommend` can build a `Change` for, from the registry table
-# in `rules.md`. It is carried on the recommendation because disruption alone cannot order
+# in `guide/rules.md`. It is carried on the recommendation because disruption alone cannot order
 # these asks: ignoring a skill requirement is an operational judgement a planner owns, while
 # raising someone's weekly budget moves a parameter a statute sets the ceiling for, and a
 # cheaper number does not make the second the preferable ask. Nothing unlawful reaches this

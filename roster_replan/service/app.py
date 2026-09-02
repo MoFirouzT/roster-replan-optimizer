@@ -2,7 +2,7 @@
 
     uv run uvicorn roster_replan.service.app:app --reload
 
-`service.md` asks for this layer to be **deliberately boring** -- "endpoints, validation,
+`internals/design.md` asks for this layer to be **deliberately boring** -- "endpoints, validation,
 queue handling, error mapping -- so a non-specialist can read and change it. The intricate
 part is small and heavily tested." So there is no solver logic here. Every route is a
 translation between a Pydantic model and a job, and the one decision it makes is which
@@ -131,7 +131,7 @@ def _out(job: jobs.Job) -> JobOut:
 
 
 def telemetry(store: jobs.Store, *, queue_depth: int, concurrency: int) -> dict:
-    """The solver-health signals `service.md` lists, computed from finished jobs.
+    """The solver-health signals `guide/api.md` lists, computed from finished jobs.
 
     Reported as a snapshot rather than pushed to a metrics backend, because the choice of
     backend is a deployment decision and the *signals* are the part this project owes. Each

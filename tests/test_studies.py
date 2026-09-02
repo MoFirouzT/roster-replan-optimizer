@@ -275,11 +275,11 @@ def test_every_enumerated_pattern_is_legal_and_the_legal_ones_are_enumerated(cas
 def test_the_chained_solve_stitches_into_a_legal_month():
     """The horizon study's own bookkeeping, asserted rather than trusted (`D-116`).
 
-    `_week_slice` and `_carry` are the study playing the caller `model.md` describes. If the
-    boundary state is carried wrongly, each weekly solve starts from a person with no
-    history — free of the rest gap and the consecutive-day streak that the week before
-    imposed — and the chained arm comes back cheaper than it has any right to be. Then the
-    study's finding would be an artifact of its own harness.
+    `_week_slice` and `_carry` are the study playing the caller `internals/model.md` describes.
+    If the boundary state is carried wrongly, each weekly solve starts from a person with no
+    history — free of the rest gap and the consecutive-day streak that the week before imposed
+    — and the chained arm comes back cheaper than it has any right to be. Then the study's
+    finding would be an artifact of its own harness.
 
     So the four weeks are stitched back together and handed to the independent reading. A
     carry that forgets anything shows up as a violation at the seam.

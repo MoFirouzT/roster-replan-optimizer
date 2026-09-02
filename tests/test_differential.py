@@ -1,12 +1,12 @@
 """Differential and brute-force layers: the two readings, compared.
 
 This is the file that makes the independence rule pay. Neither `checker.py` nor
-`model.py` imports the other, so agreement here is evidence about `rules.md` rather than
+`model.py` imports the other, so agreement here is evidence about `guide/rules.md` rather than
 about a shared helper.
 
-Brute force runs in stage **(a)** only -- feasible sets, not objectives. Stage (b)
-compares the solver's optimum against the enumerated one and needs a disruption metric
-`replan.md` has not shipped; see `PLAN.md`.
+Brute force runs in stage **(a)** here -- feasible sets, not objectives. Stage (b)
+compares the solver's optimum against the enumerated one, needs a disruption metric, and
+lives in `tests/test_replan.py` beside the five it scores (`internals/testing.md`).
 """
 
 from __future__ import annotations
