@@ -14,7 +14,7 @@ ways that all still print a plausible matrix.
   scored rosters that broke hard rules.
 
 The known-answer case is `early-notice/1`, whose arithmetic is checkable by hand and is
-worked through in `docs/archive/studies/disruption-metrics.md`. A study with no case whose numbers
+worked through in `docs/studies/disruption-metrics.md`. A study with no case whose numbers
 can be derived without running it is a study that cannot be reviewed.
 """
 

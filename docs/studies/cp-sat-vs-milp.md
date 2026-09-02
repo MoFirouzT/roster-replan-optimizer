@@ -1,11 +1,11 @@
 # CP-SAT against MILP
 
-**Question.** [`D-001`](../decisions.md#d-001) — *CP-SAT over MILP* — was the last record still owed, and
+**Question.** [`D-001`](../decisions.md#d-001) (*CP-SAT over MILP*) was the last record still owed, and
 [`decisions.md`](../decisions.md) said why it stayed owed: no spec argued it, so it could not be
 written without inventing a rationale nobody had. This is the comparison that was needed instead.
 
 **Answer.** **CP-SAT is not the faster solver here, and the record now says so.** SCIP proves the same
-optimum faster on **24 of 24** cases — 38% faster than the shipped configuration. CP-SAT ships anyway,
+optimum faster on **24 of 24** cases: 38% faster than the shipped configuration. CP-SAT ships anyway,
 for three capabilities the project already depends on and MILP cannot supply. The honest form of
 [`D-001`](../decisions.md#d-001) is *chosen for the assumption literals, at a measured cost of about 1.3 ms per solve*, not
 *chosen because it is better at scheduling*.
@@ -16,7 +16,7 @@ for three capabilities the project already depends on and MILP cannot supply. Th
 ## The comparison
 
 `benchmarks/milp.py` states the same feasible set for a branch-and-cut solver. SCIP 10 and CBC both
-ship inside `ortools`, so this needed no new dependency — and it is therefore a comparison against
+ship inside `ortools`, so this needed no new dependency, and it is therefore a comparison against
 **open-source** MILP, not against Gurobi, which is the main limit on what follows.
 
 All objectives are identical on every case, asserted by `tests/test_milp.py` before any timing is
@@ -24,14 +24,14 @@ read. That makes the MILP a third reading of `rules.md` alongside the model and 
 
 | | search p50 | faster than shipped CP-SAT |
 | --- | --- | --- |
-| CP-SAT, gated — **what ships** | 3.30 ms | — |
-| CP-SAT, ungated | 2.73 ms | — |
+| CP-SAT, gated: **what ships** | 3.30 ms | n/a |
+| CP-SAT, ungated | 2.73 ms | n/a |
 | **SCIP** | **2.04 ms** | **24/24** |
-| CBC | 3.21 ms | 11/24 — a coin flip |
+| CBC | 3.21 ms | 11/24: a coin flip |
 
 **The gates cost 21% of CP-SAT's search time**, and half of its variables. Every hard constraint
 instance carries an assumption literal ([`D-002`](../decisions.md#d-002)), so the shipped model holds 534 gate literals against
-183 assignment variables on `headline/0`. SCIP is given no such burden — and still wins 24/24 against
+183 assignment variables on `headline/0`. SCIP is given no such burden, and still wins 24/24 against
 the *ungated* model, so the gap is not merely the reporting apparatus. On this problem, at this size,
 branch-and-cut is simply faster.
 
@@ -57,7 +57,7 @@ vacuous comparison [`D-065`](../decisions.md#d-065) rejects.
 **Non-linear expressiveness.** D3 and D4 pair a drop with an add through `min(drops, adds)`.
 `add_min_equality` states it; MILP needs auxiliary binaries and big-M per (employee, day).
 `benchmarks/milp.py` **refuses** D3 and D4 rather than comparing a linearised approximation and
-calling it the same problem. The `regular` automaton and `no_overlap` are in the same category —
+calling it the same problem. The `regular` automaton and `no_overlap` are in the same category:
 rejected on their merits ([`D-088`](../decisions.md#d-088), [`D-089`](../decisions.md#d-089)), but they were available to reject.
 
 ## The finding that would bite hardest on a switch
@@ -66,14 +66,14 @@ rejected on their merits ([`D-088`](../decisions.md#d-088), [`D-089`](../decisio
 
 `pywraplp` defaults `RELATIVE_MIP_GAP` to `1e-4`. That is a *relative* tolerance, and this objective
 is not on a scale where that is small: `shortfall_weight` is 100,000 so that coverage dominates
-disruption ([`D-057`](../decisions.md#d-057)), so any roster leaving one shift unstaffed scores in the hundreds of thousands —
+disruption ([`D-057`](../decisions.md#d-057)), so any roster leaving one shift unstaffed scores in the hundreds of thousands,
 and `1e-4` of that is an absolute slack of about **30 disruption points**, roughly ten changed shifts.
 
 At the default, SCIP returned a roster scoring 300003 and **reported it `OPTIMAL`** while 300001 was
 feasible. CP-SAT is exact by default and has no equivalent knob, so the first version of this study
 was timing an approximation against a proof and reporting the approximation as the winner.
 
-It was caught by the cross-formulation equivalence test, not by reading the output — the numbers were
+It was caught by the cross-formulation equivalence test, not by reading the output: the numbers were
 plausible, the status said `OPTIMAL`, and only a second formulation disagreeing exposed it. The
 timings above are all with the gap forced to zero.
 

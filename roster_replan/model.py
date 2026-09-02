@@ -112,7 +112,7 @@ def build(
     """The model, with every hard constraint instance gated.
 
     The four keyword arguments are **study switches, not supported modes**. Each selects an
-    alternative encoding of the same problem so that `docs/archive/studies/` can measure one against
+    alternative encoding of the same problem so that `docs/studies/` can measure one against
     the other with everything else held. The shipped configuration is the default of each,
     and `studies/*.md` records why.
 

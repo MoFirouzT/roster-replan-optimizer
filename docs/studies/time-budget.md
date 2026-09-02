@@ -15,7 +15,7 @@ Reporting it as three identical bars would dress a fact about the benchmark set 
 
 Two things follow, and both are more useful than the curve would have been.
 
-**The ladder's time-boxed rung is unexercised by any committed benchmark.** It is tested by handing the ladder a time-boxed answer rather than by racing a budget ([`D-122`](../decisions.md#d-122)) — because a test that tries to induce a timeout on this distribution is testing the clock, not the rung.
+**The ladder's time-boxed rung is unexercised by any committed benchmark.** It is tested by handing the ladder a time-boxed answer rather than by racing a budget ([`D-122`](../decisions.md#d-122)), because a test that tries to induce a timeout on this distribution is testing the clock, not the rung.
 
 **The scheduling concern is the opposite one.** At ~3 ms of search against ~5 ms of model construction, the thing worth optimising is the build, not the search.
 That is what redirected the performance work: the compiled-model cache was the obvious candidate and hits **0 of 144** replan solves, while memoising `Instance.window` took 20% off build time ([`model-cache.md`](model-cache.md)).

@@ -14,9 +14,9 @@ uv run pytest -q
 uv run lint-imports
 ```
 
-The second is the eleven contracts that carry the independence rule — the model and the checker never reaching each other's rule logic, the greedy baseline staying solver-free, the service never importing a language model.
+The second is the eleven contracts that carry the independence rule: the model and the checker never reaching each other's rule logic, the greedy baseline staying solver-free, the service never importing a language model.
 
-CI runs pytest with `-m "not machine"`, which drops the three timing guards calibrated to this hardware. Everything else runs everywhere, including the benchmark manifest's solved half — that one was deselected too until the optimum became canonical and stopped carrying the build that produced it.
+CI runs pytest with `-m "not machine"`, which drops the three timing guards calibrated to this hardware. Everything else runs everywhere, including the benchmark manifest's solved half: that one was deselected too until the optimum became canonical and stopped carrying the build that produced it.
 
 The mutation harness is separate and deliberate; see [`testing.md`](testing.md#the-mutation-harness).
 
@@ -25,7 +25,7 @@ The mutation harness is separate and deliberate; see [`testing.md`](testing.md#t
 ```text
 roster_replan/
   domain.py              the only module model and checker may both import
-  model.py               the CP-SAT formulation — one reading of the registry
+  model.py               the CP-SAT formulation: one reading of the registry
   checker.py             the independent second reading; imports no solver
   disruption.py          the objective
   scoring.py             its independent evaluation, forbidden from importing the model
@@ -43,7 +43,7 @@ benchmarks/
   milp.py                the MILP formulation, built to be compared against
   anneal.py              the penalty-search rival, solver-free by contract
   foreign.py             the imported nurse-rostering instances
-  nl_eval.py             the parse against free-form text — needs a key, so not in the suite
+  nl_eval.py             the parse against free-form text: needs a key, so not in the suite
 
 tests/
   micro_instances.py     29 structures, small enough to enumerate
@@ -54,7 +54,7 @@ tests/
   test_specs.py          the checkable half of "the documentation is true"
   mutation.py            deliberate defects, each naming the layer that must catch it
 
-scenarios/               demo data — domain specificity lives here, not in the code
+scenarios/               demo data: domain specificity lives here, not in the code
 ```
 
 Module docstrings carry the argument for each module's shape and name the document they implement.
@@ -85,7 +85,7 @@ It is a script rather than a test because it costs money, and because a result t
 
 ## What the model is trusted to do, on a manager's own words
 
-Captured once against text messier than anything in the eval suite, so the capability can be read rather than re-run. The input is a manager's weekly debrief: two roster complaints, an aside about a colleague, and three policy statements buried inside it — one of which contradicts another.
+Captured once against text messier than anything in the eval suite, so the capability can be read rather than re-run. The input is a manager's weekly debrief: two roster complaints, an aside about a colleague, and three policy statements buried inside it: one of which contradicts another.
 
 ```text
 Last week was rough. Sarah closed Thursday and opened Friday and was clearly exhausted, David
@@ -120,11 +120,11 @@ Probe(solved=True, shortfall=1, blocking=('R-AVAIL', 'R-MAX-DAILY', 'R-MAX-WEEKL
 
 Three things worth reading in that transcript rather than past it.
 
-**The roster complaints extracted nothing, and nothing was invented in their place.** Sarah, David and Saturday's understaffing are real sentences about a real week, and `StatedPolicy` has no field for any of them — they are not policy, so nothing fires. That silence is the schema working as designed.
+**The roster complaints extracted nothing, and nothing was invented in their place.** Sarah, David and Saturday's understaffing are real sentences about a real week, and `StatedPolicy` has no field for any of them: they are not policy, so nothing fires. That silence is the schema working as designed.
 
 **The eleven-hour rule was accepted, and the caller was still told it does nothing.** A manager who says *eleven hours, no exceptions* believes that is a live constraint. The subsumption check found the gap between same-time shifts on consecutive days is already 16 hours, so the rule cannot ever bind. That is not a rejection; it is the profile telling the tenant their protection is inert, which is exactly the failure profile review exists to catch before it reaches a Saturday roster.
 
-**The Sunday exception never reached the profile at all.** It has no cited legal basis, and `min_rest_hours` is a single week-wide figure — there is nowhere in the schema to write a day-scoped carve-out. Run twice, the model handled that clause two different ways: once by naming the contradiction explicitly in `unclear`, once by dropping it without comment. Neither run wrote an unlawful figure or invented a field the schema does not have, which is the confinement argument holding on live, unscripted text even though the two runs disagree on how loudly to say so.
+**The Sunday exception never reached the profile at all.** It has no cited legal basis, and `min_rest_hours` is a single week-wide figure: there is nowhere in the schema to write a day-scoped carve-out. Run twice, the model handled that clause two different ways: once by naming the contradiction explicitly in `unclear`, once by dropping it without comment. Neither run wrote an unlawful figure or invented a field the schema does not have, which is the confinement argument holding on live, unscripted text even though the two runs disagree on how loudly to say so.
 
 Reproduce it with a policy sentence of your own: `nl.propose(text, client, version=..., sample=instance)`, with `client` from `benchmarks.nl_eval._client()` and `instance` from any scenario in `scenarios/`.
 
@@ -132,7 +132,7 @@ Reproduce it with a policy sentence of your own: `nl.propose(text, client, versi
 
 The live documentation is [`../guide/`](../guide) for people using the service and [`../internals/`](.) for people changing it. It is short on purpose.
 
-**Reasoning goes in [`decisions.md`](../archive/decisions.md), not in a live document.** A decision record is permanently true and is amended in place with the supersession named, never rewritten. A live document is present tense and says what is so now.
+**Reasoning goes in [`decisions.md`](../decisions.md), not in a live document.** A decision record is permanently true and is amended in place with the supersession named, never rewritten. A live document is present tense and says what is so now.
 
 **A component is not done until its documentation matches its code.** When they diverge, decide which is wrong and fix that one.
 

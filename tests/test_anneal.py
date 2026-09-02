@@ -220,7 +220,7 @@ def test_the_stored_summary_regenerates_from_its_own_cases(name, artifacts):
     assert stored["summary"] == summarise(stored["cases"]), (
         f"{ARTIFACTS[name].name} carries a summary its own case rows no longer produce. "
         "`summarise` changed meaning without the artifact being regenerated -- rerun "
-        "`python -m benchmarks.anneal_study` and reread docs/archive/studies/penalty-search.md, "
+        "`python -m benchmarks.anneal_study` and reread docs/studies/penalty-search.md, "
         "because the numbers quoted there came from the stored version."
     )
 
@@ -292,7 +292,7 @@ def test_no_setting_on_instance_8_is_both_legal_and_fully_staffed(artifacts):
     ]
     assert not workable, (
         "a penalty weight produced a legal, fully staffed roster on instance 8. That is the "
-        "counter-example docs/archive/studies/penalty-search.md says does not exist, and D-128 rests "
+        "counter-example docs/studies/penalty-search.md says does not exist, and D-128 rests "
         f"on it: {[(r['hard_weight'], r['evaluations']) for r in workable]}"
     )
 

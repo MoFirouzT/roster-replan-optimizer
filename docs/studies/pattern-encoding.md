@@ -1,12 +1,12 @@
 # Pattern/column variables against assignment booleans
 
-**Question.** [`model.md`](../../internals/model.md) calls pattern variables "dramatically stronger
+**Question.** [`model.md`](../internals/model.md) calls pattern variables "dramatically stronger
 formulations, evaluated as a study at these instance sizes", and [`D-009`](../decisions.md#d-009) had been open since the model was first written.
 
 **Answer.** Competitive on a replan, catastrophic on a cold week. Enumerating patterns and solving
-takes about the same total time as the assignment model when most of the horizon is pinned — and on a
+takes about the same total time as the assignment model when most of the horizon is pinned, and on a
 cold week it **fails to prove optimality within 30 seconds on 5 of 6 cases** (re-verified over the
-widened set — [`D-107`](../decisions.md#d-107)), against roughly 20
+widened set: [`D-107`](../decisions.md#d-107)), against roughly 20
 milliseconds for the assignment model. [`D-009`](../decisions.md#d-009) closes in favour of assignment booleans, and not
 narrowly.
 
@@ -15,8 +15,8 @@ narrowly.
 ## The formulation is real, not a sketch
 
 One boolean per (employee, legal weekly pattern), exactly one true per employee. Coverage sums the
-chosen patterns' slots. **Every per-employee rule disappears from the model** — rest gaps, daily and
-weekly hours, consecutive days, weekly rest, the pinned past — because a pattern breaking one is
+chosen patterns' slots. **Every per-employee rule disappears from the model**: rest gaps, daily and
+weekly hours, consecutive days, weekly rest, the pinned past, because a pattern breaking one is
 never enumerated. What is left is coverage, skill mix and the objective.
 
 The objective survives intact, which is the formulation's most attractive property. D0–D2 price
@@ -24,7 +24,7 @@ disruption per changed slot, so a pattern's disruption is a **constant** compute
 and the model is linear in the pattern booleans with no auxiliary variables at all. D3 and D4 would
 carry over the same way, decomposing per employee-day and per employee.
 
-Patterns are validated by the **checker**, not by re-deriving the rules — the same independent oracle
+Patterns are validated by the **checker**, not by re-deriving the rules: the same independent oracle
 the greedy baseline uses, for the same reason. And the study checks that both formulations reach the
 same optimum before comparing any timing.
 
@@ -49,7 +49,7 @@ assignment solve.
 
 ## Cold: it does not finish
 
-The same tenants with the whole horizon open — the honest test of whether enumeration scales.
+The same tenants with the whole horizon open: the honest test of whether enumeration scales.
 
 | case | patterns | enumerate | search | total | assignment | outcome |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -73,20 +73,20 @@ milliseconds. That is not a cost that caching removes. With no incumbent the obj
 cost, which is close to indifferent, and thousands of near-identical pattern columns give CP-SAT an
 enormous symmetric search space with nothing to guide it. The formulation that was supposed to be
 "dramatically stronger" is dramatically weaker here, and the mechanism is the one symmetry breaking
-was invented for — the pattern encoding *creates* the symmetry that
+was invented for: the pattern encoding *creates* the symmetry that
 [`symmetry-breaking.md`](symmetry-breaking.md) found the assignment model does not have.
 
 ## What this does not say
 
 It does not say column-based formulations are wrong for rostering. It says **explicit enumeration** is
-wrong at this horizon and these sizes. The standard technique is column generation — start with a few
-patterns and generate more from the dual prices — which is a different project, needs an LP relaxation
+wrong at this horizon and these sizes. The standard technique is column generation: start with a few
+patterns and generate more from the dual prices, which is a different project, needs an LP relaxation
 CP-SAT does not expose, and would be evaluated against an assignment model that already answers in 20
 milliseconds.
 
 It also does not travel to longer horizons, in the direction people expect. At a four-week reference
 period the enumeration is `4^28` rather than `4^7`, so explicit enumeration gets worse, not better.
 The regime where patterns win is one where each employee has few legal patterns and coverage is the
-hard part — which is the replan case, which the assignment model already handles in 10 milliseconds.
+hard part, which is the replan case, which the assignment model already handles in 10 milliseconds.
 
 **[`D-009`](../decisions.md#d-009) closes: assignment booleans, measured, not assumed.**

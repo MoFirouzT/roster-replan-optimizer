@@ -1,8 +1,8 @@
-# What this file is for: `README.md`, `docs/specs/rules.md`, `docs/specs/validation.md` and
+# What this file is for: `README.md`, `docs/guide/rules.md`, `docs/internals/testing.md` and
 # `docs/decisions.md` all say the model/checker independence is "enforced in CI". Until this
-# workflow existed, that was a claim about a linter nobody ran on a schedule. The two jobs
+# workflow existed, that was a claim about a linter nobody ran on a schedule. Two of the jobs
 # below are the two halves of it -- the suite, and the import contracts that carry the
-# independence rule.
+# independence rule. The third holds the documentation to the charter in `CLAUDE.md`.
 #
 # The mutation harness is deliberately not here. It rewrites source files and takes tens of
 # minutes, and `CLAUDE.md` says to run it when a test layer is added or is about to be
@@ -73,3 +73,22 @@ jobs:
           enable-cache: true
       - run: uv sync --frozen
       - run: uv run lint-imports
+
+  docs:
+    name: doc lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The coined-word check reads the system word list and **skips silently** when there is
+      # none, so without this the job would pass while that check did nothing. `wamerican` is
+      # what provides /usr/share/dict/words on this image; the guard after it is what turns a
+      # silently-inert check into a red build.
+      - run: sudo apt-get update && sudo apt-get install -y wamerican
+      - run: test -s /usr/share/dict/words
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # The script is stdlib-only and needs none of this, but the command CI runs is then the
+      # command `CLAUDE.md` tells a person to run, which is the point.
+      - run: uv sync --frozen
+      - run: uv run python scripts/lint_docs.py

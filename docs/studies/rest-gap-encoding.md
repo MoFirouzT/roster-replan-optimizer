@@ -1,15 +1,15 @@
 # `R-REST-GAP`: pairwise inequalities against `no_overlap`
 
-**Question.** [`rules.md`](../../guide/rules.md#rule-r-rest-gap) encodes the rest
-gap as one inequality per conflicting pair, and defers the alternative — one optional interval per
-(employee, shift instance) inflated by `min_rest_hours`, under a single `add_no_overlap` per employee
-— to a study, with the words *"measured there, not assumed here"*.
+**Question.** [`rules-statutory.md`](../guide/rules-statutory.md#rule-r-rest-gap) encodes the rest
+gap as one inequality per conflicting pair, and defers the alternative: one optional interval per
+(employee, shift instance) inflated by `min_rest_hours`, under a single `add_no_overlap` per employee:
+to a study, with the words *"measured there, not assumed here"*.
 
 This study exists because that promise was outstanding. It is not one of the four level-1 studies
 the plan named; it surfaced during a close-out reconcile, which is what that beat is for.
 
 **Answer.** A wash at this horizon, and rejected. The interval form is smaller and builds faster, and
-searches slower by more than it saves — a 2% total win on the committed set, which is exactly the
+searches slower by more than it saves: a 2% total win on the committed set, which is exactly the
 threshold `lab.py` calls "not worth the complexity", and it reverses to an **11% total loss** on the
 larger cold instances. It also costs the same reporting coordinate the `regular`
 automaton costs. And the claim it was set up to test cannot be tested here at all.
@@ -39,12 +39,12 @@ automaton costs. And the claim it was set up to test cannot be tested here at al
 
 The pattern is consistent and the sign flips on the total: **the interval form trades search time for
 build time.** It is 23% smaller because one `no_overlap` replaces many pairwise rows, so there is less
-model to construct — but a global propagator over intervals costs more to run than the inequalities it
+model to construct, but a global propagator over intervals costs more to run than the inequalities it
 replaced, on 28 of 28 cases.
 
 **The two percentages are on different bases, and that is what decides the total.** 14% of a ~5.2 ms
 build is about 0.7 ms saved; 15% of a ~3.3 ms search is about 0.5 ms lost. The saving is the larger
-number on the committed set, which is why the total comes out marginally ahead — and on the cold
+number on the committed set, which is why the total comes out marginally ahead, and on the cold
 family, where search is a larger share of the work, the same two percentages land the other way and
 the total flips. Which side wins is therefore a property of the instance rather than of the encoding,
 which is the strongest reason not to adopt it: a lever that helps or hurts depending on the workload
@@ -61,7 +61,7 @@ stronger: the two sides are now closer still, so which one wins depends even mor
 pairwise set grows quadratically". That is a claim about the horizon, and this project's horizon is
 fixed at one week.
 
-The "larger" family above varies **employees**, not days — and employees are the wrong axis for this
+The "larger" family above varies **employees**, not days, and employees are the wrong axis for this
 hypothesis. The conflicting-pair set is computed over *slots*, not people, so adding employees
 multiplies both encodings equally and tests nothing about the quadratic growth. There are 21 slots at
 a one-week horizon, so the pair set is small, and there is no instance in this repo where it is not.
@@ -74,7 +74,7 @@ needs.
 
 Identical to the automaton's ([`D-088`](../decisions.md#d-088)). A `no_overlap` covers an employee's whole week, so its
 assumption literal can say only *this employee's week has a rest violation somewhere*. The pairwise
-encoding names the **second slot of the offending pair** — the coordinate `checker.py` reports and
+encoding names the **second slot of the offending pair**: the coordinate `checker.py` reports and
 `violations()` matches on.
 
 Two of the four level-1 alternatives and this one all failed for the same structural reason, which is

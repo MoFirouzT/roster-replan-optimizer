@@ -1,13 +1,13 @@
 # Symmetry breaking, and how much the incumbent already does
 
-**Question.** [`model.md`](../../internals/model.md) says no symmetry breaking is in the model
-deliberately, because "the disruption objective already breaks symmetry partially — quantify this
+**Question.** [`model.md`](../internals/model.md) says no symmetry breaking is in the model
+deliberately, because "the disruption objective already breaks symmetry partially: quantify this
 rather than assuming it". So: quantify it.
 
 **Answer.** There is essentially **no symmetry left to break**. Across 28 committed cases there are 3
 interchangeable employees in total, in a single case. Lexicographic ordering therefore buys nothing
-and costs about 4% of build time. But the null is not evidence that the lever is useless — on a
-workforce built to be interchangeable it is worth **20% of total time** — so what this study
+and costs about 4% of build time. But the null is not evidence that the lever is useless: on a
+workforce built to be interchangeable it is worth **20% of total time**, so what this study
 establishes is a fact about the distribution, and the decision follows from that.
 
     uv run python -m benchmarks.studies --only symmetry
@@ -45,7 +45,7 @@ a claim about rostering in general.
 
 ## The measurement
 
-**On the committed set** — a null, and slightly negative:
+**On the committed set**: a null, and slightly negative:
 
 | quantity | ratio, on against off | helped | hurt |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ Every quantity is trivially worse and none by 2%, which is exactly what "no symm
 looks like: the orbit search runs, finds nothing, and the constraint it would have added is never
 added. Re-measured after [`D-092`](../decisions.md#d-092); the verdict was identical before it.
 
-**On a workforce built to be interchangeable** — `identical_workforce`, 8 to 16 employees with
+**On a workforce built to be interchangeable**: `identical_workforce`, 8 to 16 employees with
 identical skills, contracts, budgets and no unavailability, solved cold:
 
 | quantity | ratio, on against off | helped | hurt |
@@ -71,7 +71,7 @@ identical skills, contracts, budgets and no unavailability, solved cold:
 
 The lever works where the structure exists: 27% off the search, paid for with a 79% larger model and
 a 38% slower build, netting **20% off the total**. It is worth noting that it nets out positive at
-all — the prefix-equality chain is not a cheap encoding, and at these sizes a lever that grows the
+all: the prefix-equality chain is not a cheap encoding, and at these sizes a lever that grows the
 build usually loses.
 
 ## Decision

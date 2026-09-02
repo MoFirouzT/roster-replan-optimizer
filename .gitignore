@@ -230,3 +230,7 @@ benchmarks/.foreign/
 
 # macOS
 .DS_Store
+
+# Tier 0: working notes and spent plans. `PLAN.md` lives here, out of the repository:
+# D-095 declared it archived and no longer maintained, and it sequences a closed project.
+planning/

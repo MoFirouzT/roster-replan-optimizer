@@ -8,7 +8,7 @@ way this fails produces a *faster* variant, which is the direction that gets wri
 - an `only_enforce_if` the API accepts but does not honour would silently harden a rule
   that is supposed to be relaxable, and nothing in a timing would show it.
 
-So this file asserts equivalence, not performance. Timings belong in `docs/archive/studies/` where
+So this file asserts equivalence, not performance. Timings belong in `docs/studies/` where
 they can be read with their caveats; a test that asserts a speed is a test that fails on a
 busy machine.
 """

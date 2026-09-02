@@ -52,7 +52,7 @@ Profile(
 ```
 
 Two silences in it are worth reading.
-`fairness=None` means this tenant has declared no unpopular shifts, so the fairness term is inert — a real position, and not the same as declaring an empty set.
+`fairness=None` means this tenant has declared no unpopular shifts, so the fairness term is inert: a real position, and not the same as declaring an empty set.
 `cost_weight=0` switches cost off entirely, leaving the objective pure disruption.
 Both are reported back by `review`, below, rather than left for a reader to notice.
 
@@ -61,12 +61,12 @@ Fields not shown take the values in the scenario file: the rest of `Disruption`'
 `version` travels with every solve, alongside the input and the seed.
 That is what makes a roster reproducible after the fact.
 
-### Optional rules are not yet enableable
+### Optional rules cannot be switched on yet
 
 Five rules are declared in the registry and none is encoded in the model: `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE`.
 **Enabling one is rejected as a defect, not accepted as a courtesy.**
 Accepting it would promise enforcement that never happens.
-They become enableable when they are encoded, and not before.
+They can be switched on when they are encoded, and not before.
 
 ## Describing a policy in English
 
@@ -83,20 +83,20 @@ a rest gap, a shortest shift, how much worse a change at short notice is.
 It has **no field** for `shortfall_weight`, and none for `enabled_optional_rules`.
 A rule the model cannot state is a rule it cannot break.
 
-*Unset* means the text did not say so — which is not the same claim as a default.
+*Unset* means the text did not say so, which is not the same claim as a default.
 A silence carries the base profile's value forward, which is the amendment case, and never invents a rule.
 
 > *"Our staff need eleven hours off between two shifts."*
 >
 > → `StatedPolicy(min_rest_hours=11.0)`
 
-Everything else on `StatedPolicy` is unset, so amending `horeca-2026.1` with this changes `min_rest_hours` and touches nothing else — not the shift catalogue, not the weights, not `max_consecutive_days`.
+Everything else on `StatedPolicy` is unset, so amending `horeca-2026.1` with this changes `min_rest_hours` and touches nothing else, not the shift catalogue, not the weights, not `max_consecutive_days`.
 The sentence said one thing, so one thing moves.
 That case and seventeen others are committed in [`benchmarks/nl_eval.py`](../../benchmarks/nl_eval.py), each with the policy it must produce.
 
 The client is injected:
 the module imports and tests with no API key.
-Nothing is saved — `propose` returns a candidate and the deterministic verdict on it.
+Nothing is saved: `propose` returns a candidate and the deterministic verdict on it.
 
 **2. Validate structurally**:
 schema, referential integrity, value ranges.
@@ -154,6 +154,6 @@ Storing them is the caller's job, as accepting a candidate is.
 ---
 
 Why the schema confines rather than the prompt, and why enabling an unencoded rule is a defect:
-[`decisions.md`](../archive/decisions.md#by-theme), under the LLM boundary and profile configuration.
+[`decisions.md`](../decisions.md#by-theme), under the LLM boundary and profile configuration.
 *How the parse was measured:*
-[`nl-parse.md`](../archive/studies/nl-parse.md)*— 18/18 on three consecutive runs.*
+[`nl-parse.md`](../studies/nl-parse.md)*: 18/18 on three consecutive runs.*

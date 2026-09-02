@@ -1,18 +1,18 @@
 # Do D0–D4 produce different rosters?
 
-**Question.** [`replan.md`](../../internals/model.md) defines five metrics, ships D2, and asserts that the
+**Question.** [`replan.md`](../internals/model.md) defines five metrics, ships D2, and asserts that the
 fact they produce different rosters is the deliverable rather than a problem to settle. This study
 tests that, and tests the constraint [`D-060`](../decisions.md#d-060) puts on it: that they can only diverge where there is
 slack.
 
-**Answer.** Yes, on 10 of the 84 committed cases — and where they diverge, they diverge severely:
+**Answer.** Yes, on 10 of the 84 committed cases, and where they diverge, they diverge severely:
 each metric scores the other's answer at roughly double its own optimum. But the divergence is
 **entirely between D0/D1/D2 on one side and D3/D4 on the other**. Within each side, nothing separates
 them on this instance set. [`D-060`](../decisions.md#d-060) survives as a mechanism and fails as a test, because the quantity
 it was going to be tested against turns out to be the wrong one.
 
 > **Re-measured after [`D-119`](../decisions.md#d-119), and the rate moved a long way: 26 of 84 became 10 of 84** ([`D-120`](../decisions.md#d-120)).
-> Nothing about the method changed and nothing about it could — `metrics.py` builds its own models
+> Nothing about the method changed and nothing about it could: `metrics.py` builds its own models
 > and never calls `model.solve`, so canonicalising the optimum cannot reach it. **The instances
 > changed.** A canonical incumbent is a different published roster, so the event lands on a different
 > person and every replan in the set is a new one. The divergence rate is a property of the instances,
@@ -24,7 +24,7 @@ it was going to be tested against turns out to be the wrong one.
 
 ## Comparing rosters is the wrong measurement
 
-The obvious method — solve under each metric, ask whether the rosters differ — reports 49 of 84 and
+The obvious method (solve under each metric, ask whether the rosters differ) reports 49 of 84 and
 is worthless. A metric usually has **many** optimal rosters, and which one comes back is the solver's
 search order, so two rosters differing says nothing about whether the two metrics wanted different
 things. D0 in particular has an enormous tie set: it would "disagree" with everything, including with
@@ -39,14 +39,14 @@ For an ordered pair `(a, b)`, the question worth asking is what committing to `a
 best*:
 
 1. Solve under `a`. Call its optimal objective `V_a`.
-2. Solve again minimising `b`, subject to `a`'s objective equalling `V_a` — the best `b`-roster among
+2. Solve again minimising `b`, subject to `a`'s objective equalling `V_a`: the best `b`-roster among
    **all** of `a`'s optima, which is the most charitable reading of `a` available.
 3. `regret(a → b)` is that roster's `b` score, minus `b`'s own optimum.
 
 `regret(a → b) > 0` is a genuine conflict: no roster optimal under `a` is optimal under `b`, so the
 choice between them changes who works, whatever the solver's tie-breaking does. Ties can neither
 manufacture a finding nor hide one. Scoring is by `scoring.py`, the independent reading, on the
-returned roster — never by reading an objective value back out of the solver.
+returned roster: never by reading an objective value back out of the solver.
 
 ## The regret matrix
 
@@ -55,11 +55,11 @@ metric, and the mean regret over those cases.
 
 | commit to ↓ · pay in → | D0 | D1 | D2 | D3 | D4 |
 | --- | --- | --- | --- | --- | --- |
-| **D0** | — | 0/84 | 0/84 | 10/84 · 420.0 | 10/84 · 419.8 |
-| **D1** | 0/84 | — | 0/84 | 10/84 · 420.0 | 10/84 · 419.8 |
-| **D2** | 0/84 | 0/84 | — | 10/84 · 420.0 | 10/84 · 419.8 |
-| **D3** | 10/84 · 2.2 | 10/84 · 22.0 | 10/84 · 34.0 | — | 0/84 |
-| **D4** | 10/84 · 2.2 | 10/84 · 22.0 | 10/84 · 34.0 | 0/84 | — |
+| **D0** | n/a | 0/84 | 0/84 | 10/84 · 420.0 | 10/84 · 419.8 |
+| **D1** | 0/84 | n/a | 0/84 | 10/84 · 420.0 | 10/84 · 419.8 |
+| **D2** | 0/84 | 0/84 | n/a | 10/84 · 420.0 | 10/84 · 419.8 |
+| **D3** | 10/84 · 2.2 | 10/84 · 22.0 | 10/84 · 34.0 | n/a | 0/84 |
+| **D4** | 10/84 · 2.2 | 10/84 · 22.0 | 10/84 · 34.0 | 0/84 | n/a |
 
 **The raw asymmetry is a units artifact, not a finding.** D3 multiplies by change-type weights of
 6–14, so its scores live on a larger scale. Normalised against the paying metric's own optimum, the
@@ -74,7 +74,7 @@ published ([`D-051`](../decisions.md#d-051)), and a disruption damages a **speci
 that same slot. `P × N` is then a constant factor multiplying every option equally, and a constant
 factor cannot reorder anything.
 
-D1 and D2 earn their weights when a repair can choose *which* slot to disturb — trading a change
+D1 and D2 earn their weights when a repair can choose *which* slot to disturb: trading a change
 tonight against a change next week. That choice does not arise when the hole is given, which is the
 shape of every scenario in this set. It is not evidence that the weights are wrong; it is evidence
 that this distribution does not pose the question they answer.
@@ -91,13 +91,13 @@ Anything claiming D4 behaves well is claiming it from the micro-instances, not f
 
 ## The one real divergence, worked
 
-`early-notice/0`, the first conflicting case, reproduces `replan.md`'s Ana/Bram example exactly —
+`early-notice/0`, the first conflicting case, reproduces `replan.md`'s Ana/Bram example exactly,
 which is worth something, since that example was invented at spec time to argue the metrics *could*
 differ, and here it arises on its own from a seeded generator.
 
 This derivation was originally written against `early-notice/1`, whose divergence [`D-119`](../decisions.md#d-119) removed
 along with the rest of the old instances. **Seed 0 reproduces every number in the table below
-exactly** — the same two-against-four slots, the same 20/240 and 40/120. That is the more useful
+exactly**: the same two-against-four slots, the same 20/240 and 40/120. That is the more useful
 fact than either seed: the divergence is a property of the *class*, not of the one instance the study
 happened to inspect first.
 
@@ -122,7 +122,7 @@ calling one person in on a day off. Neither is the correct answer to a question 
 
 ## [`D-060`](../decisions.md#d-060): right mechanism, wrong instrument
 
-[`D-060`](../decisions.md#d-060) says divergence requires slack — a tightly covered week has one legal repair, so every metric
+[`D-060`](../decisions.md#d-060) says divergence requires slack: a tightly covered week has one legal repair, so every metric
 returns it. The class breakdown supports the mechanism cleanly at one end:
 
 | class | D2/D3 conflict |
@@ -158,7 +158,7 @@ Two things follow, and neither is what the first run of this table reported ([`D
 
 **The curve is gone.** Divergence used to rise to 4/6 at 0.70 and fall to zero by 0.90; it is now
 flat at one case across the middle three and zero at both ends. Whatever shape the coverage axis has,
-this set at this rate cannot resolve it — six cases per point and ten conflicts in total is not
+this set at this rate cannot resolve it: six cases per point and ten conflicts in total is not
 enough to draw a curve through, and the previous run drew one anyway.
 
 **Both ends still suppress divergence, and for the two different reasons already given.** `overloaded`
@@ -168,8 +168,8 @@ full grid, so a loose week has fewer shifts on the damaged day for D3 to move so
 Divergence needs slack *and* somewhere to put people, and the loose end runs out of the second while
 gaining the first.
 
-That is the same missing condition the rest of this study names — whether a **move** is available on
-the damaged day — arriving from the other direction. It is a property of the day, the set does not
+That is the same missing condition the rest of this study names: whether a **move** is available on
+the damaged day: arriving from the other direction. It is a property of the day, the set does not
 vary it, and both ends of the coverage axis suppress it for different reasons.
 
 But the **week-level minimum slot slack recorded in the instance set does not predict divergence**:
@@ -188,13 +188,13 @@ slot** (`metrics.repair_slack`), the picture improves but does not become a law:
 | conflict | 0/1 | 0/2 | 0/1 | 0/9 | 0/10 | 0/7 | 0/10 | 0/4 | **10/40** |
 
 **This is the sharpest the study has ever been, and it got sharper by accident** ([`D-120`](../decisions.md#d-120)). Every one
-of the ten divergences sits in the top bucket and every other bucket is a clean zero — where the
+of the ten divergences sits in the top bucket and every other bucket is a clean zero: where the
 previous instance set scattered conflicts across six of eight buckets. Read as a necessary condition
 it is now exact on this set: **no case with fewer than six spare eligible people at the damaged slot
 diverges at all.** Read as a sufficient one it is still nowhere close, at 10 of 40.
 
 **Conclusion: slack is necessary and nowhere near sufficient.** The missing condition is structural,
-and the worked example above names it — D3 diverges from D2 only when a **move** is available, meaning
+and the worked example above names it: D3 diverges from D2 only when a **move** is available, meaning
 another open shift on the same day that a rostered person could be shifted to. That is a property of
 the damaged *day*, not of the week and not of the slot, and the committed set does not vary it, so
 this study can report the correlation and not a clean law. A generator axis over same-day shift

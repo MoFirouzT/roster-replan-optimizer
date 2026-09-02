@@ -2,10 +2,10 @@
 
 **Question.** A replan is hinted with the roster it is repairing.
 "Warm-started replan" is the headline phrase, so the obvious risk is that the speedup being claimed for the hint is really the **objective** doing the work.
-[`replan.md`](../../internals/model.md) asked for this filed either way.
+[`replan.md`](../internals/model.md) asked for this filed either way.
 
 **Answer.** **Not a null, and not the headline either: 9% of search time.**
-The hint reduces search time on 201 of 216 paired runs, median paired ratio **0.907** — reproduced at **0.906 on 662 of 756 runs** over the widened set ([`D-105`](../decisions.md#d-105)).
+The hint reduces search time on 201 of 216 paired runs, median paired ratio **0.907**: reproduced at **0.906 on 662 of 756 runs** over the widened set ([`D-105`](../decisions.md#d-105)).
 It is invisible end to end, and it never changes the answer.
 
 ## What was compared
@@ -30,9 +30,9 @@ Beside that, the hint does not show up end to end at all.
 This is why the README's framing is *the objective is what does the work*, not *warm-started replan*.
 The honest sentence was available only because the two effects were measured separately.
 
-**It has a consequence for work not done.** Learned warm starts — a candidate that was never built — are chasing 9% of the smaller half of the latency budget, at these sizes.
+**It has a consequence for work not done.** Learned warm starts (a candidate that was never built) are chasing 9% of the smaller half of the latency budget, at these sizes.
 That is worth knowing before building them, and it is part of why that item was retired on measurements already taken ([`D-104`](../decisions.md#d-104)).
 
 **What is unanswered.** Whether the hint matters where search dominates construction.
 It does not here: build is ~5 ms against ~3 ms of search, and after canonicalising the optimum the balance moved to roughly 1:1 ([`D-119`](../decisions.md#d-119)).
-Answering it needs instances this set does not contain — and the one foreign instance hard enough to search for 7.71 s arrived too late to be swept ([`foreign-incumbent.md`](foreign-incumbent.md)).
+Answering it needs instances this set does not contain, and the one foreign instance hard enough to search for 7.71 s arrived too late to be swept ([`foreign-incumbent.md`](foreign-incumbent.md)).

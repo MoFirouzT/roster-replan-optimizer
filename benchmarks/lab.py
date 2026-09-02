@@ -1,6 +1,6 @@
 """Paired measurement for the level-1 model studies.
 
-Every study in `docs/archive/studies/` asks the same shape of question -- does changing one thing
+Every study in `docs/studies/` asks the same shape of question -- does changing one thing
 about the model make it faster -- and at these instance sizes that question is hard to
 answer honestly. A search takes about 3 ms. Process noise on a 3 ms measurement is a large
 fraction of a 3 ms measurement, so an unpaired comparison of two means will find an effect

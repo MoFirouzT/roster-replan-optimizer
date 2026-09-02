@@ -1,6 +1,6 @@
 # The horizon: what a longer one costs, and what it buys
 
-**Question.** [`rules.md`](../../guide/rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget)
+**Question.** [`rules.md`](../guide/rules.md#the-reference-period-and-why-r-max-weekly-is-a-budget)
 rejects extending the solve horizon to the reference period in one sentence:
 
 > The obvious fix is to extend the solve horizon to the reference period. That is rejected: it
@@ -33,12 +33,12 @@ Generated replan scenarios at `demand_ratio` 0.70, 12 employees, median of three
 | 28 | 84 | 4,058 | 5,376 | 29.5 | 77.0 |
 
 *(Re-measured after [`D-119`](../decisions.md#d-119). Search now includes the canonicalising second phase, which is
-why one week reads 5.7 ms where this table first reported 3.5 — and why the crossover it
+why one week reads 5.7 ms where this table first reported 3.5, and why the crossover it
 identifies has moved from between one week and two to **at** one week.)*
 
 **Size is linear in the horizon.** Four times the days gives 3.9× the variables and 4.0× the
-constraints. The rest-gap pairs stay local — a gap is eleven hours, so no shift conflicts with one a
-week away — and nothing else aggregates across the horizon either. "An order of magnitude" describes
+constraints. The rest-gap pairs stay local: a gap is eleven hours, so no shift conflicts with one a
+week away, and nothing else aggregates across the horizon either. "An order of magnitude" describes
 a growth this model does not have.
 
 **Search is not linear.** It grows 13.5× over the same range against build's 5.5×, and grew 23× on
@@ -69,7 +69,7 @@ whole month.
 | 0.90 | 1 | **5** | 593.1 | **5** | 1254.6 |
 | 0.90 | 2 | **5** | 1603.6 | **5** | 168.9 |
 
-**Coverage is identical on every case.** Not close — identical, including at 0.90 where five
+**Coverage is identical on every case.** Not close: identical, including at 0.90 where five
 positions go unstaffed either way. The four-week solve sees the whole month and finds nothing the
 weekly sequence misses.
 
@@ -81,7 +81,7 @@ already tell them to: `last_shift_end_before_horizon` and
 almost no coupling between its blocks does not need to see them together.
 
 **The timing comparison did not survive canonicalisation, and the coverage one did.** Before
-[`D-119`](../decisions.md#d-119) the single solve was uniformly the slower arm under pressure — 239 to 555 ms against 94 to
+[`D-119`](../decisions.md#d-119) the single solve was uniformly the slower arm under pressure: 239 to 555 ms against 94 to
 166 ms. With a canonical second phase on every proved optimum the two arms swap places case by case
 (1563 ms chained against 631 ms single on one seed, 169 ms against 1604 ms on another), because the
 chained arm pays that phase four times and the single arm once. **No timing claim survives that**, and
@@ -93,8 +93,8 @@ cannot say anything.
 ## Why the chained arm is a fair comparison, and how that is checked
 
 A chained solve is easy to flatter by accident. If the boundary state is carried wrongly, each week
-starts from a person with no history — free of the rest gap and the consecutive-day streak the
-previous week imposed — and the chained arm returns a cheaper roster it was never entitled to.
+starts from a person with no history: free of the rest gap and the consecutive-day streak the
+previous week imposed, and the chained arm returns a cheaper roster it was never entitled to.
 
 So the study **stitches the four weekly rosters back into one month and hands it to the independent
 checker**, and refuses to report a timing if it comes back with a hard violation. That is the same
@@ -107,11 +107,11 @@ asserts it in the suite as well, and a mutant that drops the carried shift-end i
 The two arms above hold the same weekly ceiling, so what they compare is horizon *length*. The
 approximation the spec describes is a different thing, and it took a payload change to ask about it
 ([`D-123`](../decisions.md#d-123)): a caller resolves a rolling quarter into one weekly number, and what that destroys is the
-freedom to spend it **unevenly** — 45 hours this week against 31 next, inside one quarterly total.
+freedom to spend it **unevenly**: 45 hours this week against 31 next, inside one quarterly total.
 
 `R-MAX-PERIOD` makes the pool expressible alongside the rate. Both arms below are given the same
 total hours over four weeks; they differ only in whether those hours may be distributed freely.
-`uneven weeks` counts employees whose weekly hours are not all equal — the freedom being used.
+`uneven weeks` counts employees whose weekly hours are not all equal: the freedom being used.
 
 | demand ratio | seed | pooled: short | uneven weeks | flat ceiling: short |
 | --- | --- | --- | --- | --- |
@@ -123,7 +123,7 @@ total hours over four weeks; they differ only in whether those hours may be dist
 | 0.90 | 2 | 5 | 5 | 5 |
 
 **The freedom is real and it buys nothing.** Four to nine employees per case work unequal weeks when
-allowed to — so the pooled budget is not inert, and the solver does spend it the way a flat ceiling
+allowed to, so the pooled budget is not inert, and the solver does spend it the way a flat ceiling
 forbids. Coverage is identical on every case at both ends of the tightness axis.
 
 So the approximation `rules.md` has made from the start is **confirmed on evidence rather than assumed**,
@@ -132,7 +132,7 @@ a weekly rate loses a freedom the optimiser will use and cannot convert into a s
 
 What that does not say is that the pool never matters. It is given here as exactly the flat ceiling's
 total, so the two arms are equally generous and differ only in distribution. A pool that is *tighter*
-than the weeks it spans — a quarter nearly spent — binds where no weekly ceiling would, and this set
+than the weeks it spans (a quarter nearly spent) binds where no weekly ceiling would, and this set
 has no such case in it because the generator does not produce one.
 
 ## What this does not measure
@@ -144,9 +144,9 @@ weeks would pin the past and price deviation, which changes the search but not t
 over; not a distribution.
 
 **Anything the objective cannot see.** Coverage is what these two arms are compared on, and the
-objective they are compared under has no term spanning weeks — so this study measures that a longer
+objective they are compared under has no term spanning weeks, so this study measures that a longer
 horizon buys no *coverage* under the shipped objective, which is narrower than "buys nothing". Every
-cross-week preference in [`../preferences.md`](../preferences.md) is exactly such a term, and the
+cross-week preference in [`cross-week-reach.md`](cross-week-reach.md) is exactly such a term, and the
 fairness term that does span weeks could not have shown up here either: [`D-108`](../decisions.md#d-108) records that the
 committed set cannot exercise it, because its evenings need a scarce skill. Reopening the question
 means adding a term that needs two weeks and re-measuring, not re-timing this solve.

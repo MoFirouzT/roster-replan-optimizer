@@ -13,7 +13,7 @@ tenant horeca-demo, profile horeca-2026.1
 12 staff, 21 open shifts, 35 assignments published
 replanning at hour 129 of the horizon
 
-answer: exact — proven optimal
+answer: exact (proven optimal)
 disruption 100040, gap 0.0%
 solved in 14 ms
 
@@ -60,7 +60,7 @@ Asking somebody to work further into a budget a statute caps is a different kind
 
 ## Next
 
-- Using the service — [`configuring.md`](configuring.md), then [`api.md`](api.md).
-- The rules it enforces — [`rules.md`](rules.md).
-- What it guarantees and where it stops — [`limits.md`](limits.md).
-- Changing the code — [`design.md`](../internals/design.md).
+- Using the service: [`configuring.md`](configuring.md), then [`api.md`](api.md).
+- The rules it enforces: [`rules.md`](rules.md).
+- What it guarantees and where it stops: [`limits.md`](limits.md).
+- Changing the code: [`design.md`](../internals/design.md).

@@ -33,7 +33,7 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 GUIDE = DOCS / "guide"
-ARCHIVE = DOCS / "archive"
+STUDIES = DOCS / "studies"
 
 MARKDOWN = sorted(
     p for p in DOCS.rglob("*.md") if ".venv" not in p.parts
@@ -117,7 +117,7 @@ def test_unencoded_rules_are_still_declared_optional(registry):
 
 @pytest.fixture(scope="module")
 def records() -> list[str]:
-    return re.findall(r"^## (D-\d+)", _text(ARCHIVE / "decisions.md"), re.MULTILINE)
+    return re.findall(r"^## (D-\d+)", _text(DOCS / "decisions.md"), re.MULTILINE)
 
 
 def test_no_decision_id_is_used_twice(records):
@@ -137,7 +137,7 @@ def test_every_referenced_decision_exists(records):
     known = set(records)
     # The Open table lists decisions deliberately not yet written.
     open_rows = set(
-        re.findall(r"^\| (D-\d+) \|", _text(ARCHIVE / "decisions.md"), re.MULTILINE)
+        re.findall(r"^\| (D-\d+) \|", _text(DOCS / "decisions.md"), re.MULTILINE)
     )
 
     dangling: dict[str, set[str]] = {}
@@ -152,7 +152,7 @@ def test_every_referenced_decision_exists(records):
 
 def test_code_only_cites_decisions_that_exist(records):
     known = set(records) | set(
-        re.findall(r"^\| (D-\d+) \|", _text(ARCHIVE / "decisions.md"), re.MULTILINE)
+        re.findall(r"^\| (D-\d+) \|", _text(DOCS / "decisions.md"), re.MULTILINE)
     )
     dangling: dict[str, set[str]] = {}
 
@@ -214,7 +214,7 @@ def test_every_record_has_an_anchor():
     A generated slug moves when a title is edited, so each record carries an explicit
     anchor and the links point at that.
     """
-    text = _text(ARCHIVE / "decisions.md")
+    text = _text(DOCS / "decisions.md")
     missing = [
         ident
         for ident in re.findall(r"^## (D-(?:\d+))", text, re.MULTILINE)
@@ -260,9 +260,9 @@ def test_the_studies_index_and_the_studies_agree():
     Both existed: `reproducibility.md`, `warm-start.md` and `time-budget.md` were indexed
     for months as plain text, and `README.md` named the first as the one thing to read.
     """
-    index = _text(ARCHIVE / "studies" / "README.md")
+    index = _text(STUDIES / "README.md")
     linked = set(re.findall(r"\[`([a-z-]+\.md)`\]\(\1\)", index))
-    present = {p.name for p in (ARCHIVE / "studies").glob("*.md")} - {"README.md"}
+    present = {p.name for p in STUDIES.glob("*.md")} - {"README.md"}
 
     assert not (linked - present), f"indexed studies with no file: {sorted(linked - present)}"
     assert not (present - linked), f"studies missing from the index: {sorted(present - linked)}"
@@ -281,8 +281,8 @@ def test_no_record_exceeds_the_word_cap():
     thirty longest records actually landed them -- between 259 and 332 words -- rather than
     at a round number that would force the argument out of a record and into nothing.
     """
-    text = _text(ARCHIVE / "decisions.md")
-    records = re.findall(r"^## D-\d+ — .+?(?=^<a id=\"d-|\Z)", text, re.MULTILINE | re.DOTALL)
+    text = _text(DOCS / "decisions.md")
+    records = re.findall(r"^## D-\d+\. .+?(?=^<a id=\"d-|\Z)", text, re.MULTILINE | re.DOTALL)
     assert records, "no records parsed -- the heading or anchor shape changed"
 
     over = {
