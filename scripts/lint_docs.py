@@ -139,9 +139,39 @@ REAL_ADJECTIVES = {
     "scriptable", "searchable", "serializable", "sortable", "taggable", "testable",
     "traceable", "tunable", "upgradable", "uploadable",
     "observability", "reproducibility", "scalability", "testability", "traceability",
-    # British spellings the (US) system list omits
-    "generalisable", "recognisable", "utilisable",
+    # British and variant spellings the (US) system list omits
+    "generalisable", "recognisable", "utilisable", "favourable", "tradeable",
+    # terms of art the list predates: borrowed, not coined
+    "equiprobable", "diagonalisable",
 }
+
+# This repo's own vocabulary, sanctioned so the verdict does not depend on the host.
+#
+# The check resolves a word against `/usr/share/dict/words`, and that file is a different
+# dictionary on every operating system: macOS ships `web2`, a 1934 Webster's of 236k entries,
+# and Ubuntu ships `wamerican`, a modern spell-check list about a third the size. Every word
+# below is real English that one of them has and the other may not, so without this list the
+# same tree lints clean on a laptop and red in CI. That is the defect `D-118` and `D-121`
+# already record in another form: a verdict that is a property of the machine that produced it.
+#
+# Regenerate rather than curate. Set `WORD_LIST = set()` and re-run: whatever the check then
+# flags is exactly this list, and a word that has left the documentation drops out of it.
+REPO_VOCABULARY = {
+    "acceptable", "achievable", "affordable", "answerable", "applicable", "availability",
+    "available", "avoidable", "changeable", "charitable", "checkable", "comparable",
+    "computable", "countable", "credibility", "decidable", "derivable", "detectable",
+    "diagnosable", "disposable", "eligibility", "enforceable", "enumerable", "executable",
+    "explicable", "falsifiable", "feasibility", "findable", "identifiability",
+    "identifiable", "immutable", "impossibility", "incomparable", "indistinguishable",
+    "infeasibility", "interchangeable", "plausibility", "portability", "portable",
+    "probably", "reachability", "reachable", "readability", "readable", "reasonable",
+    "relaxable", "reliably", "replayable", "reportable", "representable", "retrievability",
+    "tractable", "transferable", "unanswerable", "unavailability", "unavailable",
+    "unavoidable", "uncomparable", "unfalsifiable", "unfillable", "unlearnable",
+    "unmatchable", "unreachable", "unrelaxable", "unrepresentable", "unsayable",
+    "unverifiable", "valuable", "variable", "verifiable", "verifiably", "violable",
+}
+REAL_ADJECTIVES |= REPO_VOCABULARY
 CHECK_COINED_WORDS = True
 
 # Prefixes stripped before looking a word up, so "unverifiable" resolves via "verifiable".
@@ -160,6 +190,9 @@ def _load_word_list() -> set[str] | None:
 
 
 WORD_LIST = _load_word_list()
+WORD_LIST_NOTE = (
+    f"{len(WORD_LIST):,}-word system dictionary" if WORD_LIST else "no system dictionary"
+)
 
 
 def _is_real_word(word: str) -> bool:
@@ -176,7 +209,12 @@ def _is_real_word(word: str) -> bool:
     for prefix in _NEGATING_PREFIXES:
         if w.startswith(prefix) and len(w) > len(prefix) + 3 and w[len(prefix):] in known:
             return True
-    for suffix, adjective in (("ability", "able"), ("ibility", "ible")):
+    for suffix, adjective in (
+        ("ability", "able"),
+        ("ibility", "ible"),
+        ("ably", "able"),
+        ("ibly", "ible"),
+    ):
         if w.endswith(suffix) and w[: -len(suffix)] + adjective in known:
             return True
     return False
@@ -499,10 +537,10 @@ def main() -> int:
         print("Doc lint: FAIL")
         for e in errors:
             print(f"  - {e}")
-        print(f"\n{len(errors)} issue(s). See CLAUDE.md, under *Prose*.")
+        print(f"\n{len(errors)} issue(s), {WORD_LIST_NOTE}. See CLAUDE.md, under *Prose*.")
         return 1
 
-    print(f"Doc lint: OK ({len(DOC_PATHS)} files).")
+    print(f"Doc lint: OK ({len(DOC_PATHS)} files, {WORD_LIST_NOTE}).")
     return 0
 
 

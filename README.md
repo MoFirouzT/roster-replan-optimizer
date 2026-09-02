@@ -1,6 +1,8 @@
 # roster-replan-optimizer
 
 [![CI](https://github.com/MoFirouzT/roster-replan-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/MoFirouzT/roster-replan-optimizer/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Minimum-disruption shift-roster replanning under labour constraints.**
 
@@ -97,6 +99,3 @@ Every design choice that could have gone the other way is a [numbered decision](
 Authentication, persistence, a user interface, and demand forecasting.
 All data committed to this repository is synthetic.
 
----
-
-MIT licensed. See [`LICENSE`](LICENSE).
