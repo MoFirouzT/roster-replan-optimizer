@@ -26,7 +26,7 @@ Work since then has been documentation and correction, not capability.
 | Tests | 567 | 933, of which 47 skip without fetched benchmark data |
 | Mutants, each naming the layer that must catch it | 59 | 136 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 150, none open |
+| Decision records | 94, 2 open | 137, none open, 14 merged or retired |
 | Studies, including nulls | 8 | 18 |
 | Python | ~12,000 lines | ~24,600 lines |
 
@@ -49,7 +49,7 @@ in them.
 | The cost axis (`cost_weight` ships at 0, [`D-050`](decisions.md#d-050)) | Wage data |
 | `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each: [`rules.md`](guide/rules.md) refuses a legality claim without provenance |
 | Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing: these are deployment choices |
-| No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) | Nothing. The generator hard-codes seven days |
+| No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) and the generator takes a horizon ([`D-115`](decisions.md#d-115)) | Nothing. No committed case asks for one |
 | The last mutation verdict is `unverifiable` | Nothing: re-run the three named layers on a clean tree |
 
 The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the
@@ -59,9 +59,9 @@ closed the half of that which was not blocked.
 
 ## The documentation
 
-Two rearrangements, and the second is in progress.
+Three rearrangements, and they are done.
 
-**2026-08-20**: the specs were rewritten as two doors ([`D-146`](decisions.md#d-146)): a
+**2026-08-20**: the specs were rewritten as two doors ([`D-151`](decisions.md#d-151)): a
 [guide](guide) for people using the service and [internals](internals) for people changing it.
 A spec that has been reconciled with its code describes the system, so it belongs where people
 read about the system. The [ledger](specs/README.md) records where each original spec went.
@@ -73,6 +73,13 @@ against its evidence, is
 [`documentation-restructure.md`](specs/documentation-restructure.md). No claim, number or rule ID
 moved with the restructure itself; the stale figures it found were corrected, and they are the
 numbers in the table above.
+
+**2026-09-02**: the 150 decision records were curated to **137**, five retired and nine merged
+into the records that carry their argument, with one written for a decision that never got one.
+Every removed ID keeps its anchor in [Merged and retired](decisions.md#merged-and-retired), so no
+link or docstring citing one had to move. The spec is
+[`decision-curation.md`](specs/decision-curation.md) and what it found is its
+[ledger row](specs/README.md).
 
 ## Known blockers
 

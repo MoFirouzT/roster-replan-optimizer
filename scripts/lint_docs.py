@@ -48,9 +48,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 MAX_LINES = 600
 
-# Files that grow by design and are not split. `decisions.md` holds 150 records and is
-# exempt until they are curated: splitting them into 150 files is the opposite of
-# curating them, and its lookup and by-theme indexes already work. Paths relative to ROOT.
+# Files that grow by design and are not split. `decisions.md` holds 137 curated records and
+# stays exempt: curation took it from 150 and left 3,565 lines, so the 600-line cap was never
+# what it would come under, and its lookup and by-theme indexes are how it is read.
+# Paths relative to ROOT.
 LINE_CAP_EXEMPT: set[str] = {"docs/decisions.md"}
 
 # The committed Markdown in scope. `CLAUDE.md` is in it because it is a committed

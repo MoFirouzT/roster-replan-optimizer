@@ -109,6 +109,19 @@ cross-document anchor. Everything else in this file is review judgment. A line m
 per-line checks with a trailing `<!-- lint-ok -->`, which is for quoting a banned word, not for
 keeping one.
 
+## Overrides
+
+Where this project departs from the shared discipline contract, with the reason. Nothing else in
+that contract is turned off.
+
+**Decision records keep numeric IDs.** The contract names records by subject and drops numbering, so
+that one can be merged or retired without leaving a gap. Here they are `D-nnn` with an explicit
+`<a id="d-nnn">` anchor each, because the numbering is load-bearing: 324 links across the
+documentation, 328 backticked citations in code and tests, and five checks built on the anchors.
+The gap the contract worries about is answered directly instead: a merged or retired ID keeps its
+anchor in [Merged and retired](docs/decisions.md#merged-and-retired), on a row saying where its
+reasoning went, so a reference to it lands somewhere that answers the reader.
+
 ## Notation
 
 Predicate blocks are **plain fenced code blocks**, not ```` ```math ````. The identifiers in them are

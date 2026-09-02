@@ -13,11 +13,14 @@ The figure is not arbitrary: editing thirty of the longest records down to their
 of them between 259 and 332 words, so that is what a record costs when it states its decision and links
 its analysis.
 
-A decision record is permanently true.
-It is not history, and it does not belong in a spec, where present tense squeezes rationale out.
+**These records are curated.**
+A record says what governs the code today.
+One whose wording has gone stale is corrected in place; one that no longer earns a reader's attention is merged into the record carrying its argument, or retired.
+Reasoning lives here rather than in a live document, where present tense squeezes it out.
 
-Where a later decision overrides an earlier one, the earlier record is **amended in place with the supersession named**, never rewritten and never deleted.
-A decisions file that silently corrects its own past is a spec.
+What a record may not do is quietly change what it decided.
+A record that supersedes another **names what it replaced and why the old reading was wrong**, and nothing is kept in a state known to be false.
+An ID is never reused and never vanishes: what leaves this file leaves its anchor behind in [Merged and retired](#merged-and-retired), so every reference to it still resolves.
 
 *Assumes: the terms of art in [`CLAUDE.md`](../CLAUDE.md); what each component found, in the [ledger](specs/README.md).*
 
@@ -45,8 +48,6 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-004`](#d-004) | Brute-force enumeration as ground truth rather than trusting the solver |
 | [`D-005`](#d-005) | Deviation-from-published as the objective, not cost-from-scratch |
 | [`D-006`](#d-006) | D2 as the shipped disruption metric; D3 and D4 configurable |
-| [`D-007`](#d-007) | Answered under [`D-049`](#d-049) |
-| [`D-008`](#d-008) | `R-COVER`'s soft floor ratified, and now measured rather than argued |
 | [`D-009`](#d-009) | Assignment booleans over pattern/column variables, measured |
 | [`D-010`](#d-010) | Async job queue over synchronous HTTP |
 | [`D-011`](#d-011) | Stateless solver, and an in-process queue that is not |
@@ -68,7 +69,6 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-027`](#d-027) | Shift hours attributed wholly to the start day, never split at midnight |
 | [`D-028`](#d-028) | Weekly rest as anchored candidate windows rather than time discretisation |
 | [`D-029`](#d-029) | Weekly rest required inside the horizon: conservatism accepted over a heavier caller contract |
-| [`D-030`](#d-030) | Budget sanity bounds as input validation, not as roster violations |
 | [`D-031`](#d-031) | `R-MIN-SHIFT` reclassified input validation: not roster-violable under fixed shift instances |
 | [`D-032`](#d-032) | Flexi eligibility and Dimona state resolved upstream, indexed per employee **per day** |
 | [`D-033`](#d-033) | Flexi income ceiling folded into `max_hours_this_week`, not a parallel euro budget |
@@ -80,21 +80,17 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-039`](#d-039) | Rule thresholds never defaulted in shared code: payload carries every parameter |
 | [`D-040`](#d-040) | Input validation and roster checking as separate layers with separate result types |
 | [`D-041`](#d-041) | Differential harness compares violation sets, not feasibility bits |
-| [`D-042`](#d-042) | Brute-force layer split into feasible-set and objective stages |
 | [`D-043`](#d-043) | `R-COVER` ceiling gated as `o == 0` so overstaffing is reportable, not merely rejected |
 | [`D-044`](#d-044) | Model violations enumerated by maximising gate literals, not by iterating cores |
 | [`D-045`](#d-045) | Presolve retains exclusion reasons; unrepresentable rosters compared on eligibility only |
-| [`D-046`](#d-046) | `R-CONSEC-DAYS` compared at `(rule, employee)` granularity in the harness |
 | [`D-047`](#d-047) | Soft coverage floor collapses the infeasibility surface to pins and impossible parameters |
-| [`D-048`](#d-048) | Infeasibility core is sufficient, not minimal; minimisation deferred to T4 |
 | [`D-049`](#d-049) | Weighted sum, not lexicographic ordering |
 | [`D-050`](#d-050) | Exchange rate swept to trace the frontier rather than fixed by assertion |
 | [`D-051`](#d-051) | Publication state as a single `published_through` cutoff, not a per-slot set |
 | [`D-052`](#d-052) | `draft_weight` non-zero, for stable output and warm starts that resemble their hint |
 | [`D-053`](#d-053) | D3 pairs drops with adds per (employee, day) so a move is one event |
-| [`D-054`](#d-054) | D3 weights read from the day's anchor slot, solution-independent by necessity |
+| [`D-054`](#d-054) | D3 weights read from the day's anchor slot: solution-independent by necessity |
 | [`D-055`](#d-055) | D4 as convex lower bounds rather than a max-term or a piecewise construction |
-| [`D-056`](#d-056) | `extend` dropped from D3: not representable with fixed shift instances |
 | [`D-057`](#d-057) | Shortfall-weight domination bound derived and validated, not chosen |
 | [`D-058`](#d-058) | Variables exist for every incumbent pair, so deviations are always countable |
 | [`D-059`](#d-059) | Eligibility fixings gated, so an ineligible assignment is reportable |
@@ -131,7 +127,6 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-090`](#d-090) | The wire schema is its own schema, not a serialisation of the domain |
 | [`D-091`](#d-091) | Round-robin fairness across tenants, not weighted |
 | [`D-092`](#d-092) | `Instance.window` memoised: the largest single win in the solve path |
-| [`D-093`](#d-093) | The compiled-model cache ships enabled, and does not help replanning: **superseded by [`D-149`](#d-149)** |
 | [`D-094`](#d-094) | A timeout and an infeasibility are different answers, and `solve` now says which |
 | [`D-095`](#d-095) | Finish declaration: name ratified, publication deferred |
 | [`D-096`](#d-096) | The timing balance is committed and asserted; absolute milliseconds are not |
@@ -143,20 +138,15 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-102`](#d-102) | The parse eval scores what was invented, not only what was found |
 | [`D-103`](#d-103) | `unclear` is for what could not be said, not for what was assumed |
 | [`D-104`](#d-104) | Two of T5's four items are retired on measurements already taken |
-| [`D-105`](#d-105) | The coverage axis is sampled where the answer changes, not only at its ends |
-| [`D-106`](#d-106) | [`D-060`](#d-060) confirmed on a curve, and divergence is not monotone in slack |
-| [`D-107`](#d-107) | The rest of T2 re-run over 84: everything reproduces, and the sampling bug did not |
+| [`D-105`](#d-105) | The coverage axis is sampled where the answer changes, and every T2 analysis is re-measured over 84 |
 | [`D-108`](#d-108) | Fairness is a third thing, and it pays for understaffing like everything else |
 | [`D-109`](#d-109) | Generation ships as the cold-start case, and the spec's derivation of it was wrong |
-| [`D-110`](#d-110) | A horizon longer than a week is refused, because both readings would agree it is legal |
-| [`D-111`](#d-111) | The week rules are measured over a week, and the guard stays for narrower reasons |
+| [`D-111`](#d-111) | The week rules are measured over a week, and the blind spot that hid it |
 | [`D-112`](#d-112) | The mutation harness says `unverifiable` where it used to say `clean` |
 | [`D-113`](#d-113) | The guard comes off for whole weeks, and stays on for part of one |
 | [`D-114`](#d-114) | The timing guards are calibrated, so CI deselects them rather than widening them |
 | [`D-115`](#d-115) | The generator takes a horizon, and its weekly pattern was a weekly pattern only by accident |
 | [`D-116`](#d-116) | A longer horizon is rejected because it buys nothing, not because it costs too much |
-| [`D-117`](#d-117) | The solved half of the manifest is an artifact of one solver build, and CI checks the other half |
-| [`D-118`](#d-118) | CI runs the platform the committed artifacts were recorded on, and the reproducibility claim is scoped |
 | [`D-119`](#d-119) | The optimum is canonical, because the model should decide the roster and the search should not |
 | [`D-120`](#d-120) | The D0–D4 divergence rate is 10 of 84, and the number it replaces was never robust |
 | [`D-121`](#d-121) | CI goes back to linux, because the canonical optimum is a claim that needs a foreign binary to test |
@@ -185,29 +175,29 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-144`](#d-144) | Two overrides of different provenance are not one ranking, and the sweep was paying twice |
 | [`D-145`](#d-145) | Every statutory rule names an instrument, and two of the searches found no rule at all |
 | [`D-146`](#d-146) | Four documents trimmed to what they carry, and the spec table made true |
-| [`D-147`](#d-147) | Where the model stops is where this Python stops, and the sentence now says so |
 | [`D-148`](#d-148) | The README draws the claim it used to only tabulate |
 | [`D-149`](#d-149) | The model cache is deleted, because its key was a claim that went stale |
 | [`D-150`](#d-150) | The guarantee starts at the payload, and the clock in front of it is the caller's |
+| [`D-151`](#d-151) | The documentation becomes two doors, and the reconciled specs move into them |
 
 ## By theme
 
 | Theme | Records |
 | --- | --- |
-| The objective: what disruption is, and what it trades against | [`D-005`](#d-005), [`D-006`](#d-006), [`D-007`](#d-007), [`D-015`](#d-015), [`D-022`](#d-022), [`D-036`](#d-036), [`D-049`](#d-049), [`D-050`](#d-050), [`D-051`](#d-051), [`D-052`](#d-052), [`D-053`](#d-053), [`D-054`](#d-054), [`D-055`](#d-055), [`D-056`](#d-056), [`D-057`](#d-057), [`D-060`](#d-060), [`D-085`](#d-085), [`D-086`](#d-086), [`D-106`](#d-106), [`D-108`](#d-108), [`D-109`](#d-109), [`D-120`](#d-120), [`D-129`](#d-129) |
-| Formulation and solver choice | [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-048`](#d-048), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-093`](#d-093), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126) |
-| Independence: two readings of one registry | [`D-003`](#d-003), [`D-038`](#d-038), [`D-039`](#d-039), [`D-040`](#d-040), [`D-041`](#d-041), [`D-045`](#d-045), [`D-046`](#d-046), [`D-063`](#d-063), [`D-078`](#d-078), [`D-128`](#d-128) |
-| Ground truth, test layers, and the mutation harness | [`D-004`](#d-004), [`D-042`](#d-042), [`D-061`](#d-061), [`D-062`](#d-062), [`D-064`](#d-064), [`D-065`](#d-065), [`D-066`](#d-066), [`D-067`](#d-067), [`D-077`](#d-077), [`D-112`](#d-112), [`D-122`](#d-122), [`D-124`](#d-124), [`D-130`](#d-130), [`D-138`](#d-138), [`D-139`](#d-139), [`D-140`](#d-140), [`D-141`](#d-141), [`D-143`](#d-143) |
-| Rules, legal encoding and provenance | [`D-008`](#d-008), [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-030`](#d-030), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142), [`D-145`](#d-145) |
-| The benchmark set and its method | [`D-068`](#d-068), [`D-069`](#d-069), [`D-070`](#d-070), [`D-071`](#d-071), [`D-072`](#d-072), [`D-073`](#d-073), [`D-074`](#d-074), [`D-075`](#d-075), [`D-076`](#d-076), [`D-079`](#d-079), [`D-080`](#d-080), [`D-081`](#d-081), [`D-082`](#d-082), [`D-083`](#d-083), [`D-084`](#d-084), [`D-096`](#d-096), [`D-105`](#d-105), [`D-107`](#d-107) |
-| Reproducibility and CI | [`D-096`](#d-096), [`D-114`](#d-114), [`D-117`](#d-117), [`D-118`](#d-118), [`D-119`](#d-119), [`D-121`](#d-121), [`D-124`](#d-124) |
-| Explaining an answer: shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-048`](#d-048), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100), [`D-144`](#d-144) |
+| The objective: what disruption is, and what it trades against | [`D-005`](#d-005), [`D-006`](#d-006), [`D-015`](#d-015), [`D-018`](#d-018), [`D-022`](#d-022), [`D-036`](#d-036), [`D-049`](#d-049), [`D-050`](#d-050), [`D-051`](#d-051), [`D-052`](#d-052), [`D-053`](#d-053), [`D-054`](#d-054), [`D-055`](#d-055), [`D-057`](#d-057), [`D-060`](#d-060), [`D-085`](#d-085), [`D-086`](#d-086), [`D-120`](#d-120), [`D-129`](#d-129) |
+| Formulation and solver choice | [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126), [`D-149`](#d-149) |
+| Independence: two readings of one registry | [`D-003`](#d-003), [`D-038`](#d-038), [`D-039`](#d-039), [`D-040`](#d-040), [`D-041`](#d-041), [`D-045`](#d-045), [`D-063`](#d-063), [`D-078`](#d-078), [`D-128`](#d-128) |
+| Ground truth, test layers, and the mutation harness | [`D-004`](#d-004), [`D-061`](#d-061), [`D-062`](#d-062), [`D-064`](#d-064), [`D-065`](#d-065), [`D-066`](#d-066), [`D-067`](#d-067), [`D-077`](#d-077), [`D-112`](#d-112), [`D-122`](#d-122), [`D-124`](#d-124), [`D-130`](#d-130), [`D-138`](#d-138), [`D-139`](#d-139), [`D-140`](#d-140), [`D-141`](#d-141), [`D-143`](#d-143) |
+| Rules, legal encoding and provenance | [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142), [`D-145`](#d-145) |
+| The benchmark set and its method | [`D-068`](#d-068), [`D-069`](#d-069), [`D-070`](#d-070), [`D-071`](#d-071), [`D-072`](#d-072), [`D-073`](#d-073), [`D-074`](#d-074), [`D-075`](#d-075), [`D-076`](#d-076), [`D-079`](#d-079), [`D-080`](#d-080), [`D-081`](#d-081), [`D-082`](#d-082), [`D-083`](#d-083), [`D-084`](#d-084), [`D-096`](#d-096), [`D-105`](#d-105) |
+| Reproducibility and CI | [`D-096`](#d-096), [`D-114`](#d-114), [`D-119`](#d-119), [`D-121`](#d-121), [`D-124`](#d-124) |
+| Explaining an answer: shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100), [`D-144`](#d-144) |
 | The LLM boundary and profile configuration | [`D-012`](#d-012), [`D-013`](#d-013), [`D-099`](#d-099), [`D-101`](#d-101), [`D-102`](#d-102), [`D-103`](#d-103) |
-| Service, runtime and the fallback ladder | [`D-010`](#d-010), [`D-011`](#d-011), [`D-090`](#d-090), [`D-091`](#d-091), [`D-094`](#d-094), [`D-122`](#d-122) |
-| Horizon and cross-week reach | [`D-014`](#d-014), [`D-150`](#d-150), [`D-029`](#d-029), [`D-081`](#d-081), [`D-110`](#d-110), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131) |
+| Service, runtime and the fallback ladder | [`D-010`](#d-010), [`D-011`](#d-011), [`D-090`](#d-090), [`D-091`](#d-091), [`D-094`](#d-094), [`D-122`](#d-122), [`D-149`](#d-149) |
+| Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-108`](#d-108), [`D-109`](#d-109), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131), [`D-150`](#d-150) |
 | The foreign instance | [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
-| Capture and replay (specified, not built) | [`D-016`](#d-016), [`D-017`](#d-017) |
-| Scope and declarations | [`D-095`](#d-095), [`D-104`](#d-104) |
+| Capture and replay (specified, not built) | [`D-015`](#d-015), [`D-016`](#d-016), [`D-017`](#d-017) |
+| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151) |
 
 ---
 
@@ -221,6 +211,31 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 - **Consequences.** What this forces elsewhere.
 - **Study.** `docs/studies/...` if one exists.
 - **Date.**
+
+---
+
+## Merged and retired
+
+An ID is never reused and never vanishes.
+A record **merged** had its argument moved into the record that carries it; one **retired** decides nothing any more, because what it decided is gone or a later record replaced it.
+Every anchor stays here, so a link or a docstring citing one of these still resolves.
+
+| ID | Where it went |
+| --- | --- |
+| D-007 | <a id="d-007"></a> Merged into [`D-049`](#d-049). The ID reserved the weighted-sum question, which was answered at T1. It carried a pointer and never a decision of its own |
+| D-008 | <a id="d-008"></a> Merged into [`D-018`](#d-018). It ratified `D-018`'s provisional marking on measurement. The split and what measured it are one decision |
+| D-030 | <a id="d-030"></a> Merged into [`D-040`](#d-040). `D-040`'s dividing question, stated a second time about one parameter |
+| D-042 | <a id="d-042"></a> Merged into [`D-004`](#d-004). The two stages of the ground-truth layer belong to the record that owns the layer. The tier ordering that forced the split is spent |
+| D-046 | <a id="d-046"></a> Merged into [`D-045`](#d-045). The smaller of the two comparison narrowings, by its own account. Both now sit in one record, and neither may be widened without a new one |
+| D-048 | <a id="d-048"></a> Retired by [`D-100`](#d-100). It deferred core minimisation and named the wrong cause. The objective inflates the core; deletion on top of that drops zero gates |
+| D-056 | <a id="d-056"></a> Merged into [`D-053`](#d-053). What D3 counts, including the change type fixed shift instances cannot express |
+| D-093 | <a id="d-093"></a> Retired by [`D-149`](#d-149). The compiled-model cache it shipped enabled is deleted. The measurement that justified deleting it is in [`model-cache.md`](studies/model-cache.md), which is durable |
+| D-106 | <a id="d-106"></a> Retired by [`D-120`](#d-120). Its coverage-axis curve is withdrawn: the divergence rate fell from 26 of 84 to 10 when the canonical optimum replaced every instance |
+| D-107 | <a id="d-107"></a> Merged into [`D-105`](#d-105). One widening of the coverage axis and the re-measurement it owed |
+| D-110 | <a id="d-110"></a> Merged into [`D-111`](#d-111). The horizon guard and the blind spot behind it. The finding survives in the record that closed it |
+| D-117 | <a id="d-117"></a> Retired by [`D-121`](#d-121). The `machine` mark it put on the solved half of the manifest is gone, and [`D-119`](#d-119) removed the degeneracy it was written about |
+| D-118 | <a id="d-118"></a> Retired by [`D-121`](#d-121). Both halves are spent. CI is on linux and `README.md` carries no *on the same solver build* qualifier |
+| D-147 | <a id="d-147"></a> Merged into [`D-127`](#d-127). A scoping clause on a number belongs with the number |
 
 ---
 
@@ -288,7 +303,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   semantic claim into a weight nobody can falsify: a rule you can buy your way out of is a price,
   not a rule.
 - **Consequences.** The service must be able to answer "nothing, and an explanation", which forces
-  the assumption-literal machinery ([`D-044`](#d-044), [`D-048`](#d-048)) and the T4 explainer. It also forces the
+  the assumption-literal machinery ([`D-044`](#d-044), [`D-100`](#d-100)) and the T4 explainer. It also forces the
   classification test to be applied honestly rule by rule, because "make it soft" is no longer a free
   escape from a hard modelling question. The one deliberate exception is `R-COVER`'s floor ([`D-018`](#d-018)),
   and what that costs is recorded in [`D-047`](#d-047).
@@ -328,9 +343,18 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Consequences.** Enumeration costs `2 ** (employees × open_shifts)`, so instances stay tiny and
   the bound is asserted by a test rather than left to review: an oversized instance would not fail,
   it would only make the suite slow, which is how enumeration layers quietly get deleted instead of
-  fixed. The layer lands in two stages ([`D-042`](#d-042)). It is blind to anything both readings take as data,
-  which is what the golden layer exists for ([`D-067`](#d-067)). And it only covers the structures its
-  instances contain, which is how a live objective bug survived it ([`D-058`](#d-058)).
+  fixed. It is blind to anything both readings take as data, which is what the golden layer exists
+  for ([`D-067`](#d-067)). And it only covers the structures its instances contain, which is how a
+  live objective bug survived it ([`D-058`](#d-058)).
+- **The layer is two stages.** **(a)** the enumerated hard-feasible set equals the model's feasible
+  set; **(b)** the solver's objective equals the enumerated optimum. (a) needs only the checker and
+  catches the large majority of encoding errors: a wrong threshold, an inverted inequality, a
+  forgotten horizon boundary. It is not a weaker version of the gate, it is the half that does not
+  need preference to be defined. (b) needs a second independent reading of the **objective** for
+  exactly the reason (a) needs one of the rules, so `scoring.py` evaluates the metric directly and is
+  forbidden by contract from importing the model's encoding.
+- **Absorbs `D-042`, 2026-09-02**, which split the layer when T1 scheduled this gate before the
+  objective it needed.
 - **Date.** 2026-08-13.
 
 <a id="d-005"></a>
@@ -366,54 +390,10 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Consequences.** Each metric contains the one before it: D1 with equal weights *is* D0, D2 with a
   flat multiplier *is* D1, which is what makes the study a clean comparison rather than five
   unrelated ideas. Every metric has to be scored independently, so `scoring.py` implements all
-  five and not only the shipped one ([`D-042`](#d-042)). D2 reads `now`, so a golden test must pin `now` and
+  five and not only the shipped one ([`D-004`](#d-004)). D2 reads `now`, so a golden test must pin `now` and
   not only the instance. And the metrics only diverge where there is slack, which is what makes
   coverage tightness T2's decisive generator knob ([`D-060`](#d-060)).
 - **Date.** 2026-08-12.
-
-<a id="d-007"></a>
-## D-007. Answered under [`D-049`](#d-049)
-
-- **Decision.** The question this ID reserved: lexicographic ordering against a weighted sum for
-  trading disruption against cost: was decided in [`D-049`](#d-049),
-  written with the objective batch at T1 rather than waiting for T2. Weighted sum.
-- **Reason this record exists at all.** The ID was listed as owed, and deleting the row would leave a
-  reader who finds [`D-007`](#d-007) referenced anywhere with nothing to look up. `decisions.md` amends in place
-  and does not erase, and the same courtesy applies to a question that turned out to be answered
-  early.
-- **Consequences.** None beyond [`D-049`](#d-049)'s. The T2 half of what this row anticipated: sweeping the
-  exchange rate rather than asserting it: is [`D-050`](#d-050), and its measurement is in
-  [`benchmarks.md`](benchmarks.md): with a flat cost model the cost axis collapses, so the sweep has
-  nothing to trace yet and says so.
-- **Date.** 2026-08-13.
-
-<a id="d-008"></a>
-## D-008. `R-COVER`'s soft floor ratified, and now measured rather than argued
-
-- **Decision.** `R-COVER` keeps the hard ceiling and soft floor that [`D-018`](#d-018) introduced provisionally
-  at T1. The provisional marking comes off `rules.md`.
-- **Alternatives.** A hard floor, which is what the walking skeleton did. Both directions soft.
-- **Reason.** [`D-018`](#d-018) argued this from the classification test: *what should the service return when
-  the only otherwise-legal roster breaks the rule*, and concluded that "nothing, and an explanation"
-  is the wrong answer for a coverage shortfall. Sound, and never measured. It is now: forcing every
-  non-historical shortfall to zero over the committed set, **a hard floor cannot answer 16 of the 72
-  cases at all**.
-
-  The composition of those 16 is what settles it. Eight are weeks that **could already be fully
-  staffed before the event**, ordinary disruptions on healthy tenants, where a hard floor turns
-  "one short on Saturday, here is what it costs" into "infeasible". The other eight are the
-  chronically short tenants a hard floor was never going to serve. `scarce-skill` fails on all six
-  seeds, `flexi-heavy` on three, `tight` and `multi-absence` on two each, and even `headline`: the
-  Saturday sick call on a mid-sized tenant with slack: fails on one.
-- **Consequences.** A fifth of this distribution would receive no answer from a hard floor, which is a
-  product failure rather than a correct solve. The soft floor is what makes the fallback ladder in T3
-  meaningful too: the exact rung returns a priced shortfall instead of dropping through to the greedy
-  rung, and `benchmarks.md` shows the optimal replan leaving 0.16 positions short per clean case, so
-  this path is exercised routinely rather than in extremis. The obligations [`D-018`](#d-018) created stand
-  unchanged: the shortfall weight must dominate by the derived bound ([`D-057`](#d-057)), and `validation.py`
-  checks it rather than trusting it.
-- **Amends.** [`D-018`](#d-018), whose "provisional for T1: folds into [`D-008`](#d-008) in T2" is now discharged.
-- **Date.** 2026-08-13.
 
 <a id="d-009"></a>
 ## D-009. Assignment booleans over pattern/column variables, measured
@@ -539,8 +519,8 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   It also constrains the tool surface T4 builds next: `explain_infeasibility` returns the structured
   finding alongside the prose, so a caller that does not trust the sentence can read the fields. The
-  minimal-core reduction [`D-048`](#d-048) defers is still owed and belongs to the *rare* case ([`D-047`](#d-047)); this
-  record's machinery is what it will render through when it lands.
+  minimal-core reduction landed in [`D-100`](#d-100) and belongs to the *rare* case
+  ([`D-047`](#d-047)); this record's machinery is what it renders through.
 - **Date.** 2026-08-13.
 
 <a id="d-014"></a>
@@ -660,26 +640,30 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
 - **Decision.** Coverage is one equality per shift instance, `Σ_e x[e, d, s] + u[d, s] = req[d, s]`
   with `u ∈ [0, req]` priced in the objective. Overstaffing is rejected outright; understaffing is
-  permitted and priced. ~~Provisional for T1: folds into [`D-008`](#d-008) in T2.~~ **Ratified by [`D-008`](#d-008)**,
-  which measured what this record argued: a hard floor cannot answer 16 of the 72 committed cases,
-  and eight of those weeks could be fully staffed before the disruption.
+  permitted and priced.
 - **Alternatives.** A hard equality, which is what the walking skeleton did. Both directions soft. Two
   inequalities rather than one equality with an explicit slack.
 - **Reason.** The classification test asks what the service should return when the only
   otherwise-legal roster breaks the rule. For a coverage shortfall, "nothing, and an explanation" is
   the wrong answer: a disruption often has no legal repair, and *one short on Saturday, here is what
   it costs* is what a planner can act on. The ceiling can be hard for free: the all-zero roster
-  satisfies it, so a hard upper bound can never be the sole cause of infeasibility. Both degenerate
-  alternatives are worse than the split. **Everything soft** makes `checker_feasible` universally true,
-  so the differential harness asserts `true ⟺ true` and every semantic claim retreats into a weight
-  nobody can falsify. **Everything hard** leaves no shortfall representable, so there is no cost axis to
-  trade disruption against and no Pareto frontier, and the service answers only "infeasible" to a
-  planner who is one person short, which is a product failure rather than a correct solve.
-- **Consequences.** The equality with an explicit slack gives CP-SAT a tighter linear relaxation than
-  two inequalities, and `u` is directly the coordinate the explainer reports rather than something
-  reconstructed from a headcount difference. The shortfall weight must dominate every other soft term:
-  the bound is derived in [`D-057`](#d-057). Leads directly to [`D-047`](#d-047).
-- **Date.** 2026-08-12.
+  satisfies it, so a hard upper bound can never be the sole cause of infeasibility.
+  **Everything soft** makes `checker_feasible` universally true, so the
+  differential harness asserts `true ⟺ true`. **Everything hard** leaves no shortfall representable,
+  so there is no cost axis to trade disruption against.
+- **Measured, not only argued.** Forcing every non-historical shortfall to zero, **a hard floor cannot
+  answer 16 of the 72 committed cases**, and 18 of 84 once the coverage axis was widened
+  ([`D-105`](#d-105)). The composition of the 16 is what settles it: **eight are weeks that could
+  already be fully staffed before the event**, ordinary disruptions on healthy tenants. The other
+  eight are the chronically short tenants a hard floor was never going to serve.
+- **Consequences.** A fifth of this distribution would receive no answer at all. The equality with an
+  explicit slack gives CP-SAT a tighter linear relaxation than two inequalities, and `u` is directly
+  the coordinate the explainer reports. The shortfall weight must dominate every other soft term by
+  the bound derived in [`D-057`](#d-057), and `validation.py` checks it. Leads to
+  [`D-047`](#d-047).
+- **Absorbs `D-008`, 2026-09-02**, which ratified this record's provisional T1 marking on the
+  measurement above.
+- **Date.** 2026-08-12, measured 2026-08-13.
 
 <a id="d-019"></a>
 ## D-019. Availability as interval intersection rather than whole-day blocking
@@ -894,23 +878,6 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   than derogating the rule: see [`D-065`](#d-065).
 - **Date.** 2026-08-12.
 
-<a id="d-030"></a>
-## D-030. Budget sanity bounds as input validation, not as roster violations
-
-- **Decision.** That the supplied `max_hours_this_week[e]` does not exceed the absolute weekly ceiling
-  is checked in the input-validation layer. It is never reported as an `R-MAX-WEEKLY` violation.
-- **Alternatives.** Report it as a rule violation, since it is locally verifiable. Do not check it at
-  all, since the budget is the caller's contract.
-- **Reason.** It *is* worth verifying: a 60-hour weekly budget is a bad payload whatever the roster
-  says. But it is a property of the payload, not of the roster, and reporting it as a rule violation
-  would blame the solver for the caller's arithmetic while describing a roster that is perfectly legal
-  against the budget it was given.
-- **Consequences.** Two layers with two result types: see [`D-040`](#d-040). The checker verifies assignments
-  against the *supplied* budget and never recomputes it. This is the single place a well-meaning
-  checker most reliably goes wrong: one that reaches for the reference period is testing the caller,
-  and it will disagree with the model for reasons that are defects in neither.
-- **Date.** 2026-08-12.
-
 <a id="d-031"></a>
 ## D-031. `R-MIN-SHIFT` reclassified input validation: not roster-violable under fixed shift instances
 
@@ -1103,9 +1070,18 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   violation, and a single list forces both to filter it.
 - **Consequences.** A non-empty defect list rejects the request outright and never degrades into a
   best-effort solve, because a request that is not well-formed has no meaningful optimum. Several
-  rules land wholly or partly in the validation layer as a result: `R-MIN-SHIFT` entirely ([`D-031`](#d-031)),
-  `R-MAX-WEEKLY`'s budget bound ([`D-030`](#d-030)), and the registry has to say so explicitly, or a reader
-  looking for a checker encoding finds nothing and reads it as an omission.
+  rules land wholly or partly in the validation layer as a result: `R-MIN-SHIFT` entirely
+  ([`D-031`](#d-031)) and `R-MAX-WEEKLY`'s budget bound, and the registry has to say so explicitly, or
+  a reader looking for a checker encoding finds nothing and reads it as an omission.
+- **The budget bound is the worked case.** That the supplied `max_hours_this_week[e]` does not exceed
+  the absolute weekly ceiling is worth verifying, because a 60-hour weekly budget is a bad payload
+  whatever the roster says. It is never reported as an `R-MAX-WEEKLY` violation: that would blame the
+  solver for the caller's arithmetic while describing a roster perfectly legal against the budget it
+  was given. This is the single place a well-meaning checker most reliably goes wrong. One that
+  reaches for the reference period is testing the caller, and it will disagree with the model for
+  reasons that are defects in neither.
+- **Absorbs `D-030`, 2026-09-02**, which stated this record's dividing question a second time about
+  one parameter.
 - **Date.** 2026-08-12.
 
 <a id="d-041"></a>
@@ -1123,30 +1099,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Consequences.** The model must be able to *report* violations rather than merely refuse rosters,
   which is [`D-044`](#d-044), and which is the second independent reason the assumption literals are not
   optional. Two places where the readings genuinely differ in granularity had to be stated rather
-  than papered over ([`D-046`](#d-046) and [`D-045`](#d-045)) and neither narrowing may be widened without a record
+  than papered over ([`D-045`](#d-045)) and neither narrowing may be widened without a record
   here.
 - **Date.** 2026-08-12.
-
-<a id="d-042"></a>
-## D-042. Brute-force layer split into feasible-set and objective stages
-
-- **Decision.** Stage **(a)** asserts the enumerated hard-feasible set equals the model's feasible
-  set; stage **(b)** asserts the solver's objective equals the enumerated optimum. (a) shipped with
-  the checker, (b) with the disruption metric.
-- **Alternatives.** Hold the whole layer until the objective exists, as the tier gate implied. Pull
-  the metric forward to unblock it.
-- **Reason.** The gate as written in `PLAN.md` read *solver objective equals enumerated optimum*,
-  which needs an objective, and the disruption metric is specified late in T1. The gate depended on
-  an artifact the same tier scheduled after it. Splitting resolves that without reordering the tier:
-  (a) needs only the checker, and it catches the large majority of encoding errors: a wrong
-  threshold, an inverted inequality, a forgotten horizon boundary.
-- **Consequences.** Stage (a) is not a weaker version of the gate, it is the half that does not need
-  preference to be defined, and saying so is what stops it being treated as a placeholder. Stage (b)
-  needs a second independent reading of the *objective* for exactly the reason (a) needs one of the
-  rules: an enumeration that asks the model what a roster is worth proves only that the model agrees
-  with itself, so `scoring.py` evaluates `replan.md` directly and is forbidden by contract from
-  importing the model's encoding.
-- **Date.** 2026-08-13.
 
 <a id="d-043"></a>
 ## D-043. `R-COVER` ceiling gated as `o == 0` so overstaffing is reportable, not merely rejected
@@ -1200,23 +1155,14 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   comparing the two eligibility derivations directly: pair by pair, over every instance variant, for
   `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX`. That is a stronger test than the headcount
   comparison would have been, because it localises a disagreement to the eligibility rule that caused
-  it rather than surfacing it as a coverage mismatch three rules away. The narrowing may not be
-  widened without a new record.
-- **Date.** 2026-08-12.
-
-<a id="d-046"></a>
-## D-046. `R-CONSEC-DAYS` compared at `(rule, employee)` granularity in the harness
-
-- **Decision.** For this rule alone, the harness drops the day coordinate and compares at
-  `(rule, employee)`.
-- **Alternatives.** Compare at full coordinates, and change one reading until it matches the other.
-- **Reason.** The two readings genuinely report different things and both are right. The checker
-  walks days and names the first breaching day of a run; the model gates every sliding window that
-  breaches, so a long run yields one finding on one side and several on the other. Forcing agreement
-  would mean rewriting one reading to imitate the other, which is the one thing independence forbids.
-- **Consequences.** Stated cost: a day-coordinate error in this one rule is not caught by the
-  harness. Recorded rather than silently narrowed, and it cannot be widened without a record here. This is
-  the smaller of the two comparison narrowings: [`D-045`](#d-045) is the larger.
+  it rather than surfacing it as a coverage mismatch three rules away.
+- **The second narrowing is `R-CONSEC-DAYS`, compared at `(rule, employee)`.** Both readings are
+  right and report different things: the checker names the first breaching day of a run, the model
+  gates every sliding window that breaches. Forcing agreement would mean rewriting one reading to
+  imitate the other, which is the one thing independence forbids. Stated cost: a day-coordinate
+  error in that rule is not caught. **Neither narrowing may be widened without a new record**, and
+  together they are the whole of what the harness does not compare.
+- **Absorbs `D-046`, 2026-09-02**, which called itself the smaller of the two.
 - **Date.** 2026-08-12.
 
 <a id="d-047"></a>
@@ -1237,26 +1183,6 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   because nothing else leads there.
 - **Date.** 2026-08-12.
 
-<a id="d-048"></a>
-## D-048. Infeasibility core is sufficient, not minimal; minimisation deferred to T4
-
-- **Decision.** T1 reports CP-SAT's `sufficient_assumptions_for_infeasibility` as it comes. No
-  minimisation.
-- **Alternatives.** Iterative deletion (solve, drop a gate, re-solve, keep what stays necessary)
-  to reduce the core to a minimal one.
-- **Reason.** CP-SAT returns a set of assumptions that explains the infeasibility with no guarantee
-  it is the smallest. T4's explainer is specified against a *minimal* core, and the reduction is a
-  loop of solves layered on top rather than a change to the model, so it belongs with the explainer
-  that needs it.
-- **Consequences.** A sufficient core can name rule instances that are not actually necessary to the
-  conflict: acceptable for T1's diagnostic use, not acceptable for a planner-facing explanation. The
-  gap is recorded in `model.md` so it is a known cost at the start of T4 rather than a discovery in
-  the middle of it.
-- **Amended by [`D-100`](#d-100).** The deferral was right and the diagnosis was wrong. Measured at T4, the
-  sufficient core is 150-plus gates (far worse than anticipated) but iterative deletion is not what
-  fixes that. Setting the objective before asking is what inflates it.
-- **Date.** 2026-08-12.
-
 <a id="d-049"></a>
 ## D-049. Weighted sum, not lexicographic ordering
 
@@ -1273,6 +1199,8 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   becomes a parameter to sweep rather than a constant to defend ([`D-050`](#d-050)). Four levels result, and
   only two of them trade: hard rules are not in the objective at all, shortfall is priced and must
   dominate, and disruption and cost trade against each other.
+- **Absorbs `D-007`, 2026-09-02.** That ID reserved this same question for T2 and was answered here
+  at T1, so it carried a pointer and no decision of its own.
 - **Date.** 2026-08-12.
 
 <a id="d-050"></a>
@@ -1342,6 +1270,12 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   disruption. The default ordering `W_callin > W_cancel > W_move` is a hypothesis about human
   preference, not a measurement, and it is the most falsifiable claim in the objective spec: T2's
   replay work tests it directly against what real planners chose.
+- **`extend` is not a change type.** With fixed shift instances a shift's boundaries are data, so no
+  roster the model can express extends one, and a change type no solution can exhibit is not a change
+  type. It becomes representable in T5's generation mode and is a change type only there. Same shape
+  as [`D-031`](#d-031): fixed shift instances remove a whole class of things the model can talk
+  about, and both the rules and the objective have to notice.
+- **Absorbs `D-056`, 2026-09-02.**
 - **Date.** 2026-08-12.
 
 <a id="d-054"></a>
@@ -1353,7 +1287,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   solution changed, which makes the objective non-linear. And it would be impossible to match between the
   model and an independent scorer, because one iterates variables and the other iterates changes.
   Solution-independence is not a nice-to-have here: it is what makes the two readings comparable, and
-  without it stage (b) of ground truth cannot exist at all ([`D-042`](#d-042)).
+  without it stage (b) of ground truth cannot exist at all ([`D-004`](#d-004)).
 - **Consequences.** Stated cost: a move from an early shift to a late one inside a long day is priced
   by the day's earliest notice rather than by the affected shift's. The anchor lives in `domain.py`
   as a shared convention for the same reason half-open overlap does: it is a definition this project
@@ -1376,20 +1310,6 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   tier count is a parameter, so how far the escalation runs is configurable without touching the
   encoding. This is the answer to *five changes to one person is worse than one change to five*,
   which any plain sum over changes is blind to.
-- **Date.** 2026-08-12.
-
-<a id="d-056"></a>
-## D-056. `extend` dropped from D3: not representable with fixed shift instances
-
-- **Decision.** Extending a shift is not a D3 change type.
-- **Alternatives.** Keep it, as the outline listed.
-- **Reason.** With fixed shift instances a shift's boundaries are data, so there is no roster the
-  model can express in which one is extended. A change type that no solution can exhibit is not a
-  change type.
-- **Consequences.** It becomes representable in T5's generation mode, where boundaries turn into
-  decision variables, and it is a change type only there. This is the same shape as [`D-031`](#d-031), which
-  reclassified `R-MIN-SHIFT` for exactly the same reason: fixed shift instances remove a whole class
-  of things the model is able to talk about, and both the rules and the objective have to notice.
 - **Date.** 2026-08-12.
 
 <a id="d-057"></a>
@@ -1871,6 +1791,11 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   service owes a caller, and it is the number that says model construction is the bottleneck at this
   size, which is what the per-tenant compiled-model cache in T3 is for. Search time is the only one
   that compares one search against another.
+- **The premise died and the decision did not, 2026-08-14.** [`D-119`](#d-119)'s canonicalising phase
+  moved the committed `build/search` balance from 1.52 to **0.985**, so build no longer dominates at
+  seven days, and [`D-127`](#d-127) bounds it by size: at 28 days search costs nearly three times
+  build. Two clocks are still the right instrument, and the figures above are what they were when
+  they were measured.
 - **Date.** 2026-08-13.
 
 <a id="d-082"></a>
@@ -1915,6 +1840,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   other, not as a repair to a disappointing table. The result also sharpens what the optimiser is
   *for* at this scale: not beating the planner on the common case, but never being the one to leave a
   shift uncovered, and being right on the case the planner cannot see.
+- **The figure is superseded by [`D-105`](#d-105), 2026-08-14.** Greedy ties on **71 of 84** once the
+  coverage axis is sampled where methods separate. What this record decides is the refusal to widen
+  the set in answer to a disappointing table, and that stands.
 - **Date.** 2026-08-13.
 
 <a id="d-084"></a>
@@ -2128,36 +2056,6 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Study.** `docs/studies/model-cache.md`.
 - **Date.** 2026-08-13.
 
-<a id="d-093"></a>
-## D-093. The compiled-model cache ships enabled, and does not help replanning
-
-- **Decision.** `compiled.ModelCache` is built, wired into the service, and enabled. It is keyed on a
-  fingerprint of everything `build` reads, bounded, and **thread-local rather than shared**.
-- **Alternatives.** Skip it, given the measured hit rate. Share one cache per process.
-- **Reason.** `service.md` asks for it on a correct premise (building costs more than solving) but
-  the remedy does not follow for the replan path, and the measurement says so plainly: **0 hits in 144
-  replan solves**. A replan is triggered by a change to the model's own inputs; an absence changes
-  which pairs survive presolve, which changes the variables, so a replan of a week is never the same
-  model as the week. It ships anyway because the economics are one-sided: a miss costs 0.6% of a
-  build, a hit saves 170×, and because the workloads that *do* repeat an instance are real: the
-  `what_if` sweep, replay, and retries. `test_the_replan_path_does_not_hit` asserts the zero, so a
-  future hit means something has stopped distinguishing two models.
-- **Consequences.** **Thread-local, because `CpModel` is not thread-safe.** A shared cache would hand
-  the same model object to two concurrent solves whenever their fingerprints matched, and both would
-  set an objective and assumptions on it at once: a data race whose output is a plausible roster.
-  Thread-local storage removes the sharing instead of guarding it, so there is no lock to get right
-  and concurrency stays real; the cost is one cache per worker thread.
-
-  The key includes the incumbent, which looks like an objective input and is not: [`D-058`](#d-058) makes
-  `build` create a variable for any pair the incumbent assigned even when presolve excluded it. The
-  tidy constraints-in-objective-out split is wrong in exactly that place, and wrong in the direction
-  that drops the variables a deviation is counted on.
-
-  Two test defects surfaced from the mutation harness rather than from review, and both are in the
-  study.
-- **Study.** `docs/studies/model-cache.md`.
-- **Date.** 2026-08-13.
-
 <a id="d-094"></a>
 ## D-094. A timeout and an infeasibility are different answers, and `solve` now says which
 
@@ -2190,9 +2088,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
 - **Decision.** T3 is declared finished. The repo keeps the name `roster-replan-optimizer`. The
   public/private fork is **deferred rather than executed**: the project stays private for now.
-  `PLAN.md` is archived and is no longer maintained.
+  The plan the project ran on is retired and is no longer maintained.
 - **Alternatives.** Rename to something shorter, such as `roster-replan`. Publish now, which was
-  `PLAN.md`'s own recommended default for completion.
+  the plan's own recommended default for completion.
 - **Reason.** The name is accurate and is load-bearing in three places: the package, the remote and
   every cross-reference in the docs, so renaming costs a sweep and buys a shorter URL. On
   publication, the project passes the IP-hygiene test it set itself: it is synthetic throughout, with
@@ -2202,14 +2100,16 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   and staying private is not. Between two acceptable options where one can be undone, the reversible
   one is the cheaper order to take them in.
 - **Consequences.** Finishing is recorded as a state of the repo rather than as an announcement, which
-  is the correct separation: the work is done whether or not anyone is shown it. The declaration in
-  `finish.md` is complete, and it lists what did **not** ship with the same care as what
-  did: capture and replay, [`D-001`](#d-001), the flat cost model, and T4/T5 as designed upside.
+  is the correct separation: the work is done whether or not anyone is shown it. The declaration
+  listed what did **not** ship with the same care as what did: capture and replay,
+  [`D-001`](#d-001), the flat cost model, and T4/T5 as designed upside.
 
-  One thing the declaration adds that `PLAN.md` did not ask for: `tests/test_specs.py`, which
-  mechanises the checkable half of "all specs true". It found a broken documentation link on its
-  first run, and it encodes the duplicate-ID check that would have caught [`D-089`](#d-089) being assigned
-  twice.
+  One thing it added that the plan did not ask for: `tests/test_specs.py`, which mechanises the
+  checkable half of "all specs true". It found a broken documentation link on its first run, and it
+  encodes the duplicate-ID check that would have caught [`D-089`](#d-089) being assigned twice.
+- **Where those documents are, 2026-09-02.** Neither the plan nor the declaration is in the
+  repository. What the declaration got wrong is in the [ledger](specs/README.md) as findings against
+  the components that found them, and where the project stands is [`STATE.md`](STATE.md).
 - **Date.** 2026-08-13.
 
 <a id="d-096"></a>
@@ -2237,8 +2137,8 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   adding provenance stamps to all eight would have been friction against a failure mode they do not
   have. One quantity is guarded, and it is the one that broke.
 
-  `test_build_still_dominates_search` asserts the *ordering* separately, because two records reason
-  from it rather than merely quote it ([`D-081`](#d-081), [`D-093`](#d-093)). A silent reversal is exactly
+  `test_build_still_dominates_search` asserts the *ordering* separately, because two records reasoned
+  from it rather than merely quoting it ([`D-081`](#d-081), [`D-093`](#d-093)). A silent reversal is exactly
   what happened last time. *(Retired by [`D-119`](#d-119), which reversed it.)*
 - **Date.** 2026-08-13.
 
@@ -2352,6 +2252,10 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   **Minimal is not smallest.** A different deletion order reaches a different minimal core, so the order
   is fixed to keep the result reproducible.
+- **Retires `D-048`, 2026-09-02.** That record deferred minimisation to T4 and named the wrong cause:
+  it read the sufficient core as merely naming unnecessary rule instances, where the measurement is
+  159 to 219 gates against a real conflict of two, and deletion is not what fixes it. The deferral
+  was right; its diagnosis was not.
 - **Date.** 2026-08-13.
 
 <a id="d-101"></a>
@@ -2477,87 +2381,32 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Date.** 2026-08-14.
 
 <a id="d-105"></a>
-## D-105. The coverage axis is sampled where the answer changes, not only at its ends
+## D-105. The coverage axis is sampled where the answer changes, and every T2 analysis is re-measured over 84
 
 - **Decision.** Two classes added (`busy` at 0.80 and `overloaded` at 0.95) taking the committed set
   from 72 cases to 84. Existing instances are untouched and `GENERATOR_VERSION` stays at 1: the
-  generator did not move, the sampling did. The greedy comparison is re-measured over all 84; the other
-  T2 analyses are not, and this record says so rather than letting a widened set be read as a wider
-  basis for them.
+  sampling moved, not the generator. **Every T2 analysis is re-measured over the 84**, not only the
+  greedy comparison.
 - **Alternatives.** Leave the set alone. Add **conjunction** classes: high demand together with
   scarce skills and thin availability.
-- **Reason.** The set held 60 of its 72 cases at a demand ratio of ~0.70, with nothing between 0.73 and
-  0.89. That follows from the one-axis-at-a-time design, which is right for attribution and blind to
-  the region where methods separate. Measured along the axis, greedy ties on **6 of 6 seeds at 0.70 and
-  3 of 6 at 0.95**, so **"greedy ties 64 of 72" was substantially a statement about where the set
-  looks.** Over 84 it is 71.
+- **Reason.** The set held 60 of its 72 cases at a demand ratio of ~0.70, with nothing between 0.73
+  and 0.89: the one-axis-at-a-time design, right for attribution and blind where methods separate.
+  Measured along the axis, greedy ties **6 of 6 seeds at 0.70 and 3 of 6 at 0.95**, so **"greedy ties
+  64 of 72" was substantially a statement about where the set looks.** Over 84 it is 71.
 
-  **The conjunction idea was measured and rejected, which is the more useful half of this record.**
-  Piling the three pressures together produces *structurally* short weeks, and there greedy ties 6 of 6
-  at every setting tried, because both methods leave the same unavoidable holes. Hardening in that
-  direction makes the benchmark blind rather than sharper.
-
-  It does not make the **search** harder either: every configuration returns `OPTIMAL` in 3 to 11 ms.
-- **Consequences.** [`D-104`](#d-104)'s citation is superseded and its conclusion is **firmer**: it now
-  rests on a swept parameter range rather than an inference from one sample. The other T2 analyses were
-  measured over the 72 and are not re-run here.
-- **Date.** 2026-08-14.
-
-<a id="d-106"></a>
-## D-106. [`D-060`](#d-060) confirmed on a curve, and divergence is not monotone in slack
-
-- **Decision.** The D0–D4 study is re-run over the 84 cases [`D-105`](#d-105) produced.
-  [`D-060`](#d-060)'s mechanism (metrics can only diverge where there is slack) is recorded as
-  **confirmed** rather than merely supported.
-- **Alternatives.** Leave the study on its 72-case basis and note that the new classes sit outside it.
-- **Reason.** The old set held exactly **one** class at the tight end of the coverage axis, and a single
-  zero cannot separate *tightness* from something peculiar to `tight`. With five points the axis makes
-  a shape: 3/6 at 0.35, **4/6** at 0.70, 3/6 at 0.80, then **0/6** at both 0.90 and 0.95. `overloaded`
-  reaching zero independently of `tight` is what upgrades [`D-060`](#d-060) from a mechanism the data was
-  consistent with to one the data demonstrates.
-
-  **The unpredicted half is the loose end**, which conflicts *less* than the middle. [`D-071`](#d-071)
-  supplies the explanation: low demand is expressed by opening **fewer shift instances**, so a loose
-  week offers fewer shifts on the damaged day to move anybody into. Divergence needs slack *and*
-  somewhere to put people; both ends of the axis suppress it for opposite reasons.
-- **Consequences.** The structure reproduced exactly, and **[`D-086`](#d-086) stands unchanged: D4 is
-  still unexercised**, because concentration needs two events on one person and median damage here is
-  one assignment. Only a damage axis would fix that.
-
-  What this does **not** do is turn the correlation into a law. The condition that predicts divergence
-  is a property of the damaged *day*, and the generator does not vary it.
-- **Superseded by [`D-120`](#d-120).** Canonicalising the optimum replaced every instance; the rate fell
-  to 10 of 84 and the curve above is withdrawn. The mechanism came out stronger.
-- **Study.** [`docs/studies/disruption-metrics.md`](studies/disruption-metrics.md)
-- **Date.** 2026-08-14.
-
-<a id="d-107"></a>
-## D-107. The rest of T2 re-run over 84: everything reproduces, and the sampling bug did not
-
-- **Decision.** The analyses [`D-105`](#d-105) left on a 72-case basis are re-run over the widened set:
-  presolve, symmetry, the automaton, patterns, the rest-gap encoding, the coverage floor and the
-  time-budget curve. **All reproduce.** One code change came out of it: `studies.py` now names its cold
-  sample instead of slicing `CASES[:6]`. The re-measurement debt [`D-105`](#d-105) recorded is closed.
-- **Alternatives.** Trust the reproduction: every one of these is a lever comparison on the same
-  model, and the widening added two classes at one end of one axis.
-- **Reason.** That expectation was right about the levers and would have missed the thing worth
-  finding. `studies.py` selected its cold instances **positionally**, so inserting two classes pushed
-  two others out of the sample without touching a line of study code.
-
-  Two results moved as a consequence, and **both read as findings**: the symmetry study's cold count
-  fell from 7 interchangeable employees to 0, and the pattern study went from failing on 5 of 6 cold
-  cases to 6 of 6. The first would have been reported as the generator suppressing symmetry even
-  harder than [`D-087`](#d-087) found: a sampling artifact arriving in the one place fingerprints do
-  not reach.
-- **Consequences.** Two figures moved enough to matter, both **upward, and each for a reason that can be explained**. The longest
-  search went 12.4 ms → **15.4 ms**, because the new classes open more shift instances than the 0.70
-  baseline: a latency claim measured on a distribution missing its own busy end was mildly
-  optimistic. And a hard coverage floor could not answer **18 of 84** where it could not answer 16 of
-  72, holding at about a fifth. Both supersede the figures cited in [`D-018`](#d-018),
-  [`D-024`](#d-024) and [`D-094`](#d-094), which stay as written.
-
-  The time-budget result came back stronger rather than merely intact: all **2,268** runs `OPTIMAL`,
-  and **no answer changed with the budget on any of 756 triples**.
+  **The conjunction idea was measured and rejected**, the more useful half: the three pressures
+  together produce *structurally* short weeks where greedy ties 6 of 6 at every setting, because both
+  methods leave the same unavoidable holes. That makes the benchmark blind rather than sharper, and
+  no configuration searches harder: all return `OPTIMAL` in 3 to 11 ms.
+- **The re-measurement reproduced, and found what the levers could not.** Every T2 lever holds. One
+  code change came out of it: `studies.py` selected its cold instances **positionally**, so inserting
+  two classes pushed two others out of the sample without touching a line of study code, and the
+  symmetry study's cold count fell from 7 to 0: a sampling artifact arriving in the one place
+  fingerprints do not reach.
+- **Consequences.** Two figures moved, both upward: the longest search 12.4 ms → **15.4 ms**, and a
+  hard coverage floor cannot answer **18 of 84** where it could not answer 16 of 72.
+  [`D-104`](#d-104) records what this firmed up.
+- **Absorbs `D-107`, 2026-09-02**, which carried the re-measurement this widening owed.
 - **Study.** [`docs/studies/time-budget.md`](studies/time-budget.md)
 - **Date.** 2026-08-14.
 
@@ -2623,59 +2472,32 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   **T5 is now closed.**
 - **Date.** 2026-08-14.
 
-<a id="d-110"></a>
-## D-110. A horizon longer than a week is refused, because both readings would agree it is legal
-
-- **Decision.** `validate_instance` rejects `days > 7`. Shorter horizons stay legal and are answered.
-- **Alternatives.** Leave it unguarded, since every caller in this repo supplies seven days. Assert it
-  in the model, where the encoding makes the assumption. Fix the two rules instead.
-- **Reason.** `R-MAX-WEEKLY` and `R-WEEKLY-REST` are week rules, and both readings scope them to the
-  **horizon**. At seven days those two scopes are the same span and the encodings are right. Past seven
-  they separate, in the weak direction: 35 hours of rest inside four weeks satisfies a rule that means
-  35 hours inside each of them.
-
-  What makes this worth refusing rather than documenting is that **nothing in the suite could catch
-  it**. The differential harness compares two readings that are wrong in the same direction, so it
-  reports agreement, and brute-force ground truth enumerates against the same predicates. This is the
-  shared-*assumption* form of the failure `domain.py` forbids for shared thresholds, and seven days was
-  never named as a threshold, because it is not a number in either reading.
-
-  Asserting it in the model was rejected for where it puts the answer: an assertion is a crash, and this
-  is a caller supplying a payload the service cannot price: [`D-040`](#d-040)'s dividing question.
-- **Consequences.** Generation mode ([`D-109`](#d-109)) inherits the bound, which is a real restriction
-  stated here rather than discovered.
-- **Superseded in part by [`D-111`](#d-111).** The two rules are now scoped to the week in both readings,
-  so the blind spot this record was written about is closed.
-- **Retired by [`D-113`](#d-113).** The flat refusal is gone; what is left refuses a horizon ending
-  part-way through a week. This record stands as written, and it was worth writing: it was in force for
-  the two changes that made it unnecessary, which is the whole job of a guard.
-- **Study.** [`docs/studies/horizon.md`](studies/horizon.md)
-- **Date.** 2026-08-14.
-
 <a id="d-111"></a>
-## D-111. The week rules are measured over a week, and the guard stays for narrower reasons
+## D-111. The week rules are measured over a week, and the blind spot that hid it
 
 - **Decision.** `R-MAX-WEEKLY` and `R-WEEKLY-REST` are enforced **per week** in both readings, over
-  weeks of seven days counted from the horizon's start; a rest window counts for a week only if it lies
-  inside that week. `domain.py` gains the week as a shared convention. [`D-110`](#d-110)'s `days > 7`
-  guard stays.
+  seven-day weeks from the horizon start; a rest window counts for a week only if it lies
+  inside it. `domain.py` gains the week as a shared convention.
 - **Alternatives.** A per-week budget field. A rolling reading: 35 free hours in every seven-day
-  window rather than in every aligned week. Lifting the guard, since the defect it stood for is fixed.
-- **Reason.** At a one-week horizon the horizon and the week are the same span, which is why the
-  original encoding was right and why nothing could see it was right for the wrong reason. The
-  generalisation is free at that size and verifiably so: **895 variables and 1,205 constraints before
-  and after**. At two weeks it is a different model.
-
-  The **rolling reading** was rejected on reporting rather than strictness: it has no week to name, so
-  a violation could not say *when*. The cost is stated rather than hidden: a 40-hour rest straddling a
-  boundary counts for neither week, which is [`D-029`](#d-029)'s conservatism at every internal boundary.
-
-  **Lifting the guard was rejected on evidence.** Two rules are correct at any horizon; the stack around
-  them is not known to be.
-- **Consequences.** Both rules now report a day coordinate, so the differential harness compares *which
-  week* rather than only *whether*, and four mutants restoring the old scoping are all caught by the
-  layer that could not have seen this defect an hour earlier.
-- **Amended by [`D-113`](#d-113).** That list was worked through and only one item on it was a defect.
+  window rather than in every aligned week. Leaving both scoped to the horizon.
+- **What was wrong, and why nothing could see it.** Both readings scoped these week rules to the
+  **horizon**. At seven days the two spans coincide and the encodings are right; past seven they
+  separate in the weak direction: 35 hours of rest inside four weeks satisfies a rule meaning 35
+  inside each. **Nothing in the suite could have caught it**: the differential
+  harness compares two readings that are wrong in the same direction, so it reports agreement, and
+  brute-force ground truth enumerates against the same predicates. This is the shared-*assumption*
+  form of what `domain.py` forbids for shared thresholds: seven days was never named as a threshold,
+  because it is not a number in either reading. A `days > 7` guard stood in front of it until
+  [`D-113`](#d-113).
+- **Reason.** The generalisation is free at one week: **895 variables and 1,205
+  constraints before and after**. At two weeks it is a different model. The **rolling reading** was
+  rejected on reporting: it has no week to name, so a violation could not say *when*. The cost is
+  stated rather than hidden: a 40-hour rest straddling a boundary counts for neither week, which is
+  [`D-029`](#d-029)'s conservatism at every internal boundary.
+- **Consequences.** Both rules now report a day coordinate, so the differential harness compares
+  *which week* rather than only *whether*, and four mutants restoring the old scoping are caught by
+  the layer that could not have seen the defect an hour earlier.
+- **Absorbs `D-110`, 2026-09-02**, which refused a horizon past seven days.
 - **Date.** 2026-08-14.
 
 <a id="d-112"></a>
@@ -2780,7 +2602,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   generated with ten weekend days out of fourteen. **Nothing would have failed; the study would simply
   have measured a different world.**
 
-  It is the same shape as [`D-110`](#d-110) one layer out: a constant that is right only because two
+  It is the same shape as [`D-111`](#d-111) one layer out: a constant that is right only because two
   things coincide. The generator had three of them and they were mechanical; this one was arithmetic,
   and it is the one that would have been believed.
 - **Consequences.** Capacity is now the weekly budget times the number of weeks, because
@@ -2822,62 +2644,6 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Study.** [`docs/studies/horizon.md`](studies/horizon.md)
 - **Date.** 2026-08-14.
 
-<a id="d-117"></a>
-## D-117. The solved half of the manifest is an artifact of one solver build, and CI checks the other half
-
-- **Decision.** `test_manifest_matches_regeneration` is split. The **generated** half: the `week`
-  digest, the event and the headcount: is asserted everywhere, including CI. The **solved** half is
-  marked `machine` and runs only where the artifact was recorded. `suite.portable()` names the split in
-  code rather than in a test.
-- **Alternatives.** A lexicographic tie-break making the optimum unique. Regenerate the manifest on the
-  runner. Deselect the manifest test in CI entirely.
-- **Reason.** **The optimum is degenerate, and by a lot.** Four solver seeds on `headline/0` return the
-  same objective (4, every time) and **four different rosters**. A search path is fixed by the seed,
-  the ortools version *and the binary*, so committed digests written by a macOS arm64 build test the
-  wheel rather than the generator when asserted on a linux runner.
-
-  It is the same category as [`D-114`](#d-114) one week later, and finding a second one is the point:
-  **this repo commits artifacts, and an artifact carries the machine that made it.**
-
-  Deselecting the whole test throws away the half that does travel, and it is the more important half:
-  `week` digests the base instance before anything is solved, so it answers *did the instances move*.
-- **Consequences.** [`D-074`](#d-074)'s guarantee is narrower than it read: the set is its seeds, and the
-  solved incumbents are reproducible on the machine that recorded them.
-
-  **This was inferred, not read**: no CI log was available, so the diagnosis rests on the degeneracy
-  measured locally plus the elimination of every failure a fresh clone could reproduce.
-- **Retired by [`D-121`](#d-121).**
-- **Study.** [`docs/studies/reproducibility.md`](studies/reproducibility.md)
-- **Date.** 2026-08-14.
-
-<a id="d-118"></a>
-## D-118. CI runs the platform the committed artifacts were recorded on, and the reproducibility claim is scoped
-
-- **Decision.** CI runs on `macos-latest`, matching the arm64 macOS wheel the committed scenarios,
-  goldens and manifest were produced with. `README.md`'s reproducibility claim gains the qualifier it
-  always needed: a roster reproduces **on the same solver build**; the objective value reproduces
-  anywhere.
-- **Alternatives.** A dominated lexicographic tie-break. Mark the six failing tests `machine`. Rewrite
-  them to assert the objective and legality.
-- **Reason.** [`D-117`](#d-117) had the cause right and the blast radius wrong. **Every committed case
-  carries the solver build**, not just the manifest: the incumbent is solved, the disruption event picks
-  whom to injure out of that roster, and the scenario diverges from there, so a linux runner fails six
-  tests that have nothing to do with the manifest.
-
-  Underneath is a **product defect rather than a test problem**, stated here because a green tick hiding
-  it would be worth less than the red one. The README promised a roster could be reproduced from its
-  input, and that promise does not survive a change of binary. The objective value does; which of the
-  equally optimal rosters comes back does not.
-
-  **The tie-break is the real fix and is deliberately not here**: it serves a documented product claim
-  rather than a test, and deserves its own record.
-- **Consequences.** CI is a workaround wearing its reason on its sleeve. **It can no longer tell you the
-  project is portable**, because it is only run where it is known to work.
-- **Retired by [`D-121`](#d-121).** Both halves of this record are spent, and the reasoning stays as
-  written because it was right about the defect and right about what the workaround cost.
-- **Study.** [`docs/studies/reproducibility.md`](studies/reproducibility.md)
-- **Date.** 2026-08-14.
-
 <a id="d-119"></a>
 ## D-119. The optimum is canonical, because the model should decide the roster and the search should not
 
@@ -2912,8 +2678,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
 - **Decision.** [`studies/disruption-metrics.md`](studies/disruption-metrics.md) is re-measured on the
   set as [`D-119`](#d-119) leaves it. Divergence falls from **26 of 84 to 10 of 84**, the worked example
-  moves, and the coverage-axis curve the study drew is withdrawn. [`D-085`](#d-085),
-  [`D-086`](#d-086) and [`D-106`](#d-106) keep their figures as recorded; this supersedes them.
+  moves, and the coverage-axis curve the study drew is withdrawn. [`D-085`](#d-085) and
+  [`D-086`](#d-086) keep their figures as recorded; this supersedes them, and **retires
+  [`D-106`](#d-106)**, which drew the curve.
 - **Alternatives.** Keep the old numbers with a note. Re-run and report the new rate without
   revisiting the conclusions drawn from the old one.
 - **Reason.** **The method did not change and could not have.** `metrics.py` builds its own models, so
@@ -2932,9 +2699,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   damaged, **all ten divergences sit in the top slack bucket and every other bucket is a clean zero**.
   As a necessary condition that is now exact on this set; as a sufficient one it remains nowhere close.
 
-  The rate is quoted in `README.md` and `finish.md` and both are corrected. What should not be
-  corrected is the impression the old number gave: **26 of 84 was never a robust figure**, and nothing
-  said so, because nothing had moved the instances underneath it before.
+  The rate is quoted in `README.md`, which is corrected. What should not be corrected is the
+  impression the old number gave: **26 of 84 was never a robust figure**, and nothing said so,
+  because nothing had moved the instances underneath it.
 - **Study.** [`docs/studies/disruption-metrics.md`](studies/disruption-metrics.md)
 - **Date.** 2026-08-14.
 
@@ -3119,33 +2886,35 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 <a id="d-127"></a>
 ## D-127. Where the model stops is a number now, and it bounds two earlier records
 
-- **Decision.** The scale limits are measured on foreign instances and recorded. [`D-104`](#d-104)'s
+- **Decision.** Scale limits are measured on foreign instances. [`D-104`](#d-104)'s
   retirement of LNS and [`D-081`](#d-081)'s two-clock premise are both **bounded to the distribution they
   were measured on** rather than left general.
 - **Alternatives.** Leave the scale question open, as [`D-105`](#d-105) did. Generate larger synthetic
   instances instead.
 - **Reason.** [`D-105`](#d-105) swept every knob the generator has and found every solve returning
-  `OPTIMAL` in 3 to 11 ms. The conclusion drawn was that nothing here is hard. What that measured is
-  that **the generator cannot produce a hard instance**, which is a different claim and the one this
-  project could not tell apart from the inside.
+  `OPTIMAL` in 3 to 11 ms, and read that as nothing here being hard. What it measured is that **the
+  generator cannot produce a hard instance**: a different claim, and the one this project could not
+  tell apart from the inside.
 
   Foreign instances do produce them. **One takes 7.71 seconds of search to prove optimality**, against
   a committed-set maximum of 15.4 ms across 2,268 runs: a factor of 500. Another, at 8 million
   variables, returns `UNKNOWN`.
 
-  The retirement of LNS is not reversed: the instances where it would help are 100 employees over a
-  year, which is not the tenant this service is for, but the reasoning narrows from "this never
-  happens" to "this does not happen in the regime we serve".
+  LNS is not un-retired: the instances where it would help are 100 employees over a year, which is
+  not the tenant this service is for. The reasoning narrows from "this never happens" to "this does
+  not happen in the regime we serve".
 - **Consequences.** **The binding constraint at every size is model construction, not search**: 9
   seconds at 910k variables and **527 at 8M**, to build a model the solver then fails to crack. That
-  makes [`D-092`](#d-092) correctly aimed at both ends of the scale rather than a small-instance
-  curiosity.
+  makes [`D-092`](#d-092) correctly aimed at both ends of the scale.
 
   The usable envelope is stated rather than implied: **up to about 40 employees over four weeks**.
   Nothing between that and the ceiling is measured, because these instances do not sample it.
-
-  The largest instance was **abandoned after about forty minutes still building**, recorded as what
-  happened rather than as a limit.
+- **The ceiling is this implementation's, not the formulation's.** 527 seconds is a Python loop
+  emitting constraints one at a time, so it bounds what this service answers today and says nothing
+  about whether the encoding is right at that size. Whether batching construction moves it is **not**
+  measured. [`model.md`](internals/model.md) and [`docs/README.md`](README.md) say so where they
+  quote the figure.
+- **Absorbs `D-147`, 2026-09-02.**
 - **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
 - **Date.** 2026-08-14.
 
@@ -3683,25 +3452,11 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   [`foreign-incumbent.md`](studies/foreign-incumbent.md) cites them. One planned trim was dropped on
   inspection: a scoping note here duplicated a limit [`horizon.md`](studies/horizon.md) already states better, so it was
   cut rather than moved.
-- **Date.** 2026-08-20.
-
-<a id="d-147"></a>
-## D-147. Where the model stops is where this Python stops, and the sentence now says so
-
-- **Decision.** The 8M-variable ceiling is quoted as a limit of *this implementation* rather than of
-  the formulation. [`formulation.md`](internals/model.md) says it outright under *Size, and where it stops*, and
-  [`docs/README.md`](README.md) names the build loop where it cites the figure. The number itself does not move, and
-  [`foreign-incumbent.md`](studies/foreign-incumbent.md) and [`penalty-search.md`](studies/penalty-search.md) already read this way and are untouched.
-- **Alternatives.** Making the build faster first, which is a study with a null available and not a
-  documentation fix. Leaving it, on the grounds that *model construction* already appeared in the
-  sentence: true, and it is not what a reader takes from a heading that says where the model stops.
-- **Reason.** 527 seconds is a Python loop emitting constraints one at a time. It bounds what this
-  service can answer today and says nothing about whether the formulation is right at that size, but
-  the sentence sat under a heading that invited the second reading. A reader deciding whether the
-  encoding scales should not have to infer which of the two the number measures.
-- **Consequences.** The claim is scoped rather than hopeful: whether batching construction moves the
-  ceiling has **not** been measured, and the text says that too, so this does not become a promise.
-  If it is ever measured it is a study with a row in [`studies/README.md`](studies/README.md), not an edit here.
+- **Where those documents are now, 2026-09-02.** None of the four is in the repository under the name
+  used above. What was measured in `preferences.md` is
+  [`cross-week-reach.md`](studies/cross-week-reach.md); the declaration, the capture plan and the
+  proposal catalogue are Tier 0. **This record is not the two-doors split**, which is
+  [`D-151`](#d-151): it is the trim that preceded it by hours.
 - **Date.** 2026-08-20.
 
 <a id="d-148"></a>
@@ -3734,7 +3489,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Decision.** `roster_replan/compiled.py` and `tests/test_cache.py` are deleted, with the
   thread-local store in `service/jobs.py`, the `built` argument on `ladder.answer`, and six mutants.
   `model.solve(built=...)` stays, because `benchmarks/` passes a model directly and owns the
-  consequence. Nothing memoises a built model any more. Supersedes [`D-093`](#d-093).
+  consequence. Nothing memoises a built model any more. **Retires [`D-093`](#d-093)**, which shipped
+  the cache enabled on the argument that a miss is cheap and the repeating workloads are real: true,
+  and beside the point once the key is a claim that goes stale without anything noticing.
 - **Alternatives.** Adding the eight missing fields, which repairs today and not tomorrow. Adding
   them plus a structural test that every `Employee` field is fingerprinted or declared
   objective-only: correct, and still paying for a component measured at zero benefit.
@@ -3777,3 +3534,32 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   naming only the clock. A tested converter stays **open, not rejected**: it is the one fix that turns
   an untested part into a tested part, and it waits for a second caller to say what shape it needs.
 - **Date.** 2026-08-21.
+
+<a id="d-151"></a>
+## D-151. The documentation becomes two doors, and the reconciled specs move into them
+
+- **Decision.** `docs/specs/` stops holding work orders. [`guide/`](guide/rules.md) is for people
+  using the service and [`internals/`](internals/model.md) for people changing it, and each
+  reconciled spec moves into the door its readers use: `rules.md` to the guide, `model.md` and
+  `replan.md` into `internals/model.md`, `validation.md` into `internals/testing.md`, `service.md`
+  into `guide/api.md`, `config.md` into `guide/configuring.md`.
+- **Alternatives.** Keep the specs as specs and cross-link them from a guide. One door, sectioned.
+  Keep both and let the specs be the source the guide summarises.
+- **Reason.** **A spec that has been reconciled with its code is a description of the system**, so it
+  belongs where people read about the system. Keeping both would leave two documents owning one
+  claim, and the one nobody reads is the one that goes stale. Two audiences ask different questions
+  of the same facts, and a single door serves whichever of them wrote it.
+
+  `capture.md` is the exception that fixes the sorting test: it was specified and never built, so
+  there is nothing to reconcile and it goes to Tier 0. The test is whether a document describes the
+  system, not how old it is.
+- **Consequences.** Nothing is left to say what each component found, which is what the
+  [ledger](specs/README.md) answers, written in the restructure of 2026-09-02
+  ([`documentation-restructure.md`](specs/documentation-restructure.md)) and reconstructed from
+  evidence because the work orders were gone by then. A reader looking for the spec that owned a
+  capability finds the row and the document it became. Rule IDs, numbers and claims moved unchanged.
+- **Recorded late, 2026-09-02.** The split shipped without a record, and [`STATE.md`](STATE.md) and
+  the ledger both cited [`D-146`](#d-146) for it: the trim that preceded it, which decides something
+  else. Both citations now point here. A decision this size leaving no record is what the curation
+  pass was for.
+- **Date.** 2026-08-20.

@@ -135,7 +135,9 @@ def test_records_are_in_ascending_order(records):
 
 def test_every_referenced_decision_exists(records):
     known = set(records)
-    # The Open table lists decisions deliberately not yet written.
+    # Bare `| D-nnn |` table rows are known IDs that are not records: the Open table, for
+    # decisions deliberately not yet written, and Merged and retired, for IDs whose record
+    # was merged or retired. A citation to either resolves, which is why neither is dangling.
     open_rows = set(
         re.findall(r"^\| (D-\d+) \|", _text(DOCS / "decisions.md"), re.MULTILINE)
     )
@@ -221,6 +223,41 @@ def test_every_record_has_an_anchor():
         if f'<a id="{ident.lower()}"></a>' not in text
     ]
     assert not missing, f"records with no anchor: {missing}"
+
+
+def test_the_lookup_lists_every_record_exactly_once():
+    """`decisions.md` says the lookup is the whole set in ID order, and that is checkable.
+
+    A record missing from it is unreachable by the route the file tells a reader to use, and a
+    lookup row with no record is a link into nothing. Both are the kind of claim a file makes
+    about itself that nothing notices going stale -- the by-theme index was four records behind
+    when the curation pass found it.
+    """
+    text = _text(DOCS / "decisions.md")
+    records = re.findall(r"^## (D-\d+)\.", text, re.MULTILINE)
+    lookup = re.findall(r"^\| \[`(D-\d+)`\]\(#d-\d+\) \|", text, re.MULTILINE)
+
+    assert lookup == sorted(set(lookup)), "the lookup is out of order or lists an ID twice"
+    assert set(lookup) == set(records), (
+        f"lookup rows with no record: {sorted(set(lookup) - set(records))}; "
+        f"records missing from the lookup: {sorted(set(records) - set(lookup))}"
+    )
+
+
+def test_every_record_sits_under_at_least_one_theme():
+    """The by-theme index is the second way in, and a record under no theme is missing from it.
+
+    It is maintained by hand, so it falls behind silently: `D-146` to `D-149` were under no theme
+    at all until this was written. A record may sit under more than one; the grouping is not a
+    partition, so only the empty case is a defect.
+    """
+    text = _text(DOCS / "decisions.md")
+    records = set(re.findall(r"^## (D-\d+)\.", text, re.MULTILINE))
+    themes = text.split("## By theme", 1)[1].split("\n---", 1)[0]
+    themed = set(re.findall(r"D-\d+", themes))
+
+    assert not (records - themed), f"records under no theme: {sorted(records - themed)}"
+    assert not (themed - records), f"themed IDs with no record: {sorted(themed - records)}"
 
 
 def test_every_fragment_link_resolves():
