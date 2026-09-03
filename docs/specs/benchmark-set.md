@@ -3,9 +3,9 @@
 **Status:** Implemented 2026-08-14
 **Reconstructed 2026-09-02** from [`benchmarks/`](../../benchmarks),
 [`repair.py`](../../roster_replan/repair.py), [`benchmarks.md`](../benchmarks.md), the
-studies cited below, the mutant catalogue, and the commits of 2026-08-13 to 2026-08-14.
-**It is not the work order this component was built from**; no such document existed
-([`spec-reconstruction.md`](spec-reconstruction.md)).
+studies cited below, the mutant catalogue, and the commits of 2026-08-13 to 2026-08-14, and
+**it is not the work order this component was built from**: this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`model.md`](model.md) and [`disruption.md`](disruption.md), whose
 objective every method is scored on.
 

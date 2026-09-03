@@ -3,10 +3,10 @@
 **Status:** Implemented 2026-08-20
 **Reconstructed 2026-09-02** from [`checker.py`](../../roster_replan/checker.py),
 [`validation.py`](../../roster_replan/validation.py),
-[`internals/testing.md`](../internals/testing.md), the mutant catalogue, the records
-cited below, and the commits of 2026-08-12 to 2026-08-20. **It is not the work order this
-component was built from**; no such document existed
-([`spec-reconstruction.md`](spec-reconstruction.md)).
+[`internals/testing.md`](../internals/testing.md), the mutant catalogue, the records cited
+below, and the commits of 2026-08-12 to 2026-08-20, and **it is not the work order this
+component was built from**: this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`rules.md`](rules.md), which it is the second reading of.
 
 ## Objective

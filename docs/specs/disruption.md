@@ -5,10 +5,9 @@
 [`scoring.py`](../../roster_replan/scoring.py),
 [`internals/model.md`](../internals/model.md),
 [`studies/disruption-metrics.md`](../studies/disruption-metrics.md), the records cited
-below, and the commits of 2026-08-12 to 2026-08-14. **It is not the work order this
-component was built from.** No such document existed: the seven files in this directory
-before 2026-08-20 were design statements with no gate and no build tasks
-([`spec-reconstruction.md`](spec-reconstruction.md)).
+below, and the commits of 2026-08-12 to 2026-08-14, and **it is not the work order this
+component was built from**: this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** the model, which owns the variables this prices.
 
 ## Objective

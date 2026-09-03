@@ -5,9 +5,9 @@
 [`studies/foreign-incumbent.md`](../studies/foreign-incumbent.md),
 [`studies/cross-week-reach.md`](../studies/cross-week-reach.md),
 [`guide/rules-statutory.md`](../guide/rules-statutory.md), the mutant catalogue, and the
-commits of 2026-08-15 to 2026-08-17. **It is not the work order this component was built
-from**; no such document existed
-([`spec-reconstruction.md`](spec-reconstruction.md)).
+commits of 2026-08-15 to 2026-08-17, and **it is not the work order this component was built
+from**: this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`benchmark-set.md`](benchmark-set.md), whose caveat this exists to
 attack.
 
@@ -123,8 +123,12 @@ one of the 26**, because a stretch touching either end may continue outside the 
 
 **Foreign data found three things a synthetic set could not.**
 
-**Ten of thirteen published rosters have a past this model calls illegal.** A generator
+**Eight of thirteen published rosters have a past this model calls illegal.** A generator
 that builds its own incumbent cannot produce that, because it only ever builds legal ones.
+The figure was ten when this component ran; two of those were the importer reading their
+coverage band as this project's ceiling ([`D-155`](../decisions.md#d-155),
+[`scale-evidence.md`](scale-evidence.md)). What is left is `R-WEEKLY-REST`, which is the
+stricter-jurisdiction finding the study was written to make.
 
 **The first genuinely hard searches this project has seen**, and where the model stops:
 about 40 employees over four weeks, **527 s of model construction at 8M variables**, and no

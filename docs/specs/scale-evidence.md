@@ -229,4 +229,4 @@ Belgium being stricter, which is the import working as intended.
 ---
 
 *The ledger: [`README.md`](README.md). The reasoning behind the shape of this file:
-[`spec-reconstruction.md`](spec-reconstruction.md).*
+[`documentation.md`](documentation.md#specs-for-the-built-components).*

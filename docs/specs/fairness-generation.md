@@ -5,10 +5,10 @@
 [`scoring.py`](../../roster_replan/scoring.py),
 [`benchmarks/weights.py`](../../benchmarks/weights.py),
 [`internals/model.md`](../internals/model.md),
-[`studies/weight-recovery.md`](../studies/weight-recovery.md), the mutant catalogue, and
-the commits of 2026-08-14 to 2026-08-15. **It is not the work order this component was
-built from**; no such document existed
-([`spec-reconstruction.md`](spec-reconstruction.md)).
+[`studies/weight-recovery.md`](../studies/weight-recovery.md), the mutant catalogue, and the
+commits of 2026-08-14 to 2026-08-15, and **it is not the work order this component was built
+from**: this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`disruption.md`](disruption.md) and
 [`benchmark-set.md`](benchmark-set.md), whose measurements retire half of it.
 

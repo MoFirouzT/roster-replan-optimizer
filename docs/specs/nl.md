@@ -5,8 +5,8 @@
 [`benchmarks/nl_eval.py`](../../benchmarks/nl_eval.py),
 [`guide/configuring.md`](../guide/configuring.md),
 [`studies/nl-parse.md`](../studies/nl-parse.md), the mutant catalogue, and the commits of
-2026-08-14. **It is not the work order this component was built from**; no such document
-existed ([`spec-reconstruction.md`](spec-reconstruction.md)).
+2026-08-14, and **it is not the work order this component was built from**: this project had
+none ([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`tools.md`](tools.md), whose deterministic review this accelerates.
 
 ## Objective

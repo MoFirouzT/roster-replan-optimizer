@@ -3,10 +3,10 @@
 **Status:** Implemented 2026-08-21
 **Reconstructed 2026-09-02** from [`tests/mutation.py`](../../tests/mutation.py),
 [`studies/mutation-harness.md`](../studies/mutation-harness.md),
-[`internals/testing.md`](../internals/testing.md), `tests/mutation-report.json`, the
-records cited below, and the commits of 2026-08-13 to 2026-08-21. **It is not the work
-order this component was built from**; no such document existed
-([`spec-reconstruction.md`](spec-reconstruction.md)).
+[`internals/testing.md`](../internals/testing.md), `tests/mutation-report.json`, the records
+cited below, and the commits of 2026-08-13 to 2026-08-21, and **it is not the work order
+this component was built from**: this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`validation.md`](validation.md), whose layers it tests.
 
 ## Objective

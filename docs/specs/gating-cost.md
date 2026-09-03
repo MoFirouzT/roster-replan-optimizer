@@ -221,4 +221,4 @@ probe had called the solver directly and skipped phase two. What it had actually
 ---
 
 *The ledger: [`README.md`](README.md). The reasoning behind the shape of this file:
-[`spec-reconstruction.md`](spec-reconstruction.md).*
+[`documentation.md`](documentation.md#specs-for-the-built-components).*

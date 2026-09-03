@@ -110,4 +110,4 @@ expensive to reverse, and leave the `D-nnn` pointer here.&gt;
 ---
 
 *The ledger: [`README.md`](README.md). The reasoning behind the shape of this file:
-[`spec-reconstruction.md`](spec-reconstruction.md).*
+[`documentation.md`](documentation.md#specs-for-the-built-components).*

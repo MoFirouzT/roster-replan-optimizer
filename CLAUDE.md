@@ -74,7 +74,9 @@ where the answer was no.
 **A spec cites the canonical documents and never restates them.** A predicate, a formulation section
 or a rule parameter has one owner, and two documents owning one claim is how the unread one goes
 stale ([`D-151`](docs/decisions.md#d-151), [`D-152`](docs/decisions.md#d-152)). The twelve specs for
-components built before 2026-09-02 are reconstructions and say so on their Status line.
+components built before 2026-09-02 are reconstructions and say so on their Status line. A spec
+holds one component, and where several ran as one piece of work they may share a file, one
+section each, with a ledger row apiece ([`D-157`](docs/decisions.md#d-157)).
 
 Documents come in five kinds and they do not mix.
 

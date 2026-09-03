@@ -26,8 +26,8 @@ Work since then has been documentation and correction, not capability.
 | Tests | 567 | 948, of which 47 skip without fetched benchmark data |
 | Mutants, each naming the layer that must catch it | 59 | 138 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 142, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
-| Studies, including nulls | 8 | 20 |
+| Decision records | 94, 2 open | 143, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
+| Studies, including nulls | 8 | 16 |
 | Python | ~12,000 lines | ~24,600 lines |
 
 **The last full mutation run does not vouch for the tree it ran in.** 2026-08-21, 852 s:
@@ -39,7 +39,7 @@ those layers before trusting them, per [`CLAUDE.md`](../CLAUDE.md).
 
 **The 137th mutant has not been in a full run.** `citation-rule-accepts-anything` was added on
 2026-09-02 and caught by its named catcher in a 3-mutant `-k specs` run, itself `unverifiable`
-because the tree was dirty ([`doc-citations.md`](specs/doc-citations.md)).
+because the tree was dirty ([`documentation.md`](specs/documentation.md#citations-in-source)).
 
 ## What is still not done
 
@@ -75,7 +75,7 @@ recover. Read that study before starting any performance work here.
 
 ## The documentation
 
-Five rearrangements, and they are done.
+Six rearrangements, and they are done.
 
 **2026-08-20**: the specs were rewritten as two doors ([`D-151`](decisions.md#d-151)): a
 [guide](guide) for people using the service and [internals](internals) for people changing it.
@@ -86,7 +86,7 @@ read about the system. The [ledger](specs/README.md) records where each original
 this file, the [ledger](specs/README.md), curated records, durable measurements, and
 [`scripts/lint_docs.py`](../scripts/lint_docs.py) as a CI job. The spec, with every box recorded
 against its evidence, is
-[`documentation-restructure.md`](specs/documentation-restructure.md). No claim, number or rule ID
+[`documentation.md`](specs/documentation.md#the-restructure). No claim, number or rule ID
 moved with the restructure itself; the stale figures it found were corrected, and they are the
 numbers in the table above.
 
@@ -94,7 +94,7 @@ numbers in the table above.
 into the records that carry their argument, with one written for a decision that never got one.
 Every removed ID keeps its anchor in [Merged and retired](decisions.md#merged-and-retired), so no
 link or docstring citing one had to move. The spec is
-[`decision-curation.md`](specs/decision-curation.md) and what it found is its
+[`documentation.md`](specs/documentation.md#curating-the-decision-records) and what it found is its
 [ledger row](specs/README.md).
 
 **2026-09-02**: every built component now has a **work order** in [`specs/`](specs), holding what a
@@ -110,8 +110,16 @@ the anchor check reads only Markdown links inside the doc set.
 **2026-09-02**: those citations are repointed, and the real count was **153**, because a bare
 `rules.md` is not a path either and is ambiguous now that a spec has that name. <!-- lint-ok: it names the form that was repointed --> A citation now
 resolves against the repository root and then `docs/`, and `scripts/lint_docs.py` checks it. The
-spec is [`doc-citations.md`](specs/doc-citations.md), and it found **four claims stale in content
+spec is [`documentation.md`](specs/documentation.md#citations-in-source), and it found **four claims stale in content
 rather than only in citation**, which is what its [ledger row](specs/README.md) records.
+
+**2026-09-03**: the four documentation components above are held in one file,
+[`documentation.md`](specs/documentation.md), one section each
+([`D-157`](decisions.md#d-157)). The ledger keeps four rows, each pointing at its section, and
+a [Merged](specs/README.md#merged) table maps the removed filenames. The read that merged them
+found **seven stale figures**, each a number copied away from the document that owns it: the
+illegal-past count in four places against the study's corrected 8 of 13, two study counts left
+over from the encoding merge, and a record count four behind.
 
 ## Known blockers
 

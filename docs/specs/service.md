@@ -3,9 +3,10 @@
 **Status:** Implemented 2026-08-20
 **Reconstructed 2026-09-02** from [`service/`](../../roster_replan/service),
 [`ladder.py`](../../roster_replan/ladder.py), [`guide/api.md`](../guide/api.md),
-[`studies/model-cache.md`](../studies/model-cache.md), the mutant catalogue, and the
-commits of 2026-08-13 to 2026-08-20. **It is not the work order this component was built
-from**; no such document existed ([`spec-reconstruction.md`](spec-reconstruction.md)).
+[`studies/model-cache.md`](../studies/model-cache.md), the mutant catalogue, and the commits
+of 2026-08-13 to 2026-08-20, and **it is not the work order this component was built from**:
+this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`model.md`](model.md) and [`validation.md`](validation.md).
 
 ## Objective

@@ -114,7 +114,7 @@ Fixing it then **blinded two test layers**, and the mutation harness is what not
 
 ## 9. Where the evidence stops
 
-The committed benchmark set **solves its own incumbent**, which was for a long time the largest gap in the evidence here. Half of it is closed: published rosters from outside this project reproduce the headline claim by a wider margin than the synthetic set does, and they exposed what a generator could not: ten of thirteen have a past this model calls illegal.
+The committed benchmark set **solves its own incumbent**, which was for a long time the largest gap in the evidence here. Half of it is closed: published rosters from outside this project reproduce the headline claim by a wider margin than the synthetic set does, and they exposed what a generator could not: eight of thirteen have a past this model calls illegal ([`D-155`](../decisions.md#d-155)).
 
 They also found **where the model stops** ([`D-127`](../decisions.md#d-127)): about 40 employees over four weeks, at 527 seconds of model construction on 8 million variables. That ceiling is where this Python stops, not where the formulation does, and it is not a loop waiting to be written faster: hand-building the model is measurably slower than the library that does it ([`D-153`](../decisions.md#d-153)).
 

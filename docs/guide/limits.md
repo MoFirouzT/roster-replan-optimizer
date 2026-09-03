@@ -108,7 +108,7 @@ The default exchange rate, if you switch cost on: **one published change at shor
 
 **The committed benchmark set solves its own incumbent.** Every number above shows a replan beats a re-solve *given a roster this model would produce*.
 
-Half of that gap is closed. Published rosters from the nurse-rostering set (produced by other people, other tools, other objectives) reproduce the headline claim by **4.6× to 37×**, against about 5× on the committed set. They also found what a synthetic set could not: **ten of thirteen published rosters have a past this model calls illegal.**
+Half of that gap is closed. Published rosters from the nurse-rostering set (produced by other people, other tools, other objectives) reproduce the headline claim by **4.6× to 37×**, against about 5× on the committed set. They also found what a synthetic set could not: **eight of thirteen published rosters have a past this model calls illegal.**
 
 What is still missing is a real Belgian horeca corpus.
 

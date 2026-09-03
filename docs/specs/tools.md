@@ -1,13 +1,14 @@
 # The tool surface, hypotheticals, and profile review
 
 **Status:** Implemented 2026-08-20
-**Reconstructed 2026-09-02** from [`service/tools.py`](../../roster_replan/service/tools.py),
+**Reconstructed 2026-09-02** from
+[`service/tools.py`](../../roster_replan/service/tools.py),
 [`whatif.py`](../../roster_replan/whatif.py),
-[`profile.py`](../../roster_replan/profile.py),
-[`guide/api.md`](../guide/api.md),
-[`guide/configuring.md`](../guide/configuring.md), the mutant catalogue, and the commits
-of 2026-08-13 to 2026-08-20. **It is not the work order this component was built from**;
-no such document existed ([`spec-reconstruction.md`](spec-reconstruction.md)).
+[`profile.py`](../../roster_replan/profile.py), [`guide/api.md`](../guide/api.md),
+[`guide/configuring.md`](../guide/configuring.md), the mutant catalogue, and the commits of
+2026-08-13 to 2026-08-20, and **it is not the work order this component was built from**:
+this project had none
+([`documentation.md`](documentation.md#specs-for-the-built-components)).
 **Depends on:** [`service.md`](service.md) and [`explanation.md`](explanation.md).
 
 ## Objective

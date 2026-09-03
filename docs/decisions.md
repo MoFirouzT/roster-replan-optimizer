@@ -184,6 +184,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-154`](#d-154) | The canonical optimum is not canonical, and the criterion is why |
 | [`D-155`](#d-155) | Their coverage rule is a band and ours is a ceiling, and three rows of the scale table said so |
 | [`D-156`](#d-156) | The performance work is closed on five nulls, and the reason is the regime |
+| [`D-157`](#d-157) | The four documentation components are one file, and the ledger keeps four rows |
 
 ## By theme
 
@@ -202,7 +203,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-108`](#d-108), [`D-109`](#d-109), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131), [`D-150`](#d-150) |
 | The foreign instance | [`D-155`](#d-155), [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
 | Capture and replay (specified, not built) | [`D-015`](#d-015), [`D-016`](#d-016), [`D-017`](#d-017) |
-| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151), [`D-152`](#d-152) |
+| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151), [`D-152`](#d-152), [`D-157`](#d-157) |
 
 ---
 
@@ -3560,7 +3561,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   system, not how old it is.
 - **Consequences.** Nothing is left to say what each component found, which is what the
   [ledger](specs/README.md) answers, written in the restructure of 2026-09-02
-  ([`documentation-restructure.md`](specs/documentation-restructure.md)) and reconstructed from
+  ([`documentation.md`](specs/documentation.md#the-restructure)) and reconstructed from
   evidence because the work orders were gone by then. A reader looking for the spec that owned a
   capability finds the row and the document it became. Rule IDs, numbers and claims moved unchanged.
 - **Recorded late, 2026-09-02.** The split shipped without a record, and [`STATE.md`](STATE.md) and
@@ -3597,7 +3598,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   The sweep also found **88 citations in `roster_replan/`, `tests/` and `benchmarks/` naming a spec
   file deleted on 2026-08-20**, behind a green suite and a green linter, because the anchor check
   reads only Markdown links inside the doc set. Repointing them is a separate unit.
-- **Spec.** [`docs/specs/spec-reconstruction.md`](specs/spec-reconstruction.md)
+- **Spec.** [`docs/specs/documentation.md`](specs/documentation.md#specs-for-the-built-components)
 - **Date.** 2026-09-02.
 
 <a id="d-153"></a>
@@ -3733,4 +3734,35 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   solver fails to prove optimal, at 100 employees over 8 weeks, which is far outside the envelope this
   service claims and is why it was never seen.
 - **Study.** [`docs/studies/scaling-levers.md`](studies/scaling-levers.md)
+- **Date.** 2026-09-03.
+
+<a id="d-157"></a>
+## D-157. The four documentation components are one file, and the ledger keeps four rows
+
+- **Decision.** `documentation-restructure.md`, `decision-curation.md`, `spec-reconstruction.md` and
+  `doc-citations.md` are merged into [`specs/documentation.md`](specs/documentation.md), one section
+  each. The ledger keeps a row per component, each pointing at its section, and a
+  [Merged](specs/README.md#merged) table maps the removed filenames.
+- **Alternatives.** Keep four files and compress each in place. Retire the three that are spent.
+  Delete all four, on the grounds that `CLAUDE.md` and `STATE.md` carry what a reader needs.
+- **Reason.** They are one campaign over two days, each depending on the one before it. Three of the
+  four are spent, and their contract halves have moved to the documents that own them: what earns a
+  record to `decisions.md`'s preamble, the numeric-ID override and the citation rule to
+  [`CLAUDE.md`](../CLAUDE.md), the two-document split to the [ledger](specs/README.md).
+
+  Deleting them was refused. Four durable findings live only here: this project never had a build
+  record, the record-count estimate that landed at 137 and why its predicted pool was not a pool,
+  the four claims stale in content rather than only in citation, and where every file in
+  `docs/archive/` went.
+
+  **`one spec per component` is preserved by the ledger, not by the filesystem**, which is what the
+  five merged encoding studies already do.
+- **Consequences.** 912 lines become 394, and 20 files become 17. The twelve reconstructed specs and
+  `_TEMPLATE.md` cite `documentation.md` in place of `spec-reconstruction.md`. No finding, number or
+  gate outcome was dropped.
+
+  The same read found **seven stale figures**, each a number copied away from the document that owns
+  it: the illegal-past count in four places against the study's corrected 8 of 13
+  ([`D-155`](#d-155)), two study counts left over from the encoding merge, and a record count four
+  behind. That is the cost of duplication, measured rather than asserted.
 - **Date.** 2026-09-03.
