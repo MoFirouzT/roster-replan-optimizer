@@ -121,6 +121,19 @@ found **seven stale figures**, each a number copied away from the document that 
 illegal-past count in four places against the study's corrected 8 of 13, two study counts left
 over from the encoding merge, and a record count four behind.
 
+**2026-09-03**: those seven figures are now the linter's job rather than a reader's
+([`D-158`](decisions.md#d-158)). [`scripts/figures.toml`](../scripts/figures.toml) names each
+load-bearing number and the one document that owns it; `scripts/lint_docs.py` recounts the
+`derived` ones from the repository and checks every statement of a `pinned` one against its
+owner. Replayed against the commits that carried them, all three known incidents fire
+([`figures_history.py`](../scripts/figures_history.py)), and **three live ones were found**:
+this file's companion `CLAUDE.md` had its own link counts at 547/518/340 against 620/540/344,
+[`documentation.md`](specs/documentation.md) claimed 16 of 16 ledger rows against 21, and the
+study that owns the illegal-past figure still headed it *Ten of thirteen*. <!-- lint-ok: it names the figure it corrected -->
+
+What no check that reads documents can catch is [`D-155`](decisions.md#d-155)'s scale table,
+where every document agreed and the disagreement was with reality.
+
 ## Known blockers
 
 None that stop work. The three gaps above marked *blocked* need something this project cannot

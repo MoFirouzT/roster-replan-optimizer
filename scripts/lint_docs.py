@@ -23,6 +23,7 @@ loudly instead:
   - a ``<canonical>.md §<ID>`` reference anywhere in the repo names a section that
     file actually has                                                 [if configured]
   - a backticked ``<name>.md`` in a source file names a document that exists
+  - a registered figure states one value everywhere, and the derived ones are recounted
   - math renders on GitHub: no LaTeX spacing control symbols, no ``$ x$``
 
 A line may suppress the per-line checks (em dashes, forbidden words, math) with a
@@ -39,6 +40,7 @@ from __future__ import annotations
 
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -117,6 +119,26 @@ SRC_DIR = ROOT
 CITING_DIRS = ["roster_replan", "tests", "benchmarks", "scripts"]
 CITATION_ROOTS = [ROOT, ROOT / "docs"]
 DOC_CITATION = re.compile(r"`([A-Za-z0-9_./-]+\.md)`")
+
+# The load-bearing figures, one owning document each. The registry and the rule it runs
+# are in `scripts/figures.toml`; this is only where the file lives and how a value is
+# marked. A figure is `derived` (the repository recounts it, `COMPUTED` below) or
+# `pinned` (nothing here can, so the owner's marked line is the value and every other
+# statement of it must agree). Set to None to disable the check.
+FIGURES_FILE = ROOT / "scripts" / "figures.toml"
+# The owner marks the line holding the live value. It is an HTML comment, so it is
+# invisible when rendered, and it is what lets a document carry a superseded figure
+# above the current one, which `studies/foreign-incumbent.md` does on purpose.
+FIGURE_MARKER = "<!-- fig:{id} -->"
+# Spelled-out numbers. The four stale copies of the illegal-past figure were all
+# "ten of thirteen", so a check reading digits only would have caught none of them.
+NUMBER_WORDS = {
+    w: str(i)
+    for i, w in enumerate(
+        "zero one two three four five six seven eight nine ten eleven twelve thirteen "
+        "fourteen fifteen sixteen seventeen eighteen nineteen twenty".split()
+    )
+}
 
 # The canonical source-of-truth document(s), if sections in them are cited by ID from
 # elsewhere in the repo (docstrings included). Set GLOB to "" to disable.
@@ -504,6 +526,199 @@ def check_source_citations(errors: list[str]) -> None:
                     )
 
 
+# --------------------------------------------------------------------------------
+# Figures: a number copied away from the document that owns it.
+# --------------------------------------------------------------------------------
+
+
+def _decision_records() -> int:
+    """Live records in `decisions.md`: the merged and retired stubs are not records."""
+    text = (ROOT / "docs" / "decisions.md").read_text(encoding="utf-8")
+    return len(re.findall(r"^## D-\d+\.", text, re.M))
+
+
+def _ledger_rows() -> int:
+    """Component rows in the ledger, which is one table among several in that file."""
+    text = (ROOT / "docs" / "specs" / "README.md").read_text(encoding="utf-8")
+    section = re.search(r"^## The ledger\n(.*?)(?=^## )", text, re.M | re.S)
+    return len(re.findall(r"^\| \*\*", section.group(1), re.M)) if section else 0
+
+
+def _record_inbound_links() -> int:
+    """Markdown links into a record from outside `decisions.md`."""
+    decisions = (ROOT / "docs" / "decisions.md").resolve()
+    return sum(
+        len(re.findall(r"\]\([^)]*decisions\.md#d-\d+\)", p.read_text(encoding="utf-8")))
+        for p in DOC_PATHS
+        if p.resolve() != decisions
+    )
+
+
+def _record_internal_links() -> int:
+    text = (ROOT / "docs" / "decisions.md").read_text(encoding="utf-8")
+    return len(re.findall(r"\]\(#d-\d+\)", text))
+
+
+def _record_code_citations() -> int:
+    """Backticked `D-nnn` under the source trees that cite the records."""
+    total = 0
+    for name in CITING_DIRS:
+        for path in sorted((ROOT / name).rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            total += len(re.findall(r"`D-\d+`", path.read_text(encoding="utf-8")))
+    return total
+
+
+def _theme_index_coverage() -> int:
+    """Live records the by-theme index lists. It is a coverage claim, not an event."""
+    text = (ROOT / "docs" / "decisions.md").read_text(encoding="utf-8")
+    section = re.search(r"^## By theme\n(.*?)(?=^---)", text, re.M | re.S)
+    listed = set(re.findall(r"#(d-\d+)\)", section.group(1))) if section else set()
+    live = {f"d-{n}" for n in re.findall(r"^## D-(\d+)\.", text, re.M)}
+    return len(listed & live)
+
+
+COMPUTED = {
+    "decision_records": _decision_records,
+    "theme_index_coverage": _theme_index_coverage,
+    "ledger_rows": _ledger_rows,
+    "record_inbound_links": _record_inbound_links,
+    "record_internal_links": _record_internal_links,
+    "record_code_citations": _record_code_citations,
+}
+
+
+def normalise_figure(value: str) -> str:
+    """One spelling per value: "**Ten**", "ten" and "10" are the same figure.
+
+    Split out from the check because it is the part worth testing directly, and because
+    the word forms are not decoration: every stale copy of the illegal-past figure was
+    spelled "ten of thirteen", so a digits-only reading would have found none of them.
+    """
+    word = value.strip().strip("*`_").strip().lower().replace(",", "")
+    return NUMBER_WORDS.get(word, word)
+
+
+# How far either side of a match `context` is allowed to look for its identifying words.
+# Wide enough to span the sentence a figure is stated in, narrow enough not to reach the
+# next one.
+FIGURE_CONTEXT_WINDOW = 160
+
+
+def figure_hits(
+    pattern: re.Pattern[str], text: str, context: re.Pattern[str] | None = None
+) -> list[tuple[int, str, str]]:
+    """Every statement of a figure in one document: (line number, value, whole line).
+
+    Matching runs over the whole text rather than line by line, because the prose wraps
+    and "Instance 8 takes **7.71\nseconds**" is one claim across two lines. A line
+    carrying `lint-ok` is skipped: that is how a document states a superseded figure.
+
+    `context` is what tells one figure from another where the numbers alone cannot: *8
+    of 13* is the illegal-past count in one sentence and an unrelated instance count in
+    the next. It is matched against a window on **both** sides of the number, because
+    the words that identify a figure sit wherever the sentence puts them: "the
+    illegal-past figure falls from 10 of 13" names it before, and "10 of 13 published
+    rosters" after. Looking only forward missed every copy in the incident this was
+    built from.
+    """
+    lines = text.splitlines()
+    hits = []
+    for match in pattern.finditer(text):
+        n = text.count("\n", 0, match.start()) + 1
+        if "lint-ok" in lines[n - 1]:
+            continue
+        if context is not None:
+            window = text[
+                max(0, match.start() - FIGURE_CONTEXT_WINDOW) : match.end()
+                + FIGURE_CONTEXT_WINDOW
+            ]
+            if not context.search(window):
+                continue
+        hits.append((n, match.group(1), lines[n - 1]))
+    return hits
+
+
+def load_figures() -> list[dict]:
+    if FIGURES_FILE is None or not FIGURES_FILE.exists():
+        return []
+    with open(FIGURES_FILE, "rb") as fh:
+        return tomllib.load(fh).get("figure", [])
+
+
+def check_figures(errors: list[str]) -> None:
+    """A registered figure states one value everywhere it appears.
+
+    Three incidents are behind this, and they are one shape: one document owns a
+    measurement, others state it, and only the owner is corrected (`D-155`, `D-157`).
+    The registry names the owner; where the value comes from is `kind`.
+
+    The registry is checked as hard as the documents are. An entry that matches nothing,
+    or whose owner has lost its marker, is reported, because a registry that silently
+    covers nothing reads exactly like a registry that covers something.
+    """
+    for entry in load_figures():
+        fid, owner_name = entry["id"], entry["owner"]
+        try:
+            pattern = re.compile(entry["pattern"])
+            context = re.compile(entry["context"]) if entry.get("context") else None
+        except re.error as exc:
+            errors.append(f"scripts/figures.toml: figure {fid!r} has an unparsable pattern: {exc}")
+            continue
+        owner = ROOT / owner_name
+        if not owner.exists():
+            errors.append(f"scripts/figures.toml: figure {fid!r} owner {owner_name} does not exist")
+            continue
+
+        hits: list[tuple[Path, int, str, str]] = []
+        for path in DOC_PATHS:
+            for n, value, line in figure_hits(
+                pattern, path.read_text(encoding="utf-8"), context
+            ):
+                hits.append((path, n, value, line))
+        if not hits:
+            errors.append(
+                f"scripts/figures.toml: figure {fid!r} matches nothing; the documents were "
+                "reworded and the entry now covers nothing, which reads as coverage"
+            )
+            continue
+
+        if entry["kind"] == "derived":
+            truth = str(COMPUTED[entry["compute"]]())
+            allowed = float(entry.get("tolerance", 0)) * int(truth)
+            for path, n, value, _ in hits:
+                if abs(int(normalise_figure(value)) - int(truth)) > allowed:
+                    band = f" (within {entry['tolerance']:.0%})" if allowed else ""
+                    errors.append(
+                        f"{rel(path)}:{n}: figure {fid!r} is stated as {value.strip()}, "
+                        f"but `{entry['compute']}` counts {truth}{band}; correct it, or "
+                        "mark the line `<!-- lint-ok -->` if it is deliberately historical"
+                    )
+            continue
+
+        marker = FIGURE_MARKER.format(id=fid)
+        owned = [
+            (n, v)
+            for n, v, line in figure_hits(pattern, owner.read_text(encoding="utf-8"), context)
+            if marker in line
+        ]
+        if not owned:
+            errors.append(
+                f"{owner_name}: figure {fid!r} has no `{marker}` line that its pattern "
+                "matches; the owner must mark the line holding the live value"
+            )
+            continue
+        truth = normalise_figure(owned[0][1])
+        for path, n, value, _ in hits:
+            if normalise_figure(value) != truth:
+                errors.append(
+                    f"{rel(path)}:{n}: figure {fid!r} is stated as {value.strip()}, but "
+                    f"{owner_name} owns it and says {owned[0][1].strip()}; correct it, or "
+                    "mark the line `<!-- lint-ok -->` if it is deliberately historical"
+                )
+
+
 def main() -> int:
     errors: list[str] = []
 
@@ -585,6 +800,7 @@ def main() -> int:
     check_canonical_sections(errors)
     check_spec_status(errors)
     check_source_citations(errors)
+    check_figures(errors)
 
     if errors:
         print("Doc lint: FAIL")

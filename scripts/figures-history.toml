@@ -1,0 +1,18 @@
+# History-only figures, for `scripts/figures_history.py`.
+#
+# The harness appends this to `figures.toml` rather than holding its own copy of it,
+# because a second registry that drifts from the first is the defect this whole component
+# is about.
+#
+# An entry belongs here when its claim site has since been deleted, so the shipped
+# registry would report it as covering nothing. Keeping it lets the replay of an incident
+# say which entry caught it.
+
+[[figure]]
+id = "theme-index-coverage"
+owner = "docs/decisions.md"
+kind = "derived"
+compute = "theme_index_coverage"
+reproducible = "computed"
+pattern = '(?i)by-theme index[^\n]{0,60}?\*{0,2}(\d+) of \d+'
+note = """The sentence claiming *146 of 150* was deleted with the spec that carried it."""

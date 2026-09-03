@@ -185,6 +185,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-155`](#d-155) | Their coverage rule is a band and ours is a ceiling, and three rows of the scale table said so |
 | [`D-156`](#d-156) | The performance work is closed on five nulls, and the reason is the regime |
 | [`D-157`](#d-157) | The four documentation components are one file, and the ledger keeps four rows |
+| [`D-158`](#d-158) | Figures get a registry with one owning document, and the sweep was measured and rejected |
 
 ## By theme
 
@@ -203,7 +204,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-108`](#d-108), [`D-109`](#d-109), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131), [`D-150`](#d-150) |
 | The foreign instance | [`D-155`](#d-155), [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
 | Capture and replay (specified, not built) | [`D-015`](#d-015), [`D-016`](#d-016), [`D-017`](#d-017) |
-| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151), [`D-152`](#d-152), [`D-157`](#d-157) |
+| Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151), [`D-152`](#d-152), [`D-157`](#d-157), [`D-158`](#d-158) |
 
 ---
 
@@ -3695,7 +3696,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Consequences.** *"The first genuinely hard searches this project has seen"* survives and is now
   reproduced twice. *"At eight million the search finds nothing"* is withdrawn wherever it appears.
 
-  **The illegality figure is inflated**: 10 of 13 published rosters have an illegal past, but **8 of
+  **The illegality figure is inflated**: 10 of 13 published rosters have an illegal past, but **8 of <!-- lint-ok -->
   13** excluding permitted over-coverage, and instances 1 and 10 become clean. What survives is
   `R-WEEKLY-REST`, the stricter-jurisdiction finding the study was written to make, so the correction
   narrows the claim without removing it.
@@ -3765,4 +3766,36 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   it: the illegal-past count in four places against the study's corrected 8 of 13
   ([`D-155`](#d-155)), two study counts left over from the encoding merge, and a record count four
   behind. That is the cost of duplication, measured rather than asserted.
+- **Date.** 2026-09-03.
+
+<a id="d-158"></a>
+## D-158. Figures get a registry with one owning document, and the sweep was measured and rejected
+
+- **Decision.** `scripts/lint_docs.py` gains a figure check driven by
+  [`scripts/figures.toml`](../scripts/figures.toml): each load-bearing number, the one document
+  that owns it, and a regex finding it wherever it is stated. A figure is `derived` (the repository
+  recounts it) or `pinned` (nothing here can, so the owner's marked line is the value and every
+  other statement must agree). **The registry holds no values**, so it cannot itself go stale and
+  the same entry works against any commit. A `<!-- lint-ok -->` line states a superseded figure on
+  purpose.
+- **Alternatives.** A heuristic sweep of every `N of M` and `NN%`. Re-running committed
+  measurements in CI. Tagging every copy site by hand.
+- **Reason.** **The sweep was measured before it was rejected.** Its strongest form, one denominator
+  stated with two numerators, reports 7 groups of which 2 are real; the rest are different claims
+  about one population, which is normal writing. A check that is 29% right is ignored inside a
+  week, and an ignored check is worse than none because it reads as coverage.
+
+  **Re-running is not available here.** The foreign instances are fetched rather than committed
+  ([`D-125`](#d-125)), and instance 23 costs 561 s to build before any solve. The registry records
+  `reproducible` and a `command` for the figures a re-run would settle, and the linter runs
+  neither: a solver status is assertable and a wall-clock second is not, so a check treating them
+  alike either says nothing or flaps.
+- **Consequences.** Replayed against the commits that carried them, all three known incidents fire,
+  and three live ones were found on the way. The cost on a clean tree is 3 candidates, 2 of them
+  annotated once as quoting a superseded figure on purpose.
+
+  What it cannot catch is a number wrong everywhere at once, which is [`D-155`](#d-155)'s scale
+  table: every document agreed and the disagreement was with reality. No check that reads documents
+  can see that.
+- **Spec.** [`docs/specs/figures.md`](specs/figures.md)
 - **Date.** 2026-09-03.

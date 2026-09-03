@@ -1,0 +1,91 @@
+# The load-bearing figures, and the document that owns each one.
+#
+# A number measured in one place gets copied into others and then drifts when the source
+# is corrected. That has happened three times here, every time found by hand: the scale
+# table's three rows (`D-155`), the illegal-past figure's four copies, and the record,
+# ledger and parity counts found alongside them (`D-157`). `scripts/lint_docs.py` reads
+# this file and fails when a copy disagrees with its owner.
+#
+# `kind` is where the value comes from, and it is the whole distinction:
+#
+#   derived  the repository can recount it from itself, so `compute` names the function
+#            and every stated value must match what it returns. These are invariant
+#            claims: "every ledger row names its spec, 16 of 16" says something that is
+#            supposed to still be true, so recounting it is right.
+#
+#   pinned   nothing here can recount it: a solver status on data that is fetched rather
+#            than committed, a wall-clock second on one machine on one day. The value is
+#            whatever the owner's `<!-- fig:<id> -->` line says, and the check is only
+#            that every other statement of it agrees. Nothing is ever re-measured.
+#
+# `context`, where a figure has one, is matched on both sides of the number and is what
+# tells one figure from another when the numbers alone cannot.
+#
+# `reproducible` records the second half of that distinction and nothing acts on it:
+# `computed` (the linter recounts it), `command` (a deterministic re-run would settle it,
+# and `command` says which), `no` (nothing would; the number is a property of a machine).
+#
+# A line carrying `<!-- lint-ok -->` is skipped, which is how a document states a
+# superseded figure on purpose. The annotation is the declaration that it is historical.
+
+[[figure]]
+id = "decision-records"
+owner = "docs/decisions.md"
+kind = "derived"
+compute = "decision_records"
+reproducible = "computed"
+pattern = '(?i)\b(\d+)\*{0,2}\s+curated\s+records\b'
+note = "Claimed by `docs/README.md` and `CLAUDE.md`, which disagreed by six."
+
+[[figure]]
+id = "ledger-rows"
+owner = "docs/specs/README.md"
+kind = "derived"
+compute = "ledger_rows"
+reproducible = "computed"
+pattern = '(?i)Every ledger row [^\n]{0,90}?\*{0,2}(\d+) of \d+'
+note = """A coverage claim, not an event: it says every row names a spec. Adding a row \
+without a spec is what makes it false, which is `D-157`'s ledger incident."""
+
+[[figure]]
+id = "record-inbound-links"
+owner = "CLAUDE.md"
+kind = "derived"
+compute = "record_inbound_links"
+tolerance = 0.05
+reproducible = "computed"
+pattern = '\*{0,2}(\d+)\s+links\s+from\s+the\s+documentation\s+into\s+the\s+records'
+note = """`CLAUDE.md` calls these re-measurable rather than folklore, which is only true \
+if something re-measures them. Banded at 5%: the argument is about magnitude."""
+
+[[figure]]
+id = "record-internal-links"
+owner = "CLAUDE.md"
+kind = "derived"
+compute = "record_internal_links"
+tolerance = 0.05
+reproducible = "computed"
+pattern = '\*{0,2}(\d+)\s+more\s+inside\s+`decisions\.md`\s+itself'
+note = "As above."
+
+[[figure]]
+id = "record-code-citations"
+owner = "CLAUDE.md"
+kind = "derived"
+compute = "record_code_citations"
+tolerance = 0.05
+reproducible = "computed"
+pattern = '\*{0,2}(\d+)\s+backticked\s+citations\s+in\s+code\s+and\s+tests'
+note = "As above."
+
+[[figure]]
+id = "foreign-illegal-past"
+owner = "docs/studies/foreign-incumbent.md"
+kind = "pinned"
+reproducible = "command"
+command = "uv run python -m benchmarks.foreign --fetch && uv run python -m benchmarks.foreign --study"
+pattern = '(?i)\b(\d+|[a-z]+)\s+of\s+(?:the\s+)?(?:13|thirteen)\b'
+context = '(?i)illegal|published roster'
+note = """`D-155` corrected it from 10 to 8 and four copies kept the old number for a \
+session. The count is deterministic given the fetched instances, so `command` would \
+settle it; the data is not committed (their site states no licence) so CI cannot."""

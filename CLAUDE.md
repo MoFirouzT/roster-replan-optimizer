@@ -121,12 +121,24 @@ uv run python scripts/lint_docs.py
 ```
 
 It gates em dashes, coined `-able` words, the 600-line cap, the `*Assumes:*` lines, every
-cross-document anchor, and **every documentation citation in a source file**: a backticked
+cross-document anchor, **every load-bearing figure** and **every documentation citation in a
+source file**: a backticked
 `<name>.md` in `roster_replan/`, `tests/`, `benchmarks/` or `scripts/` resolves against the
 repository root first and then `docs/`, so write `guide/rules.md` or `specs/rules.md` and never the
 bare name ([`D-152`](docs/decisions.md#d-152)). Everything else in this file is review judgment. A line may opt out of the
 per-line checks with a trailing `<!-- lint-ok -->`, which is for quoting a banned word, not for
 keeping one.
+
+**A number has one owning document, and the linter enforces that too.** A figure copied out of
+the document that owns it and left behind when that document is corrected has happened three
+times here, every time found by a person reading both places ([`D-158`](docs/decisions.md#d-158)).
+[`scripts/figures.toml`](scripts/figures.toml) names each load-bearing number and its owner. A
+`derived` figure is recounted from the repository; a `pinned` one is read from the owner's
+`<!-- fig:<id> -->` line, because nothing here can recount a solver status on data that is
+fetched rather than committed, or a wall-clock second. **Nothing is ever re-measured by the
+linter**: a status is assertable and a second is not, and a check treating them alike either
+says nothing or flaps. Quoting a superseded figure on purpose takes a `<!-- lint-ok -->` with
+the reason on the line.
 
 ## Overrides
 
@@ -135,8 +147,8 @@ that contract is turned off.
 
 **Decision records keep numeric IDs.** The contract names records by subject and drops numbering, so
 that one can be merged or retired without leaving a gap. Here they are `D-nnn` with an explicit
-`<a id="d-nnn">` anchor each, because the numbering is load-bearing: **547 links from the
-documentation into the records, 518 more inside `decisions.md` itself, 340 backticked citations in
+`<a id="d-nnn">` anchor each, because the numbering is load-bearing: **620 links from the
+documentation into the records, 540 more inside `decisions.md` itself, 344 backticked citations in
 code and tests**, and five checks built on the anchors. Those are counts of Markdown links to a
 `#d-nnn` anchor, from outside `decisions.md` and from inside it, and of `` `D-nnn` `` under
 `roster_replan/`, `tests/`, `benchmarks/` and `scripts/`, so they are re-measurable rather than

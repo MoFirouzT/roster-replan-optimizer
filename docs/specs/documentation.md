@@ -231,7 +231,7 @@ merely unstarted belongs in Tier 0 or in **In flight** was left open deliberatel
 - [x] No spec restates a predicate, a formulation section or a rule parameter. Every one carries
       a **Canonical reference** section, and no fenced predicate block was copied here.
 - [x] No claim, number or rule ID in `guide/`, `internals/` or `studies/` changed.
-- [x] Every ledger row names its spec or says why it has none. **16 of 16.**
+- [x] Every ledger row names its spec or says why it has none. **16 of 16** on 2026-09-02; the live count is in the [ledger](README.md). <!-- lint-ok: a gate outcome, not the live count -->
 - [x] **106 ticked boxes and 30 `- [!]` ones** across the twelve, every `- [!]` saying what
       happened on the line. Close to one condition in five came back qualified rather than
       passed, and that ratio is worth reading on its own.

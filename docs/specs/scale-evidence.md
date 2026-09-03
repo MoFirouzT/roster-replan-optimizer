@@ -217,7 +217,7 @@ Belgium being stricter, which is the import working as intended.
    nothing here, because `as_rules` touches neither `R-COVER` nor `R-WEEKLY-REST`. The scale path
    imposing Belgian rules is deliberate, and the coverage ceiling was never part of that
    intention.
-5. **Is the *10 of 13 illegal pasts* figure wrong?** *Proposed:* inflated rather than wrong, and
+5. **Is the *10 of 13 illegal pasts* figure wrong?** *Proposed:* inflated rather than wrong, and <!-- lint-ok: the question quotes the figure it was asked about -->
    it needs recounting once the import is fixed. It currently counts permitted over-coverage as
    illegality. What survives the recount is the genuine finding, and it is the one the study was
    written to make.

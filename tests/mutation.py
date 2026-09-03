@@ -940,6 +940,27 @@ MUTANTS: tuple[Mutant, ...] = (
         "    return True or any((root / cited).is_file() for root in CITATION_ROOTS)",
         "tests/test_specs.py",
     ),
+    # The figure check. A number copied away from the document that owns it and left
+    # behind when that document is corrected has happened three times here (`D-155`,
+    # `D-157`), every time found by hand. Both halves get a mutant, because they are
+    # different code paths: `pinned` compares a copy against its owner, `derived`
+    # recounts the figure from the repository.
+    Mutant(
+        "figure-check-accepts-a-copy-that-disagrees-with-its-owner",
+        "specs",
+        LINT,
+        "            if normalise_figure(value) != truth:",
+        "            if False:",
+        "tests/test_specs.py",
+    ),
+    Mutant(
+        "figure-check-never-recounts-a-derived-figure",
+        "specs",
+        LINT,
+        "                if abs(int(normalise_figure(value)) - int(truth)) > allowed:",
+        "                if False:",
+        "tests/test_specs.py",
+    ),
     Mutant(
         "profile-remark-text-reworded",
         "specs",

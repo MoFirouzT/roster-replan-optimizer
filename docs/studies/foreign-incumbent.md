@@ -13,7 +13,7 @@ on an authorization this project does not control ([the ledger](../specs/README.
 **Answer. The claim reproduces on foreign incumbents, and by a wider margin than on the committed
 set.** Against a cold cost re-solve on published rosters from the nurse-rostering benchmark set,
 the disruption objective cuts changed assignments by **5× to 37×** where the committed set showed
-about 5×. Two things came with it that the synthetic set could not have shown: **10 of 13 published
+about 5×. Two things came with it that the synthetic set could not have shown: **10 of 13 published <!-- lint-ok: the figure as first published; corrected in the note below -->
 rosters have a past this model calls illegal**, and a defect in the canonical optimum that appeared
 within minutes of first contact.
 
@@ -127,7 +127,7 @@ only as good as the sample the range came from, and this one's sample was chosen
 **This is the headline claim on rosters this project did not produce**, which is the thing every
 number in `benchmarks.md` could not say.
 
-## Ten of thirteen have an illegal past
+## Eight of thirteen have an illegal past <!-- fig:foreign-illegal-past -->
 
 `R-PIN-PAST` fixes everything before `now`, so a hard violation in that region makes the replan
 infeasible by construction: "the past itself is illegal", distinct from "no legal future exists".

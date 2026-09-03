@@ -463,3 +463,182 @@ def test_no_source_citation_names_a_missing_document():
     errors: list[str] = []
     lint.check_source_citations(errors)
     assert not errors, "dead documentation citations:\n  " + "\n  ".join(errors)
+
+
+# --- Stale duplicated figures ---------------------------------------------------------
+
+
+def test_a_figure_reads_the_same_spelled_out_as_in_digits():
+    """The four stale copies were all "ten of thirteen", never "10 of 13".
+
+    A check reading digits only would have caught none of them, so the word forms are
+    the load-bearing half of `normalise_figure` rather than a nicety.
+    """
+    lint = _lint_module()
+
+    assert lint.normalise_figure("ten") == "10"
+    assert lint.normalise_figure("**Eight**") == "8"
+    assert lint.normalise_figure(" Thirteen ") == "13"
+    assert lint.normalise_figure("1,024") == "1024"
+    assert lint.normalise_figure("8") == "8"
+    assert lint.normalise_figure("OPTIMAL") == "optimal"
+
+
+def test_a_figure_is_identified_by_context_on_either_side_of_the_number():
+    """The words naming a figure sit wherever the sentence puts them.
+
+    Looking only forward from the number missed every copy in the incident this check
+    was built from: *the illegal-past figure falls from 10 of 13* names the figure
+    before it, and *10 of 13 published rosters* after it. Both are the same claim.
+    """
+    lint = _lint_module()
+    pattern = re.compile(r"\b(\d+) of 13\b")
+    context = re.compile(r"(?i)illegal|published roster")
+
+    after = lint.figure_hits(pattern, "**10 of 13 published rosters** overstaff", context)
+    before = lint.figure_hits(pattern, "the illegal-past figure falls from 10 of 13", context)
+    unrelated = lint.figure_hits(pattern, "a non-best solution on 8 of 13 instances", context)
+
+    assert [h[1] for h in after] == ["10"]
+    assert [h[1] for h in before] == ["10"]
+    assert unrelated == []
+
+
+def test_a_line_marked_lint_ok_states_a_superseded_figure_on_purpose():
+    lint = _lint_module()
+    pattern = re.compile(r"\b(\d+) of 13\b")
+    text = "10 of 13 rosters <!-- lint-ok: as first published -->\n8 of 13 rosters\n"
+
+    assert [h[1] for h in lint.figure_hits(pattern, text)] == ["8"]
+
+
+def _figure_tree(tmp_path, registry: str, docs: dict[str, str]):
+    """A whole tree the figure check can run against, so it can be shown to reject one."""
+    lint = _lint_module()
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "figures.toml").write_text(registry, encoding="utf-8")
+    written = []
+    for name, body in docs.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+        written.append(path)
+    lint.ROOT = tmp_path
+    lint.DOC_PATHS = written
+    lint.FIGURES_FILE = tmp_path / "scripts" / "figures.toml"
+    return lint
+
+
+PINNED_REGISTRY = r"""
+[[figure]]
+id = "illegal-past"
+owner = "study.md"
+kind = "pinned"
+reproducible = "no"
+pattern = '(?i)\b(\d+|[a-z]+) of (?:13|thirteen)\b'
+context = '(?i)illegal'
+"""
+
+
+def test_the_figure_check_rejects_a_copy_that_disagrees_with_its_owner(tmp_path):
+    """The rejection, not the clean tree.
+
+    A rule that has never rejected anything is not known to reject anything, which is
+    `D-152`'s defect in another form: 88 dead citations sat behind a check that could
+    not fail. So the disagreeing copy is asserted directly, in the spelling the real
+    incident used.
+    """
+    lint = _figure_tree(
+        tmp_path,
+        PINNED_REGISTRY,
+        {
+            "study.md": "**Eight of thirteen have an illegal past** <!-- fig:illegal-past -->\n",
+            "guide.md": "ten of thirteen published rosters have an illegal past\n",
+        },
+    )
+    errors: list[str] = []
+    lint.check_figures(errors)
+
+    assert len(errors) == 1
+    assert "guide.md:1" in errors[0]
+    assert "illegal-past" in errors[0]
+
+
+def test_the_figure_check_accepts_a_copy_that_agrees(tmp_path):
+    lint = _figure_tree(
+        tmp_path,
+        PINNED_REGISTRY,
+        {
+            "study.md": "**Eight of thirteen have an illegal past** <!-- fig:illegal-past -->\n",
+            "guide.md": "8 of 13 published rosters have an illegal past\n",
+        },
+    )
+    errors: list[str] = []
+    lint.check_figures(errors)
+
+    assert not errors, errors
+
+
+def test_a_registry_entry_that_covers_nothing_is_reported(tmp_path):
+    """A registry matching nothing reads exactly like a registry matching something.
+
+    That is the failure this component exists to prevent, one level up, so the entry is
+    checked as hard as the documents are.
+    """
+    lint = _figure_tree(
+        tmp_path,
+        PINNED_REGISTRY,
+        {"study.md": "the past is illegal <!-- fig:illegal-past -->\n"},
+    )
+    errors: list[str] = []
+    lint.check_figures(errors)
+
+    assert len(errors) == 1
+    assert "matches nothing" in errors[0]
+
+
+def test_an_owner_that_lost_its_marker_is_reported(tmp_path):
+    lint = _figure_tree(
+        tmp_path,
+        PINNED_REGISTRY,
+        {
+            "study.md": "**Eight of thirteen have an illegal past**\n",
+            "guide.md": "8 of 13 published rosters have an illegal past\n",
+        },
+    )
+    errors: list[str] = []
+    lint.check_figures(errors)
+
+    assert len(errors) == 1
+    assert "no `<!-- fig:illegal-past -->` line" in errors[0]
+
+
+def test_a_derived_figure_is_recounted_from_the_repository(tmp_path):
+    """`derived` is the half nothing has to remember to update: it is recomputed."""
+    lint = _figure_tree(
+        tmp_path,
+        r"""
+[[figure]]
+id = "rows"
+owner = "ledger.md"
+kind = "derived"
+compute = "rows"
+reproducible = "computed"
+pattern = 'Every ledger row [^\n]{0,90}?(\d+) of \d+'
+""",
+        {"ledger.md": "Every ledger row names its spec. **16 of 16.**\n"},
+    )
+    lint.COMPUTED = {**lint.COMPUTED, "rows": lambda: 20}
+    errors: list[str] = []
+    lint.check_figures(errors)
+
+    assert len(errors) == 1
+    assert "stated as 16" in errors[0] and "counts 20" in errors[0]
+
+
+def test_no_registered_figure_is_stated_two_ways_in_this_tree():
+    """The regression guard over the tree, and the registry's own self-check."""
+    lint = _lint_module()
+    errors: list[str] = []
+    lint.check_figures(errors)
+    assert not errors, "figures that disagree with their owner:\n  " + "\n  ".join(errors)
