@@ -24,7 +24,7 @@ Work since then has been documentation and correction, not capability.
 | | At the declaration, 2026-08-13 | Now |
 | --- | --- | --- |
 | Tests | 567 | 948, of which 47 skip without fetched benchmark data |
-| Mutants, each naming the layer that must catch it | 59 | 138 |
+| Mutants, each naming the layer that must catch it | 59 | 140 | <!-- fig:mutant-count -->
 | Import-linter contracts | 8 | 11 |
 | Decision records | 94, 2 open | 143, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
 | Studies, including nulls | 8 | 16 |
@@ -37,9 +37,24 @@ it mutated were already modified or were written back after the restore:
 ([`D-112`](decisions.md#d-112)). The catches are probably real and are not vouched for. Re-run
 those layers before trusting them, per [`CLAUDE.md`](../CLAUDE.md).
 
-**The 137th mutant has not been in a full run.** `citation-rule-accepts-anything` was added on
-2026-09-02 and caught by its named catcher in a 3-mutant `-k specs` run, itself `unverifiable`
-because the tree was dirty ([`documentation.md`](specs/documentation.md#citations-in-source)).
+**Four mutants have not been in a full run.** Each was proved against its named catcher in a
+targeted run at the time it was added. This count is reviewed prose rather than a registered
+figure, because the only record of what a full run covered is `tests/mutation-report.json`,
+which is gitignored:
+
+| Mutant | Added | Standing |
+| --- | --- | --- |
+| `citation-rule-accepts-anything` | 2026-09-02 | Caught by its named catcher in a 3-mutant `-k specs` run, itself `unverifiable` because the tree was dirty ([`documentation.md`](specs/documentation.md#citations-in-source)) |
+| `model-ungated-still-gates` | 2026-09-03 | Caught by `tests/test_studies.py`, in a run whose verdict was `unverifiable` for the same reason ([`gating-cost.md`](specs/gating-cost.md)) |
+| `figure-check-accepts-a-copy-that-disagrees-with-its-owner` | 2026-09-03 | Caught in a 5-mutant `-k specs` run, `unverifiable` because `scripts/lint_docs.py` was already modified ([`figures.md`](specs/figures.md)) |
+| `figure-check-never-recounts-a-derived-figure` | 2026-09-03 | As above |
+
+**All four have been caught by their named catcher; none has been in a full run**, and every
+one of those targeted runs came back `unverifiable` rather than `clean`, because each proved
+a layer mid-change, which [`CLAUDE.md`](../CLAUDE.md) allows and prices. What is owed is one
+full run on a clean tree, which would settle the standing `unverifiable` verdict above at the
+same time. A targeted re-run must send its report elsewhere with `--report`, or a five-mutant
+report replaces the full one ([`D-130`](decisions.md#d-130)).
 
 ## What is still not done
 

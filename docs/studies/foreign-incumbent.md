@@ -179,9 +179,9 @@ regime the service is actually for.
 | 22 | 50 | 52 | 1,546,273 | 2,228,062 | **67.16** | n/a | infeasible past |
 | 23 | 100 | 52 | 8,049,059 | 14,786,635 | **527.45** | 16.46 | **UNKNOWN** |
 
-**The search is genuinely hard here, for the first time in this project.** Instance 8 takes **7.71
-seconds** of search to prove optimality, against a committed-set maximum of **15.4 ms** across all
-2,268 runs. That is a factor of 500, and it is the answer to the standing objection that nothing in
+**The search is genuinely hard here, for the first time in this project.** Instance 8 takes
+**7.71 seconds** of search to prove optimality <!-- fig:foreign-instance-8-search-seconds -->
+against a committed-set maximum of **15.4 ms** across all 2,268 runs. That is a factor of 500, and it is the answer to the standing objection that nothing in
 this repo is ever hard. [`D-104`](../decisions.md#d-104) retired LNS because every solve returned `OPTIMAL` in milliseconds;
 that reasoning is now bounded by a distribution rather than general.
 

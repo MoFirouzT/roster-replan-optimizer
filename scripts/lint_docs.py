@@ -33,7 +33,9 @@ it does not affect the length or ``*Assumes:*`` checks.
 Run:  uv run python scripts/lint_docs.py
 Exits non-zero on any violation, printing ``path:line: message``.
 
-Configuration is the block below. Stdlib only, no dependencies.
+Configuration is the block below, plus `scripts/figures.toml` for the figure registry,
+which is a separate file because it is reviewed as data rather than as code.
+Stdlib only, no dependencies.
 """
 
 from __future__ import annotations
@@ -570,6 +572,17 @@ def _record_code_citations() -> int:
     return total
 
 
+def _mutant_count() -> int:
+    """Mutants in the catalogue, read from the source rather than from a run.
+
+    A run's report is a measurement of one run and is durable; this is the size of the
+    catalogue today, which is what `STATE.md`'s repo table claims. Read by regex rather
+    than by importing `tests.mutation`, because this script is stdlib only.
+    """
+    text = (ROOT / "tests" / "mutation.py").read_text(encoding="utf-8")
+    return len(re.findall(r"^\s*Mutant\($", text, re.M))
+
+
 def _theme_index_coverage() -> int:
     """Live records the by-theme index lists. It is a coverage claim, not an event."""
     text = (ROOT / "docs" / "decisions.md").read_text(encoding="utf-8")
@@ -581,6 +594,7 @@ def _theme_index_coverage() -> int:
 
 COMPUTED = {
     "decision_records": _decision_records,
+    "mutant_count": _mutant_count,
     "theme_index_coverage": _theme_index_coverage,
     "ledger_rows": _ledger_rows,
     "record_inbound_links": _record_inbound_links,

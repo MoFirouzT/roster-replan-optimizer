@@ -89,3 +89,42 @@ context = '(?i)illegal|published roster'
 note = """`D-155` corrected it from 10 to 8 and four copies kept the old number for a \
 session. The count is deterministic given the fetched instances, so `command` would \
 settle it; the data is not committed (their site states no licence) so CI cannot."""
+
+[[figure]]
+id = "foreign-instance-8-search-seconds"
+owner = "docs/studies/foreign-incumbent.md"
+kind = "pinned"
+reproducible = "no"
+command = "uv run python -m benchmarks.foreign --fetch && uv run python -m benchmarks.foreign --study"
+pattern = '(\d+\.\d+)\s*(?:s\b|seconds)[^.]{0,45}?to prove optimality'
+note = """The first genuinely hard search this project saw, stated in six documents. It is \
+`no` rather than `command`: the command re-runs the instance, but a wall-clock second is a \
+property of the machine, so nothing can assert the recorded 7.71. Only the copies are checked.
+
+`penalty-search.md` states a different measurement in nearly the same words (5.74 s on this \
+project's own set) and carries a `lint-ok` saying so. That is the cost of a figure whose \
+prose no pattern can tell apart from another's."""
+
+[[figure]]
+id = "mutant-count"
+owner = "docs/STATE.md"
+kind = "derived"
+compute = "mutant_count"
+reproducible = "computed"
+pattern = 'Mutants, each naming the layer that must catch it \| \d+ \| \*{0,2}(\d+)'
+note = """The size of the catalogue today, which the repo table claims as *Now*. Adding a \
+layer means adding a mutant, so this moves whenever `tests/mutation.py` does, and it was \
+two behind within a day of `D-157` correcting seven other figures for the same reason.
+
+The pattern is deliberately narrow, matching only the table's second column. Every other \
+mutant number in this repository (`136 of 136`, `132 of 132`, `103 before`) is a record of \
+one run, which is a durable measurement rather than a statement of the current count."""
+
+# There is no entry for *how many mutants have not been in a full run*, and the reason is
+# worth keeping. It was written and then removed: the only record of which mutants a full
+# run covered is `tests/mutation-report.json`, which is gitignored as "the verdict, not an
+# input", so the check passed on the machine holding a report and would have failed in CI,
+# where the file does not exist. A documentation check whose answer depends on a local run
+# artifact is the defect `D-118` and `D-121` already record: a verdict that is a property of
+# the machine that produced it. The count stays reviewed prose in `STATE.md`, beside a table
+# naming each of the four.

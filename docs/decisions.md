@@ -3781,9 +3781,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Alternatives.** A heuristic sweep of every `N of M` and `NN%`. Re-running committed
   measurements in CI. Tagging every copy site by hand.
 - **Reason.** **The sweep was measured before it was rejected.** Its strongest form, one denominator
-  stated with two numerators, reports 7 groups of which 2 are real; the rest are different claims
-  about one population, which is normal writing. A check that is 29% right is ignored inside a
-  week, and an ignored check is worse than none because it reads as coverage.
+  with two numerators, reports 7 groups of which 2 are real; the rest are different claims about
+  one population. A check that is 29% right is ignored inside a week, and an ignored check is
+  worse than none because it reads as coverage.
 
   **Re-running is not available here.** The foreign instances are fetched rather than committed
   ([`D-125`](#d-125)), and instance 23 costs 561 s to build before any solve. The registry records
@@ -3792,7 +3792,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   alike either says nothing or flaps.
 - **Consequences.** Replayed against the commits that carried them, all three known incidents fire,
   and three live ones were found on the way. The cost on a clean tree is 3 candidates, 2 of them
-  annotated once as quoting a superseded figure on purpose.
+  annotated once as quoting a superseded figure on purpose. Seven figures cost six annotated lines.
 
   What it cannot catch is a number wrong everywhere at once, which is [`D-155`](#d-155)'s scale
   table: every document agreed and the disagreement was with reality. No check that reads documents

@@ -126,7 +126,7 @@ disruption, about 500× worse: after 220 seconds of search against 5.74.
 answer, and it is the one that counts: the best legal result at 100,000 evaluations still leaves a
 shift unstaffed, and the best fully-staffed result still breaks three rules.
 
-Read against the clock instead, at the 5.74 seconds CP-SAT needs to prove optimality, this
+Read against the clock instead, at the 5.74 seconds CP-SAT needs to prove optimality, this <!-- lint-ok: this set's own figure, not the foreign instance's -->
 implementation has managed 1,000–2,000 moves and holds:
 
 | weight | hard violations | objective |

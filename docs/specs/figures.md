@@ -85,11 +85,11 @@ superseded figure on purpose.
 
 ## Build tasks
 
-- [x] `scripts/figures.toml`, with the registry and a header stating the rule. Six figures:
-      five `derived` and one `pinned`.
+- [x] `scripts/figures.toml`, with the registry and a header stating the rule. Seven
+      figures: five `derived` and two `pinned`.
 - [x] `check_figures` in `scripts/lint_docs.py`, plus `COMPUTED` and `figure_hits`.
-- [x] Owner markers in the documents that own the registered figures. One, on
-      `studies/foreign-incumbent.md`'s heading, which was itself the stale copy.
+- [x] Owner markers in the documents that own the registered figures. Two, both on
+      `studies/foreign-incumbent.md`, one of them a heading that was itself the stale copy.
 - [x] Correct whatever the check finds stale on the current tree. Three, below.
 - [x] `tests/test_specs.py`: nine tests, six of them rejections.
 - [x] Two mutants in `tests/mutation.py`, layer `specs`, one per branch.
@@ -126,7 +126,7 @@ superseded figure on purpose.
       underneath: drift was continuous and nothing was watching.
 - [x] At most a handful of candidates, all real. **Three on the tree this shipped against**,
       two of which are lines quoting a superseded figure on purpose and are annotated once.
-      Steady state is zero.
+      Six annotated lines in all across seven figures. Steady state is zero.
 - [x] `uv run python scripts/lint_docs.py` green, 53 files.
 - [x] `uv run pytest -q` green, **957 passing** against 948 before.
 - [x] `uv run lint-imports` green, 11 contracts.
@@ -156,9 +156,35 @@ figure, still headed the section *Ten of thirteen* while four other documents sa
 written *ten of thirteen*, never *10 of 13*. A check reading digits only would have caught
 none of them.
 
+**One figure costs an annotation in an unrelated study.** Instance 8's recorded 7.71 s is
+stated in six documents, and no pattern separates it from
+[`penalty-search.md`](../studies/penalty-search.md)'s 5.74 s, which is a different
+measurement of a different set in nearly the same words. That line carries a `lint-ok`
+saying so. The alternative was leaving a figure with six copies unregistered, which is the
+worse trade: the annotation is one line and permanent, and the copies drift.
+
+**The pattern is anchored forward on purpose.** `7.71 s to prove optimality, re-measured at
+8.43 s` states two numbers; only the one immediately before the phrase is the figure. A
+two-sided context window would have captured both and reported the re-measurement as a
+disagreement, so this entry uses a lookahead where the illegal-past entry uses `context`.
+One mention stays outside it, in [`warm-start.md`](../studies/warm-start.md), which says
+*hard enough to search for 7.71 s* without naming the proof.
+
 ## Out of scope
 
 - Re-running any measurement. The linter reads documents.
+- **Growing the registry.** It shipped with seven figures and takes more without a change to
+  this component: `mutant-count` was added the same day, for a number in
+  [`STATE.md`](../STATE.md) that had drifted by two while this was being built. The build
+  tasks and gate above record the seven this shipped against, and are not recounted as the
+  registry grows.
+- **A figure whose value depends on a run artifact.** *How many mutants have not been in a
+  full run* was written as a derived figure and removed: the only record of what a run
+  covered is the gitignored `tests/mutation-report.json`, so it passed on a machine holding a
+  report and would have failed in CI, where that file does not exist. **A check that reads a
+  gitignored file makes the verdict a property of the machine**, which is the defect
+  [`D-118`](../decisions.md#d-118) and [`D-121`](../decisions.md#d-121) already record. Any
+  future figure must derive from tracked, committed inputs alone.
 - A heuristic sweep of every `N of M` in the documentation, unless the numbers below say
   it is quiet enough to survive.
 
