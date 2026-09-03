@@ -3610,14 +3610,13 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 - **Reason.** Both alternatives were built and measured, and both are nulls.
 
   **Writing the proto by hand is slower than the wrapper it bypasses**: 5.01 µs against 3.75 µs per
-  gated two-term constraint, with `protobuf` already resolving to its C implementation. The cost is
-  creating millions of objects from Python, not the loop that asks for them.
+  gated two-term constraint, with `protobuf` already resolving to its C implementation.
 
   **Removing the gates halves the model and costs the proof of optimality.** On the committed set it
   takes 15% off build and 52% off search, helping on 28 of 28 paired cases. On a tight week it fails
-  to prove optimality on three of eight, holding a roster scoring 480 for 30 s while the bound sits
-  at −7980. Eight workers close it in 19 ms, so it is the single-worker search that depends on the
-  literals, and single-worker is how [`benchmarks.md`](benchmarks.md) measures.
+  on three of eight, holding a roster scoring 480 for 30 s while the bound sits at −7980. Eight
+  workers close it in 19 ms, so it is the single-worker search that depends on the literals, and
+  that is how [`benchmarks.md`](benchmarks.md) measures.
 
   Why they help is measured and not explained: a bare model and one shared literal fixed true are
   both slow, so it is not enforcement propagating weakly.
@@ -3627,6 +3626,9 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 
   [`cp-sat-vs-milp.md`](studies/cp-sat-vs-milp.md)'s **21% of search is bounded to the committed
   distribution**, and its *CP-SAT, ungated* row gains the code it never had.
+
+  At the top of the range they are 89% of the model and presolve substitutes them away, never having
+  been measured earning that cost at size.
 
   **The committed set could not have found this**, for the third time
   ([`D-105`](#d-105), [`D-127`](#d-127), [`penalty-search.md`](studies/penalty-search.md)).

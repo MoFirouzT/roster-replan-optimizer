@@ -4,9 +4,9 @@
 open in writing: the ceiling is *"a Python loop emitting constraints one at a time"* and
 *"whether batching construction moves it is not measured"*. Five documents repeat the first half.
 Behind it sits a second question nobody had asked: every hard constraint instance carries its own
-literal ([`D-002`](../decisions.md#d-002)), the count reaches **1,416,134 literals against 60,480
-assignment variables** on the largest foreign instance that still builds, and they are read on one
-path only. What are they costing the other solves?
+literal ([`D-002`](../decisions.md#d-002)), and on the largest foreign instance the count reaches
+**7,143,329 literals against 582,382 assignment variables: 89% of the whole model**. They are read
+on one path only. What are they costing the other solves?
 
 **Answer. Two nulls, and the second one reverses the question.** A faster builder does not exist
 inside Python: writing the proto by hand is *slower* than the wrapper it bypasses. And the gates
@@ -25,6 +25,9 @@ Apple silicon. **Single worker unless a row says otherwise**, seed 7, which is h
 
 The gated model is built as it ships and its literals are passed to `add_assumptions`. The ungated
 model is `build(gated=False)`: the same feasible set, stated with no per-instance literal.
+
+The instance 23 figures come from a single eight-worker run with `log_search_progress`, since what
+they report is build cost and presolve counts rather than a search timing.
 
 ## A faster builder is not available
 
@@ -60,6 +63,17 @@ On instance 13 of the foreign set, 120 staff over four weeks, the shipped build 
 and emits 1,416,134 literals. Handing every constraint one shared literal instead cuts that to
 14.6 s: **the literals are 19% of build**, in line with the 21% of search
 [`cp-sat-vs-milp.md`](cp-sat-vs-milp.md) already measured.
+
+The ratio grows with the instance, and at the top of the range it is most of the model. Instance 23,
+100 staff over 52 weeks, holds **7,143,329 literals against 582,382 assignment variables**, so 89%
+of its 8,049,159 proto variables are gates. It costs **606 s to build**, and the solver's own log
+shows presolve applying `enforcement: true literal` **7,132,828 times**: essentially every one of
+them is substituted away before the search starts. At this size the literals are ten minutes of
+build that the solver then deletes.
+
+That does not contradict the sections below, and it does bound them. The literals earn their place
+on small hard instances, where the search uses them. Nothing has ever measured them earning it at
+eight million variables, because no instance that large has ever reached a search.
 
 Across the committed set the saving is large and looks free. Paired per case, best of five runs,
 28 cases, through [`lab.py`](../../benchmarks/lab.py):

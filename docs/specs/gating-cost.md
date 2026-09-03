@@ -30,8 +30,9 @@ load-bearing: a reader is being told the ceiling is incidental.
 
 The question behind it is worth more than the answer. Every hard constraint instance carries
 its own literal ([`D-002`](../decisions.md#d-002)), and the ratio of literals to assignment
-variables grows with instance size: about 2.9 to 1 on a committed case, and **23 to 1 on the
-largest foreign instance that still builds**. The literals are read in exactly one place,
+variables grows with instance size: about 2.9 to 1 on a committed case, 23 to 1 on instance 13, and
+**12 to 1 on the largest foreign instance, where they are 89% of the whole model**. The literals are
+read in exactly one place,
 `solve` returning a core on `INFEASIBLE`, and on a feasible solve they buy nothing.
 
 ## Canonical reference
@@ -151,9 +152,12 @@ the variables, 15% off build, 52% off search, helping on 28 of 28 paired cases. 
 the proof of optimality on 3 of 8 tight-week instances, and the switch is rejected. The tables
 are in the study.
 
-On the largest foreign instance that still builds, instance 13 at 120 staff over four weeks,
-the gated build emits **1,416,134 literals against 60,480 assignment variables** and takes
-about 18 s, of which the literals are 19%.
+On instance 13, 120 staff over four weeks, the gated build emits **1,416,134 literals against
+60,480 assignment variables** and takes about 18 s, of which the literals are 19%.
+
+On instance 23, 100 staff over 52 weeks, it emits **7,143,329 literals against 582,382 assignment
+variables**, 89% of the model, over a **606 s build** that presolve then strips with 7,132,828
+applications of `enforcement: true literal`.
 
 ### Two things this got wrong before it got them right
 

@@ -74,8 +74,8 @@ class Built:
         `.only_enforce_if(...)` writes no enforcement literal and the constraint goes into
         the proto exactly as an unconditional one. The feasible set is identical and every
         call site is unchanged; what disappears is one boolean per constraint instance,
-        1.4 million of them on the largest foreign instance that still builds, against 60
-        thousand assignment variables.
+        7.1 million of them on the largest foreign instance, against 582 thousand assignment
+        variables, which is 89% of that model.
 
         **A fixed literal is not a substitute for no literal.** Handing every constraint
         one shared literal pinned to true states the same feasible set and leaves the
