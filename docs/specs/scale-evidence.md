@@ -1,183 +1,230 @@
-# The scale evidence, re-measured, and the check that comes before the build
+# Importing their coverage rule, and the scale evidence it was hiding
 
-**Status:** Draft
+**Status:** Implemented 2026-09-03
 **Depends on:** [`gating-cost`](gating-cost.md), whose measurements found this.
 
 ## Objective
 
-Correct the foreign scale table to what reproduces today, and stop spending a full model
-build to learn something a solver-free function knows in two seconds.
+Find out why three rows of the foreign scale table stopped reproducing, correct them and every
+claim resting on them, and specify the import fix behind it.
+
+**Scoped to the correction.** The fix, importing their coverage rule rather than a stricter one
+this project imposes by accident, is specified here in full and deliberately not built: see
+decision 0.
 
 ## Motivation
 
-[`foreign-incumbent.md`](../studies/foreign-incumbent.md) carries the table that
-[`D-127`](../decisions.md#d-127) rests on, and four claims are drawn from it across the
-repository. Three of them no longer reproduce.
+Three rows of the scale table in [`foreign-incumbent.md`](../studies/foreign-incumbent.md) no
+longer reproduce. Instances 8, 10 and 23 return `INFEASIBLE` where the table records `OPTIMAL`
+at 7.71 s and 1.91 s and `UNKNOWN` at eight million variables. Four claims rest on those rows,
+including *"the first genuinely hard searches this project has seen"*, which is the repository's
+answer to the standing objection that nothing here is ever hard.
 
-The table records instance 8 proving optimality in **7.71 s of search**, called *"the first
-genuinely hard searches this project has seen"* and used as the answer to the standing
-objection that nothing here is ever hard. It records instance 23 returning `UNKNOWN` at
-8M variables, quoted as *"at eight million the search finds nothing"*.
+**The evidence is not stale. It is hidden, and by a defect in this repository.**
 
-**Today instances 8, 10 and 23 all return `INFEASIBLE`**, decided in presolve, because their
-incumbents have illegal pasts. Instance 23 returns it after a 606 s build. The likely cause is
-[`D-133`](../decisions.md#d-133), which changed `load` to take the best published solution by
-their objective and so changed which pasts are legal.
+Their format states a coverage *requirement* with two weights, one for being under it and one
+for being over it. Over-coverage is priced on **every slot of every instance**: 112 slots on
+instance 8, 140 on instance 10, 5,824 on instance 23, all with a non-zero weight. Their model
+permits overstaffing and charges for it.
 
-The sizes in the table do reproduce, to within the injured employee: 8,049,159 variables
-against the recorded 8,049,059. **What has rotted is the solve column, not the size column**,
-and the distinction matters because the build ceiling survives and the search evidence does not.
+This project prohibits it. `R-COVER`'s ceiling is a hard gated `overage == 0`, and the import
+never reads their over-weight. So a published roster that legitimately overstaffs is imported as
+one this model calls illegal, and when the overstaffing falls in the pinned past the replan is
+refused before it starts:
 
-Underneath sits a second finding. **No published solution rescues any large instance.** The
-minimum hard violations across every published solution are 17, 388, 625, 942 and 1,709 for
-instances 13, 20, 21, 22 and 23. This benchmark set cannot supply a large valid replan, so the
-project has no evidence at all about what one costs.
+| instance | overstaffed slot | assigned / required |
+| --- | --- | --- |
+| 8 | day 2, hour 62, pinned | 5 / 4 |
+| 10 | day 4, hour 118, pinned | 3 / 1 |
+| 23 | day 0, hour 6, pinned | 6 / 3 |
+
+**This is the third mapping error in this import**, after `MaxTotalMinutes` read as a weekly rate
+and days off translated as intervals ([`foreign-incumbent.md`](../studies/foreign-incumbent.md)).
+Both of those were found the same way and both inflated the same figure.
+
+Each recovery was confirmed by reversing the cause rather than argued. Permitting over-coverage
+returns instance 10 to `OPTIMAL` in **2.22 s** against the recorded 1.91 s. Instance 8 needs that
+and one more thing, [`D-133`](../decisions.md#d-133): on the published solution the table was
+measured against, it returns `OPTIMAL` in **8.43 s** against the recorded 7.71 s. Both on a
+slower machine than the original run.
 
 ## Canonical reference
 
-[`internals/model.md`](../internals/model.md) owns *where it stops*.
-[`guide/rules.md`](../guide/rules.md) owns the predicates, and this component adds a property
-to them: whether a rule is **monotone**, in the sense that adding assignments can only create
-or worsen a violation of it. That property is what makes the pre-build check sound, so
-`rules.md` owns it and this spec cites it rather than listing it.
+[`guide/rules.md`](../guide/rules.md) owns the `R-COVER` predicate, including the ceiling this
+component makes conditional. [`internals/model.md`](../internals/model.md) owns the objective the
+price would join, and the domination bound that constrains any new weight
+([`D-057`](../decisions.md#d-057)). [`foreign-incumbent.md`](../studies/foreign-incumbent.md)
+owns the import and its scale table.
 
-[`guide/limits.md`](../guide/limits.md) owns what the service guarantees, including the
-fallback ladder's promise to always answer.
+[`D-018`](../decisions.md#d-018) decided the soft floor and the hard ceiling together, and
+[`D-137`](../decisions.md#d-137) established that a comparison against their published optimum
+runs on their constraints. This component sits at the meeting point of those two and does not
+overturn either.
 
 ## Governing reference
 
-None. No statutory parameter moves.
+None. Belgian law states a minimum staffing obligation nowhere in this registry, and the ceiling
+was never a statutory claim. It is operational, which is what makes it changeable here.
 
 ## Parameters and configuration
 
-No profile or payload parameter. One function, and it is not a caller knob:
+One parameter, and its default is today's behaviour exactly:
 
 ```text
-checker.forced_violations(instance) -> list[Violation]
+overage_weight: float | None = None
 ```
 
-The hard violations of monotone rules committed entirely inside the pinned past. Non-empty
-means no legal roster exists, whatever is chosen for the future.
+`None` keeps `R-COVER`'s hard ceiling: `overage == 0`, gated as now. A number prices the overage
+instead, exactly as `shortfall_weight` prices the floor, and removes the gate.
+
+The value the foreign import passes is **not** their number. Their weights sit on their scale and
+converting them would answer [`D-057`](../decisions.md#d-057)'s bound question with somebody
+else's units, which is the mistake
+[`foreign-incumbent.md`](../studies/foreign-incumbent.md) already refuses elsewhere.
 
 ## Interfaces
 
 ```text
-checker.forced_violations(instance)   -> list[Violation]
-ladder.answer(instance, ...)          -> unchanged signature and unchanged rungs
+RuleParams(..., overage_weight: float | None = None)
+model.build / checker.check                 read it; no signature changes
+foreign.load(number)                        sets it, because their format states one
 ```
 
-`ladder.answer` consults `forced_violations` before building. A non-empty result takes the
-`incumbent` rung directly, which already returns the published roster with its violations named
-and already marks the answer as the floor rather than a repair. **No new rung and no new
-promise**: this reaches an existing outcome without paying for the model first.
-
-`model.solve` is untouched. A caller solving directly still builds and still gets a core, which
-is the minimal explanation the pre-build check does not produce.
+No wire schema change. `service/contracts.py` gains the field only if a tenant needs it, and no
+tenant has asked.
 
 ## Layering
 
-None. `checker.py` keeps its position and imports no solver, which is what lets this run before
-a model exists.
+None. The parameter lives in [`domain.py`](../../roster_replan/domain.py), which is the one
+module the model and the checker may both import, and it is a rule threshold of the kind that
+module already carries.
 
 ## Build tasks
 
-- [ ] the monotone property in [`rules.md`](../guide/rules.md), one bullet per rule with its reason
-- [ ] `checker.forced_violations`
-- [ ] `ladder.answer` consults it before building
-- [ ] re-run the scale table and correct [`foreign-incumbent.md`](../studies/foreign-incumbent.md)
-- [ ] correct every claim resting on the stale rows: [`D-127`](../decisions.md#d-127),
-  [`design.md`](../internals/design.md), [`model.md`](model.md),
-  [`time-budget.md`](../studies/time-budget.md), the [ledger](README.md) and the
-  [studies index](../studies/README.md)
-- [ ] record that no published solution gives a legal past, and what that costs the evidence
-- [ ] the record in [`decisions.md`](../decisions.md)
-- [ ] the mutant, named to its catching layer
+**Scope was cut to the correction after the measurements were taken.** The fix changes a shipped
+predicate for a benchmark's benefit, and the correction does not depend on it, so the two were
+separated and only the correction was built. Everything below records that decision, not a
+shortfall against it.
+
+- [!] `overage_weight` on `RuleParams`: **not built.** Deferred with the rest of the fix
+- [!] `R-COVER`'s ceiling made conditional in the model and the checker: **not built**
+- [!] the predicate updated in [`rules.md`](../guide/rules.md): **not built**
+- [!] the domination bound re-derived: **not built**, and it is the reason the fix is a component
+  rather than a patch
+- [x] the scale table re-run, all nine rows, and corrected in place in
+  [`foreign-incumbent.md`](../studies/foreign-incumbent.md)
+- [x] the over-coverage mapping error documented there as the third one
+- [x] the *10 of 13* figure recounted by `study()`'s own method: **8 of 13** excluding permitted
+  over-coverage
+- [x] every claim resting on the stale rows corrected: [`time-budget.md`](../studies/time-budget.md),
+  [`internals/model.md`](../internals/model.md), [`model.md`](model.md),
+  [`cross-week-rules.md`](cross-week-rules.md)
+- [x] the records: [`D-155`](../decisions.md#d-155) and [`D-156`](../decisions.md#d-156)
+- [x] the five performance nulls collected in
+  [`scaling-levers.md`](../studies/scaling-levers.md)
+- [!] the mutants: **not built**, because no code changed
 
 ## Test contract
 
-- **Unit** (`tests/test_checker.py`): `forced_violations` is empty on a legal past, non-empty on
-  a past breaking a monotone rule, and **empty on a past breaking only a non-monotone one**. The
-  third is the one that matters: a `R-MIN-HOURS` shortfall in the past is repairable in the
-  future, and reporting it as forced would refuse a week that has a legal answer.
-- **Ladder** (`tests/test_ladder.py`): an instance with a forced violation reaches the
-  `incumbent` rung with the same roster, violations and rung it reaches today without the
-  short-circuit. This is the claim that the change is a speedup and not a behaviour change.
-- **Differential** (`tests/test_differential.py`): unchanged. The model never sees this
-  function, so a disagreement here would mean the monotone classification is wrong rather than
-  the checker.
-- **Mutant**: `forced_violations` returning a non-monotone rule's violation, so a repairable
-  week is refused. Named catcher: `tests/test_checker.py`.
+- **Differential** (`tests/test_differential.py`): the layer that matters most. A conditional
+  ceiling is two readings of one predicate and the harness is what says they agree. Both
+  settings must be exercised, because a checker that ignores `overage_weight` agrees with a
+  model that ignores it too.
+- **Ground truth** (`tests/test_ground_truth.py`): on a micro-instance small enough to
+  enumerate, the priced optimum is the enumerated optimum. This is what stops a priced overage
+  being bought when it should not be.
+- **Golden** (`tests/test_golden.py`): every committed roster is unchanged, since every
+  committed instance leaves the parameter `None`. This is the claim that the default is
+  genuinely today's behaviour.
+- **Foreign** (`tests/test_foreign.py`): instances 8 and 10 reach `OPTIMAL` with the parameter
+  set, and the recovered search times are recorded rather than asserted, since they are wall
+  clock.
+- **Mutants**: one making the ceiling unconditional, caught by the foreign layer, and one making
+  the checker ignore the weight while the model honours it, caught by the differential harness.
+  The second is the one worth having.
 
 ## Acceptance gate
 
 *Blocks:* nothing.
 
-- [ ] Every claim citing the scale table either reproduces or is corrected, with the run that
-  settled it recorded
-- [ ] `forced_violations` agrees with the solver on all five large foreign instances: forced
-  violations found exactly where the model proves infeasible
-- [ ] The ladder returns the same answer with and without the short-circuit on every committed
-  case
-- [ ] Full suite green
-- [ ] Mutant caught by its named layer
+- [x] Instances 8 and 10 reach `OPTIMAL` under their own coverage rule: 8.43 s and 2.22 s, against
+  the table's 7.71 s and 1.91 s, each confirmed by reversing one cause alone
+- [x] Every committed roster byte-identical: no code changed
+- [!] The differential harness with the parameter set and unset: **not run**, the parameter does
+  not exist
+- [!] The domination bound re-derived: **not done**, deferred with the fix
+- [x] The scale table re-run and corrected, and every claim citing it either reproduced or fixed
+- [x] Full suite green: 948 passed
+- [!] Both mutants caught: **not built**, no code changed
 
 ## Measured results
 
-Taken while scoping, and the study replaces them.
+Taken while scoping; the study replaces them.
 
-**The pre-build check is 300× cheaper than learning the same thing from the model.** Forced
-monotone violations inside the pinned past, against the build that discovers the same
-infeasibility:
+The re-measurement of the whole table, single worker, 30 s budget. **Six of nine rows reproduce
+and three flip**, and the sizes reproduce throughout, to within the injured employee:
 
-| instance | staff × weeks | build | `forced_violations` | forced | full hard |
-| --- | --- | --- | --- | --- | --- |
-| 13 | 120 × 4 | 9.7 s | 25 ms | 9 | 18 |
-| 20 | 50 × 26 | 10.0 s | 155 ms | 28 | 393 |
-| 21 | 100 × 26 | 45 s | 347 ms | 53 | 626 |
-| 22 | 50 × 52 | 67 s | 869 ms | 50 | 943 |
-| 23 | 100 × 52 | **606 s** | **2,020 ms** | 198 | 1,710 |
+| instance | table | today |
+| --- | --- | --- |
+| 2, 6 | `OPTIMAL` | `OPTIMAL` |
+| 8 | `OPTIMAL`, 7.71 s | `INFEASIBLE` |
+| 10 | `OPTIMAL`, 1.91 s | `INFEASIBLE` |
+| 13, 20, 21, 22 | infeasible past | `INFEASIBLE` |
+| 23 | `UNKNOWN`, 16.46 s | `INFEASIBLE`, after a 561 s build |
 
-Only `R-MAX-WEEKLY` and `R-WEEKLY-REST` fire, on every instance. Both are monotone by
-inspection: a week's hours only grow as assignments are added, and a rest window only shrinks.
+Recovery, each confirmed by reversing one cause at a time: instance 10 with over-coverage
+permitted returns `OPTIMAL` in 2.22 s; instance 8, on the published solution the table was
+measured against and with over-coverage permitted, returns `OPTIMAL` in 8.43 s.
 
-**The saving is real and its demonstrated value is narrow, which is worth stating.** Every
-instance it helps is one this service cannot answer anyway, and on the committed set the build
-it skips costs about 5 ms. It converts a 606 s route to a refusal into a 2 s one, and it does
-not make a single answerable week faster.
+**Instance 23 is not expected to recover**, and that is worth stating in advance so the result
+is not read as a failure of this component. Beyond its overstaffed slot it carries 141 forced
+`R-MAX-WEEKLY` and 57 forced `R-WEEKLY-REST` violations inside the pinned past. Those are
+Belgium being stricter, which is the import working as intended.
 
 ## Out of scope
 
-- **Making a large valid replan available.** The benchmark set cannot supply one and this
-  component does not go looking. It records the gap.
-- **A minimal core from the pre-build check.** It names forced violations, not the minimal
-  conflict set `solve` returns. A caller wanting the core still pays for the model.
-- **Re-deciding [`D-133`](../decisions.md#d-133).** Taking the best published solution stays;
-  what changes is the table measured under it.
-- **Un-retiring LNS.** [`D-127`](../decisions.md#d-127) bounded
-  [`D-104`](../decisions.md#d-104) on evidence that has now gone, which weakens the bound and
-  does not restore the lever.
+- **The pre-build incumbent check.** Specified here first and moved out. It is independent of
+  the coverage rule, and this fix removes most of the value it was measured against: an
+  incumbent that is legal does not need cheap detection of being illegal. It deserves its own
+  spec and its monotone rule set has to include `R-COVER` overage, which the scoping here found
+  by getting it wrong.
+- **Re-deciding [`D-018`](../decisions.md#d-018).** The hard ceiling stays the default and stays
+  the shipped behaviour for every tenant.
+- **Importing their weights on their scale.** The parameter takes this project's units.
+- **Un-retiring LNS.** If instance 8 comes back at 8.43 s of search, that is the evidence
+  [`D-127`](../decisions.md#d-127) leaned on, restored rather than extended.
 
 ## Decisions
 
-1. **Correct the table in place, or retire it?** *Proposed:* correct in place and say what
-   moved. A measurement is durable ([`CLAUDE.md`](../../CLAUDE.md)), so the rows stay with the
-   conditions they were taken under, and the run that contradicts them is recorded beside them
-   rather than replacing them silently.
-2. **Does this supersede [`D-127`](../decisions.md#d-127) or bound it?** *Proposed:* bounds it.
-   Its build ceiling reproduces and is untouched. What falls is the search half, which was
-   never the decision, only the evidence quoted around it.
-3. **Should the short-circuit be in `ladder` or in `solve`?** *Proposed:* `ladder`. `solve`
-   promises a core on infeasibility and this function cannot produce one, so putting it there
-   would weaken a documented return. The ladder already owns the incumbent rung and the
-   never-return-nothing promise.
-4. **Where does the monotone property live?** *Proposed:* [`rules.md`](../guide/rules.md), one
-   bullet per rule beside the existing *Model encoding* bullet. It is a property of the
-   predicate, and putting it in `checker.py` alone would make the model and the checker disagree
-   about what a rule means with nothing to catch it.
-5. **Is `historical` on `Violation` the same property?** **Resolved: no** (2026-09-03). It is
-   set on `R-COVER`, `R-SKILL-MIX` and `R-PIN-PAST` only, and it marks where a violation sits
-   rather than whether the future could repair it. Reusing it would have been wrong on both
-   counts.
+0. **Fix the import, or correct the record?** **Resolved: correct now, fix later**
+   (2026-09-03). The correction stands on its own and the fix does not: making `R-COVER`'s ceiling
+   conditional touches a shipped predicate, both readings of it, and
+   [`D-057`](../decisions.md#d-057)'s domination bound, for the benefit of a benchmark import. The
+   decisions below are kept as the trail for whoever takes the fix.
+1. **Price the overage, or give the slot a maximum?** *Proposed:* price it. A maximum would state
+   a band their format does not have, so it would be a second invention on top of the one being
+   removed. Pricing is also symmetric with the floor, which is already soft and priced, and it
+   reuses the machinery and the reasoning of [`D-018`](../decisions.md#d-018) rather than adding
+   a parallel one.
+2. **Where does the parameter live, `RuleParams` or `Disruption`?** *Proposed:* `RuleParams`. It
+   is a property of the rule rather than of the objective, it sits beside the thresholds the rule
+   already reads, and `Disruption` is about deviation from the incumbent, which this is not.
+3. **Does a priced overage break the domination bound?** *Proposed:* it must be brought inside
+   it. [`D-057`](../decisions.md#d-057) requires `shortfall_weight` to dominate everything that
+   could buy understaffing, and a priced overage is a new term in that comparison. Re-derive
+   rather than assume, and validate at profile load as every other weight is.
+4. **Should `scenario()` call `as_rules`?** **Resolved: no** (2026-09-03). Measured: it changes
+   nothing here, because `as_rules` touches neither `R-COVER` nor `R-WEEKLY-REST`. The scale path
+   imposing Belgian rules is deliberate, and the coverage ceiling was never part of that
+   intention.
+5. **Is the *10 of 13 illegal pasts* figure wrong?** *Proposed:* inflated rather than wrong, and
+   it needs recounting once the import is fixed. It currently counts permitted over-coverage as
+   illegality. What survives the recount is the genuine finding, and it is the one the study was
+   written to make.
+6. **Does this restore [`D-127`](../decisions.md#d-127)'s claim or replace it?** *Proposed:*
+   restores the hard-search half and leaves the build ceiling untouched. *"At eight million the
+   search finds nothing"* stays unproven either way, because instance 23 is refused for reasons
+   this component does not remove.
 
 ---
 

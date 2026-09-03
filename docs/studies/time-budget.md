@@ -23,6 +23,6 @@ That is what redirected the performance work: the compiled-model cache was the o
 ## Where the regime does change
 
 The committed set never approaches a budget.
-Foreign data does: 7.71 s to prove optimality on one imported instance, and no roster at all at ~8M variables, where 527 s went to **model construction** before any search began ([`foreign-incumbent.md`](foreign-incumbent.md), [`D-127`](../decisions.md#d-127)).
+Foreign data does: 7.71 s to prove optimality on one imported instance, re-measured at 8.43 s ([`D-155`](../decisions.md#d-155)). At ~8M variables, 527 s went to **model construction**; that instance returns no roster because its past is illegal rather than because the search failed, so it says nothing about a budget ([`foreign-incumbent.md`](foreign-incumbent.md), [`D-127`](../decisions.md#d-127)).
 
 So the honest scope is narrow and worth stating: the flat curve is real for the tenants this product targets, and says nothing about instances an order of magnitude larger.

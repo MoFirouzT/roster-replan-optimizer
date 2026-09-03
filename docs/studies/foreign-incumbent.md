@@ -17,6 +17,12 @@ about 5×. Two things came with it that the synthetic set could not have shown: 
 rosters have a past this model calls illegal**, and a defect in the canonical optimum that appeared
 within minutes of first contact.
 
+> **Two of those ten are this importer's fault, not theirs** ([`D-155`](../decisions.md#d-155)).
+> Their format prices over-coverage and this project prohibits it, so a roster that overstaffs
+> legally under their rules imports as one this model calls illegal. Excluding it, the figure is
+> **8 of 13**, and instances 1 and 10 are clean. What is left is `R-WEEKLY-REST`, which is the
+> stricter-jurisdiction finding this study was written to make.
+
 > **Re-measured on named incumbents** ([`D-133`](../decisions.md#d-133)). This study originally reported 10× to 27× over five
 > instances, on whichever published solution `glob` happened to return, which was a **non-best**
 > solution on 8 of the 13 and depended on directory order, so the incumbent was a property of the
@@ -177,8 +183,23 @@ regime the service is actually for.
 seconds** of search to prove optimality, against a committed-set maximum of **15.4 ms** across all
 2,268 runs. That is a factor of 500, and it is the answer to the standing objection that nothing in
 this repo is ever hard. [`D-104`](../decisions.md#d-104) retired LNS because every solve returned `OPTIMAL` in milliseconds;
-that reasoning is now bounded by a distribution rather than general, and instance 23 is a case where
-the search returns nothing at all.
+that reasoning is now bounded by a distribution rather than general.
+
+> **Three rows of this table no longer reproduce, and one claim above it falls**
+> ([`D-155`](../decisions.md#d-155), 2026-09-03). Re-run through today's code, instances 8, 10 and
+> 23 all return `INFEASIBLE`. The sizes reproduce to within the injured employee; the statuses do
+> not.
+>
+> **The hardness finding survives.** Instance 8 was re-measured under the conditions it was
+> originally taken, on the published solution this study used before
+> [`D-133`](../decisions.md#d-133) and with over-coverage permitted: `OPTIMAL` in **8.43 s** against
+> the 7.71 s recorded, on a slower machine. Instance 10 likewise returns `OPTIMAL` in **2.22 s**
+> against 1.91 s. Two causes, each confirmed by reversing it alone: the over-coverage mapping below,
+> and [`D-133`](../decisions.md#d-133) moving instance 8 onto a different published solution.
+>
+> **What falls is instance 23.** It does not return `UNKNOWN` and never searched: it returns
+> `INFEASIBLE`, closed by presolve in 18 s after a 561 s build, because its past is illegal. Any
+> sentence resting on *the search finding nothing at eight million variables* is unsupported.
 
 **The binding constraint is model construction, not search.** At every size, building the CP-SAT model
 in Python costs more than searching it: 9 seconds at 910k variables, 45 at 1.1M, 67 at 1.5M, and
@@ -196,8 +217,41 @@ not the ceiling.
 
 **Where it stops is now a number rather than a guess.** Up to about 40 employees over four weeks, the
 service proves optimality and canonicalises inside a few seconds. Past roughly a million variables the
-build alone leaves interactive latency behind, and at eight million the search finds nothing. Nothing
-between those points has been measured, because these instances do not sample it.
+build alone leaves interactive latency behind. **At eight million nothing is known about the search**,
+because no instance that large has reached one ([`D-155`](../decisions.md#d-155)); what is known is
+that the build takes ten minutes. Nothing between those points has been measured, because these
+instances do not sample it.
+
+## The third mapping error: their coverage rule is a band, ours is a ceiling
+
+Two errors in the import were found on first contact and are described above. This is the third, found
+on 2026-09-03, and it is what made three rows of the table above stop reproducing.
+
+**Their format states a coverage requirement with two weights**, one for being under it and one for
+being over it, and over-coverage carries a non-zero weight on **every slot of every instance**: 112 on
+instance 8, 140 on instance 10, 5,824 on instance 23. Their model permits overstaffing and charges for
+it.
+
+This project prohibits it. `R-COVER`'s ceiling is a hard gated `overage == 0`
+([`D-018`](../decisions.md#d-018)), and this importer never reads their over-weight. So a published
+roster that overstaffs legally under their rules imports as one this model calls illegal, and where the
+overstaffing falls in the pinned past the replan is refused before it starts:
+
+| instance | overstaffed slot | assigned / required |
+| --- | --- | --- |
+| 8 | day 2, hour 62, pinned | 5 / 4 |
+| 10 | day 4, hour 118, pinned | 3 / 1 |
+| 23 | day 0, hour 6, pinned | 6 / 3 |
+
+It is the same shape as the other two: **a rule of theirs read as a rule of ours**, inflating the
+illegality figure this study reports. Instance 10's whole infeasibility is one such slot, three staff
+where one was required, and permitting it returns the instance to `OPTIMAL`.
+
+**It is recorded and not fixed.** Expressing a priced ceiling means making `R-COVER`'s ceiling
+conditional in the model, in the checker, and in [`rules.md`](../guide/rules.md), and re-deriving the
+domination bound in [`D-057`](../decisions.md#d-057) that every weight is held to. That is a change to
+a shipped predicate for the benefit of a benchmark import, and it is scoped in
+[`scale-evidence.md`](../specs/scale-evidence.md) rather than done here.
 
 ## Their objective, reproduced to the digit
 

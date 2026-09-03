@@ -148,9 +148,10 @@ call `solve`.
 **Where it stops is a number rather than a worry.** A committed case is 8 to 25
 employees over one week: a few hundred variables, about 5 ms to build, about 3 ms to
 search. The largest foreign instance reaches about **8M variables and 527 s of model
-construction**, and returns no roster ([`D-127`](../decisions.md#d-127)). The first
-genuinely hard searches this project has seen came from the same import: 7.71 s to prove
-optimality, against a committed-set maximum of 15.4 ms.
+construction**, and returns no roster ([`D-127`](../decisions.md#d-127)): it is refused for
+an illegal past rather than searched ([`D-155`](../decisions.md#d-155)). The first genuinely
+hard searches came from the same import: 7.71 s to prove optimality, re-measured at 8.43 s,
+against a committed-set maximum of 15.4 ms.
 
 **That ceiling belongs to this implementation, not to the formulation.** The 527 s is a
 Python loop emitting constraints one at a time, and whether batching moves it is now

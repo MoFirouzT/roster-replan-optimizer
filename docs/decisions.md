@@ -182,13 +182,15 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-152`](#d-152) | `docs/specs/` holds work orders again, and the twelve are reconstructions |
 | [`D-153`](#d-153) | The gates carry search, and a faster builder is not what would lift the ceiling |
 | [`D-154`](#d-154) | The canonical optimum is not canonical, and the criterion is why |
+| [`D-155`](#d-155) | Their coverage rule is a band and ours is a ceiling, and three rows of the scale table said so |
+| [`D-156`](#d-156) | The performance work is closed on five nulls, and the reason is the regime |
 
 ## By theme
 
 | Theme | Records |
 | --- | --- |
 | The objective: what disruption is, and what it trades against | [`D-005`](#d-005), [`D-006`](#d-006), [`D-015`](#d-015), [`D-018`](#d-018), [`D-022`](#d-022), [`D-036`](#d-036), [`D-049`](#d-049), [`D-050`](#d-050), [`D-051`](#d-051), [`D-052`](#d-052), [`D-053`](#d-053), [`D-054`](#d-054), [`D-055`](#d-055), [`D-057`](#d-057), [`D-060`](#d-060), [`D-085`](#d-085), [`D-086`](#d-086), [`D-120`](#d-120), [`D-129`](#d-129) |
-| Formulation and solver choice | [`D-153`](#d-153), [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126), [`D-149`](#d-149) |
+| Formulation and solver choice | [`D-153`](#d-153), [`D-156`](#d-156), [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126), [`D-149`](#d-149) |
 | Independence: two readings of one registry | [`D-003`](#d-003), [`D-038`](#d-038), [`D-039`](#d-039), [`D-040`](#d-040), [`D-041`](#d-041), [`D-045`](#d-045), [`D-063`](#d-063), [`D-078`](#d-078), [`D-128`](#d-128) |
 | Ground truth, test layers, and the mutation harness | [`D-004`](#d-004), [`D-061`](#d-061), [`D-062`](#d-062), [`D-064`](#d-064), [`D-065`](#d-065), [`D-066`](#d-066), [`D-067`](#d-067), [`D-077`](#d-077), [`D-112`](#d-112), [`D-122`](#d-122), [`D-124`](#d-124), [`D-130`](#d-130), [`D-138`](#d-138), [`D-139`](#d-139), [`D-140`](#d-140), [`D-141`](#d-141), [`D-143`](#d-143) |
 | Rules, legal encoding and provenance | [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142), [`D-145`](#d-145) |
@@ -198,7 +200,7 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | The LLM boundary and profile configuration | [`D-012`](#d-012), [`D-013`](#d-013), [`D-099`](#d-099), [`D-101`](#d-101), [`D-102`](#d-102), [`D-103`](#d-103) |
 | Service, runtime and the fallback ladder | [`D-010`](#d-010), [`D-011`](#d-011), [`D-090`](#d-090), [`D-091`](#d-091), [`D-094`](#d-094), [`D-122`](#d-122), [`D-149`](#d-149) |
 | Horizon and cross-week reach | [`D-014`](#d-014), [`D-029`](#d-029), [`D-081`](#d-081), [`D-108`](#d-108), [`D-109`](#d-109), [`D-113`](#d-113), [`D-115`](#d-115), [`D-116`](#d-116), [`D-131`](#d-131), [`D-150`](#d-150) |
-| The foreign instance | [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
+| The foreign instance | [`D-155`](#d-155), [`D-125`](#d-125), [`D-127`](#d-127), [`D-128`](#d-128), [`D-132`](#d-132), [`D-133`](#d-133), [`D-134`](#d-134), [`D-135`](#d-135), [`D-136`](#d-136), [`D-137`](#d-137) |
 | Capture and replay (specified, not built) | [`D-015`](#d-015), [`D-016`](#d-016), [`D-017`](#d-017) |
 | Scope, declarations, and the documentation itself | [`D-095`](#d-095), [`D-104`](#d-104), [`D-146`](#d-146), [`D-148`](#d-148), [`D-151`](#d-151), [`D-152`](#d-152) |
 
@@ -3666,4 +3668,69 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   degeneracy the search could see and left a smaller set the criterion cannot separate, so
   *degeneracy measures zero* means *no tie was reached*, not *no tie exists*.
 - **Study.** [`docs/studies/gate-cost.md`](studies/gate-cost.md), which found it
+- **Date.** 2026-09-03.
+
+<a id="d-155"></a>
+## D-155. Their coverage rule is a band and ours is a ceiling, and three rows of the scale table said so
+
+- **Decision.** The scale table in [`foreign-incumbent.md`](studies/foreign-incumbent.md) is corrected
+  in place: instances 8, 10 and 23 no longer reproduce, and the cause is a **third mapping error in
+  this project's importer**, not decay in the model. The hardness finding stands, re-measured. The
+  claim that *the search finds nothing at eight million variables* is withdrawn. The fix to the
+  importer is specified and **not built**.
+- **Alternatives.** Retire the table. Fix `R-COVER`'s ceiling now and re-run. Leave the rows and note
+  that they are old.
+- **Reason.** Their format prices over-coverage on every slot of every instance; this project
+  prohibits it with a hard gated `overage == 0` ([`D-018`](#d-018)) and the importer never reads their
+  weight. A roster that overstaffs legally under their rules therefore imports as illegal, and where
+  that falls in the pinned past the replan is refused before any search.
+
+  Each row was recovered by reversing one cause at a time: instance 10 returns `OPTIMAL` in 2.22 s
+  against 1.91 s recorded, and instance 8, on the solution the table used before
+  [`D-133`](#d-133), in **8.43 s** against 7.71 s.
+
+  **Instance 23 is the claim that falls.** It returns `INFEASIBLE` after a 561 s build, having never
+  searched. Nothing is known about search at that size.
+- **Consequences.** *"The first genuinely hard searches this project has seen"* survives and is now
+  reproduced twice. *"At eight million the search finds nothing"* is withdrawn wherever it appears.
+
+  **The illegality figure is inflated**: 10 of 13 published rosters have an illegal past, but **8 of
+  13** excluding permitted over-coverage, and instances 1 and 10 become clean. What survives is
+  `R-WEEKLY-REST`, the stricter-jurisdiction finding the study was written to make, so the correction
+  narrows the claim without removing it.
+
+  The fix changes a shipped predicate for a benchmark's benefit, so it is scoped in
+  [`scale-evidence.md`](specs/scale-evidence.md) rather than taken here.
+- **Study.** [`docs/studies/foreign-incumbent.md`](studies/foreign-incumbent.md)
+- **Spec.** [`docs/specs/scale-evidence.md`](specs/scale-evidence.md)
+- **Date.** 2026-09-03.
+
+<a id="d-156"></a>
+## D-156. The performance work is closed on five nulls, and the reason is the regime
+
+- **Decision.** The effort to make this solver faster is **closed without shipping a speedup**. Five
+  levers were measured and all five were rejected. No further performance work is scheduled, and
+  [`scaling-levers.md`](studies/scaling-levers.md) is where the next person is sent before starting
+  any.
+- **Alternatives.** Build the disruption-radius restriction. Promote the rolling horizon out of
+  [`horizon.md`](studies/horizon.md). Write the model builder in a compiled language. Leave the
+  question open.
+- **Reason.** Nothing measured helps in the regime this service serves. A committed case is 8 to 25
+  employees over one week and answers in about 3 ms of search, so there is no latency to recover.
+
+  The five: a hand-written proto builder is **slower** than the wrapper; removing the gate literals
+  loses the proof of optimality ([`D-153`](#d-153)); the interval rest-gap encoding cuts variables by
+  7.1× on a large instance and is **slower to search** at every size tried; parallel workers change a
+  replan not at all; and the generator cannot reach the sizes where any of it would matter.
+
+  The remaining levers are large and none of them is aimed at a measured problem. Building one would
+  be answering a question nobody has asked of this service.
+- **Consequences.** [`limits.md`](guide/limits.md) keeps its envelope and gains nothing, which is the
+  honest outcome. **A performance claim in this repository now needs a regime attached**, because the
+  one thing every null shares is that it was decided by the distribution rather than by the lever.
+
+  It also bounds [`D-105`](#d-105) from the other side: the generator *can* produce an instance the
+  solver fails to prove optimal, at 100 employees over 8 weeks, which is far outside the envelope this
+  service claims and is why it was never seen.
+- **Study.** [`docs/studies/scaling-levers.md`](studies/scaling-levers.md)
 - **Date.** 2026-09-03.

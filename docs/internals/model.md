@@ -398,12 +398,12 @@ a few hundred assignment variables, about 5 ms to build, about 3 ms to search, a
 **Build dominates search at this size**, which is why the performance work went to model construction rather than search tuning.
 
 The ceiling is known rather than guessed:
-the largest foreign instance tried reaches about **8M variables and 527 s of model construction**, and returns no roster.
-The first genuinely hard searches this project has seen came from the same import: 7.71 s to prove optimality, against a committed-set maximum of 15.4 ms.
+the largest foreign instance tried reaches about **8M variables and 527 s of model construction**, and returns no roster: its past is illegal, so it is refused rather than searched, and **nothing is known about search at that size** ([`D-155`](../decisions.md#d-155)).
+The first genuinely hard searches this project has seen came from the same import: 7.71 s to prove optimality, re-measured at 8.43 s, against a committed-set maximum of 15.4 ms.
 
 **That ceiling is a property of this implementation, not of the formulation.**
 The 527 s is a Python loop emitting constraints one at a time, and **a faster builder is not available**: writing constraints straight into the `CpModelProto` costs 5.01 µs each against the wrapper's 3.75 µs, `protobuf` already resolves to its C implementation, and creating one boolean at all costs 1.35 µs ([`gate-cost.md`](../studies/gate-cost.md), [`D-153`](../decisions.md#d-153)). *Where it stops* means where this code stops, and getting past it means emitting fewer objects or leaving Python.
-Whether batching the construction moves it has not been measured, which is why the claim is scoped rather than hopeful.
+Every other lever was measured and rejected ([`scaling-levers.md`](../studies/scaling-levers.md), [`D-156`](../decisions.md#d-156)).
 
 Build dominating search is also a statement about **one week** and not about this model in general: instance size grows linearly in the horizon, search does not.
 

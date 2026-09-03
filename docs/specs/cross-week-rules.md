@@ -128,8 +128,9 @@ that builds its own incumbent cannot produce that, because it only ever builds l
 
 **The first genuinely hard searches this project has seen**, and where the model stops:
 about 40 employees over four weeks, **527 s of model construction at 8M variables**, and no
-roster ([`D-127`](../decisions.md#d-127)). 7.71 s to prove optimality on another, against a
-committed-set maximum of 15.4 ms.
+roster ([`D-127`](../decisions.md#d-127)), refused for an illegal past rather than searched
+([`D-155`](../decisions.md#d-155)). 7.71 s to prove optimality on another, re-measured at
+8.43 s, against a committed-set maximum of 15.4 ms.
 
 **Their split of hard from soft is not this project's**
 ([`D-132`](../decisions.md#d-132)). Four items catalogued here as preferences are hard

@@ -26,8 +26,8 @@ Work since then has been documentation and correction, not capability.
 | Tests | 567 | 948, of which 47 skip without fetched benchmark data |
 | Mutants, each naming the layer that must catch it | 59 | 138 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 140, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
-| Studies, including nulls | 8 | 19 |
+| Decision records | 94, 2 open | 142, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
+| Studies, including nulls | 8 | 20 |
 | Python | ~12,000 lines | ~24,600 lines |
 
 **The last full mutation run does not vouch for the tree it ran in.** 2026-08-21, 852 s:
@@ -56,11 +56,22 @@ in them.
 | No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) and the generator takes a horizon ([`D-115`](decisions.md#d-115)) | Nothing. No committed case asks for one |
 | The last mutation verdict is `unverifiable` | Nothing: re-run the three named layers on a clean tree |
 | **The canonical optimum is not canonical** ([`D-154`](decisions.md#d-154)): sums of squared ordinals collide, so two rosters can tie and the search picks between them | Nothing, and it is a design question rather than a patch. Weights no two subsets can share overflow int64 long before 60,000 variables |
+| **The foreign importer reads their coverage band as our ceiling** ([`D-155`](decisions.md#d-155)): their format prices over-coverage and this project prohibits it, so published rosters that overstaff legally import as illegal | Nothing. The fix is specified in [`scale-evidence.md`](specs/scale-evidence.md) and changes a shipped predicate, both readings of it, and [`D-057`](decisions.md#d-057)'s domination bound, for a benchmark's benefit |
 
 The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the
 system under test.** Every benchmark number in this repository shows a replan beats a re-solve
 *given a roster this model would produce*. [`foreign-incumbent.md`](studies/foreign-incumbent.md)
 closed the half of that which was not blocked.
+
+## Performance
+
+**Closed on five nulls** ([`D-156`](decisions.md#d-156),
+[`scaling-levers.md`](studies/scaling-levers.md)). A hand-written model builder is slower than
+the wrapper, dropping the gate literals loses the proof of optimality, the interval rest-gap
+encoding cuts variables by 7.1× and searches more slowly, parallel workers change a replan not
+at all, and the generator cannot reach the sizes where any of it would matter. Nothing shipped
+and nothing is scheduled: a committed case answers in about 3 ms, so there is no latency to
+recover. Read that study before starting any performance work here.
 
 ## The documentation
 
