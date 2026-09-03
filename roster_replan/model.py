@@ -63,8 +63,31 @@ class Built:
     # Pairs the presolve removed, with the rules that removed them. These never become
     # variables, so they can only be reported from here.
     excluded: dict[tuple[int, int, int], tuple[str, ...]] = field(default_factory=dict)
+    # Whether each hard constraint instance carries its own literal. False means the
+    # model states the same feasible set and cannot explain an infeasibility.
+    gated: bool = True
 
-    def gate(self, model: cp_model.CpModel, descriptor: Gate) -> cp_model.IntVar:
+    def gate(self, model: cp_model.CpModel, descriptor: Gate) -> cp_model.IntVar | list:
+        """The assumption literal for one hard constraint instance.
+
+        Ungated, this returns the **empty enforcement list**, so the caller's
+        `.only_enforce_if(...)` writes no enforcement literal and the constraint goes into
+        the proto exactly as an unconditional one. The feasible set is identical and every
+        call site is unchanged; what disappears is one boolean per constraint instance,
+        1.4 million of them on the largest foreign instance that still builds, against 60
+        thousand assignment variables.
+
+        **A fixed literal is not a substitute for no literal.** Handing every constraint
+        one shared literal pinned to true states the same feasible set and leaves the
+        constraints *enforced*, which CP-SAT propagates far more weakly: it cost a proof of
+        optimality outright on three relaxations of one week, 0.05 s becoming a 30 s
+        timeout. Measured, not reasoned about, and the reason this returns `[]`.
+
+        Nothing is recorded in `gates` or `literals` when ungated, so such a `Built`
+        reports no core rather than a wrong one, and `solve` rebuilds when it needs one.
+        """
+        if not self.gated:
+            return []
         literal = model.new_bool_var(f"gate_{len(self.literals)}")
         self.gates[literal.index] = descriptor
         self.literals.append(literal)
@@ -108,13 +131,21 @@ def build(
     symmetry: bool = False,
     sequence: str = "windows",
     rest: str = "pairwise",
+    gated: bool = True,
 ) -> Built:
     """The model, with every hard constraint instance gated.
 
-    The four keyword arguments are **study switches, not supported modes**. Each selects an
+    The five keyword arguments are **study switches, not supported modes**. Each selects an
     alternative encoding of the same problem so that `docs/studies/` can measure one against
     the other with everything else held. The shipped configuration is the default of each,
     and `studies/*.md` records why.
+
+    `gated=False` states the same feasible set with no per-instance literal. It exists so
+    that what the gates cost can be measured rather than asserted, and it is **rejected as
+    a shipping mode**: it halves the variables and takes 30% off the solve on the committed
+    set, then fails to prove optimality single-threaded on a tight week, 0.045 s becoming a
+    30 s timeout on three of eight. The literals turn out to carry search, not only
+    reporting. See `studies/gate-cost.md`.
 
     `presolve=False` keeps a variable for every pair, including the impossible ones, and
     leaves them to the gated `x = 0` below. This costs only one branch because of `D-058`:
@@ -158,6 +189,7 @@ def build(
         overage={},
         mix_shortfall={},
         excluded=excluded,
+        gated=gated,
     )
 
     # An ineligible pair that exists only to carry a pin or a deviation is still
@@ -1033,6 +1065,14 @@ def solve(
         if status != cp_model.INFEASIBLE:
             return Unproven(
                 status=solver.status_name(status), search_seconds=solver.wall_time
+            )
+        if not built.gated:
+            # A study model, handed in by a caller measuring the gates. It states no
+            # literal, so there is nothing to read a core from, and inventing an empty
+            # one would report "no rules conflict" about an infeasible week.
+            raise AssertionError(
+                "an ungated model proved infeasible and cannot name the conflicting "
+                "rules; build with gated=True to explain an infeasibility"
             )
         return [
             built.gates[index]

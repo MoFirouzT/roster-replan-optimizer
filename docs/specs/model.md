@@ -153,8 +153,10 @@ genuinely hard searches this project has seen came from the same import: 7.71 s 
 optimality, against a committed-set maximum of 15.4 ms.
 
 **That ceiling belongs to this implementation, not to the formulation.** The 527 s is a
-Python loop emitting constraints one at a time. Whether batching moves it has not been
-measured, which is why the claim is scoped rather than hopeful.
+Python loop emitting constraints one at a time, and whether batching moves it is now
+measured: it does not ([`gate-cost.md`](../studies/gate-cost.md),
+[`D-153`](../decisions.md#d-153)). Writing the proto by hand is slower than the wrapper,
+so the ceiling moves only by emitting fewer objects or by leaving Python.
 
 **Build dominates search at one week**, which is why the performance work went to model
 construction. That is a statement about one week and not about the model: instance size

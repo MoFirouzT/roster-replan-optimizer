@@ -39,6 +39,7 @@ VARIANTS = {
     "symmetry": dict(symmetry=True),
     "automaton": dict(sequence="automaton"),
     "rest-intervals": dict(rest="intervals"),
+    "ungated": dict(gated=False),
 }
 
 
@@ -58,6 +59,49 @@ def test_every_encoding_reaches_the_same_optimum(case, variant, scenarios):
         f"{variant} on {case} reached {other}, not {reference.objective} -- that is a "
         f"broken encoding, and the broken one is usually the fast one"
     )
+
+
+@pytest.mark.parametrize("case", CASES)
+def test_ungated_states_the_same_model_with_none_of_the_literals(case, scenarios):
+    """The switch behind `studies/gate-cost.md`, and what makes its timings mean anything.
+
+    An ungated build must be the same problem: same assignment variables, same constraint
+    count, no per-instance literal. If it quietly kept the gates the study would report a
+    null and the null would be the harness, not the model.
+    """
+    instance = scenarios[case].instance
+    gated = build(instance, gated=True)
+    ungated = build(instance, gated=False)
+
+    assert set(ungated.x) == set(gated.x), "ungating changed which pairs are variables"
+    assert ungated.literals == [], "an ungated build emitted a gate literal"
+    assert ungated.gates == {}, "an ungated build recorded a gate descriptor"
+    assert gated.literals, "the gated build emitted no literals, so this proves nothing"
+    assert len(ungated.model.proto.constraints) == len(gated.model.proto.constraints), (
+        "the two builds state a different number of constraints, so they are not the "
+        "same problem and no timing between them means anything"
+    )
+    assert len(ungated.model.proto.variables) < len(gated.model.proto.variables)
+
+
+def test_an_ungated_model_refuses_to_invent_a_core(scenarios):
+    """`D-153`: no literals means no explanation, and an empty core is the wrong answer.
+
+    An infeasible week under an ungated build has nothing to read a core from. Returning
+    `[]` would say "no rules conflict" about a week where they do, so `solve` raises.
+    """
+    instance = scenarios["headline/0"].instance
+    impossible = dataclasses.replace(
+        instance,
+        employees=tuple(
+            dataclasses.replace(person, max_hours_this_week=0.0, max_daily_hours=0.0)
+            for person in instance.employees
+        ),
+        incumbent=frozenset({next(iter(sorted(instance.incumbent)))}),
+    )
+    built = build(impossible, gated=False)
+    with pytest.raises(AssertionError, match="cannot name the conflicting"):
+        solve(impossible, built=built)
 
 
 @pytest.mark.parametrize("case", CASES)

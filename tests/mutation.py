@@ -167,6 +167,18 @@ MUTANTS: tuple[Mutant, ...] = (
         "        if True:",
         "tests/test_differential.py",
     ),
+    # `D-153`. The gate study's whole claim is that the two builds are the same problem
+    # stated with and without the literals. A `gated=False` that quietly keeps them makes
+    # every timing in `studies/gate-cost.md` a comparison of a model with itself, and the
+    # study would report a null that is the harness rather than the model.
+    Mutant(
+        "model-ungated-still-gates",
+        "model",
+        MODEL,
+        "        if not self.gated:\n            return []",
+        "        if not self.gated and False:\n            return []",
+        "tests/test_studies.py",
+    ),
     Mutant(
         "model-period-budget-never-binds",
         "model",

@@ -180,18 +180,20 @@ Neither the plan that set the tiers nor the declaration that closed them is in t
 | [`D-150`](#d-150) | The guarantee starts at the payload, and the clock in front of it is the caller's |
 | [`D-151`](#d-151) | The documentation becomes two doors, and the reconciled specs move into them |
 | [`D-152`](#d-152) | `docs/specs/` holds work orders again, and the twelve are reconstructions |
+| [`D-153`](#d-153) | The gates carry search, and a faster builder is not what would lift the ceiling |
+| [`D-154`](#d-154) | The canonical optimum is not canonical, and the criterion is why |
 
 ## By theme
 
 | Theme | Records |
 | --- | --- |
 | The objective: what disruption is, and what it trades against | [`D-005`](#d-005), [`D-006`](#d-006), [`D-015`](#d-015), [`D-018`](#d-018), [`D-022`](#d-022), [`D-036`](#d-036), [`D-049`](#d-049), [`D-050`](#d-050), [`D-051`](#d-051), [`D-052`](#d-052), [`D-053`](#d-053), [`D-054`](#d-054), [`D-055`](#d-055), [`D-057`](#d-057), [`D-060`](#d-060), [`D-085`](#d-085), [`D-086`](#d-086), [`D-120`](#d-120), [`D-129`](#d-129) |
-| Formulation and solver choice | [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126), [`D-149`](#d-149) |
+| Formulation and solver choice | [`D-153`](#d-153), [`D-001`](#d-001), [`D-002`](#d-002), [`D-009`](#d-009), [`D-021`](#d-021), [`D-028`](#d-028), [`D-037`](#d-037), [`D-043`](#d-043), [`D-044`](#d-044), [`D-047`](#d-047), [`D-058`](#d-058), [`D-059`](#d-059), [`D-087`](#d-087), [`D-088`](#d-088), [`D-089`](#d-089), [`D-092`](#d-092), [`D-100`](#d-100), [`D-119`](#d-119), [`D-126`](#d-126), [`D-149`](#d-149) |
 | Independence: two readings of one registry | [`D-003`](#d-003), [`D-038`](#d-038), [`D-039`](#d-039), [`D-040`](#d-040), [`D-041`](#d-041), [`D-045`](#d-045), [`D-063`](#d-063), [`D-078`](#d-078), [`D-128`](#d-128) |
 | Ground truth, test layers, and the mutation harness | [`D-004`](#d-004), [`D-061`](#d-061), [`D-062`](#d-062), [`D-064`](#d-064), [`D-065`](#d-065), [`D-066`](#d-066), [`D-067`](#d-067), [`D-077`](#d-077), [`D-112`](#d-112), [`D-122`](#d-122), [`D-124`](#d-124), [`D-130`](#d-130), [`D-138`](#d-138), [`D-139`](#d-139), [`D-140`](#d-140), [`D-141`](#d-141), [`D-143`](#d-143) |
 | Rules, legal encoding and provenance | [`D-018`](#d-018), [`D-019`](#d-019), [`D-020`](#d-020), [`D-023`](#d-023), [`D-024`](#d-024), [`D-025`](#d-025), [`D-026`](#d-026), [`D-027`](#d-027), [`D-029`](#d-029), [`D-031`](#d-031), [`D-032`](#d-032), [`D-033`](#d-033), [`D-034`](#d-034), [`D-035`](#d-035), [`D-111`](#d-111), [`D-123`](#d-123), [`D-135`](#d-135), [`D-136`](#d-136), [`D-142`](#d-142), [`D-145`](#d-145) |
 | The benchmark set and its method | [`D-068`](#d-068), [`D-069`](#d-069), [`D-070`](#d-070), [`D-071`](#d-071), [`D-072`](#d-072), [`D-073`](#d-073), [`D-074`](#d-074), [`D-075`](#d-075), [`D-076`](#d-076), [`D-079`](#d-079), [`D-080`](#d-080), [`D-081`](#d-081), [`D-082`](#d-082), [`D-083`](#d-083), [`D-084`](#d-084), [`D-096`](#d-096), [`D-105`](#d-105) |
-| Reproducibility and CI | [`D-096`](#d-096), [`D-114`](#d-114), [`D-119`](#d-119), [`D-121`](#d-121), [`D-124`](#d-124) |
+| Reproducibility and CI | [`D-154`](#d-154), [`D-096`](#d-096), [`D-114`](#d-114), [`D-119`](#d-119), [`D-121`](#d-121), [`D-124`](#d-124) |
 | Explaining an answer: shortfalls, cores, hypotheticals | [`D-012`](#d-012), [`D-013`](#d-013), [`D-097`](#d-097), [`D-098`](#d-098), [`D-100`](#d-100), [`D-144`](#d-144) |
 | The LLM boundary and profile configuration | [`D-012`](#d-012), [`D-013`](#d-013), [`D-099`](#d-099), [`D-101`](#d-101), [`D-102`](#d-102), [`D-103`](#d-103) |
 | Service, runtime and the fallback ladder | [`D-010`](#d-010), [`D-011`](#d-011), [`D-090`](#d-090), [`D-091`](#d-091), [`D-094`](#d-094), [`D-122`](#d-122), [`D-149`](#d-149) |
@@ -3595,3 +3597,71 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   reads only Markdown links inside the doc set. Repointing them is a separate unit.
 - **Spec.** [`docs/specs/spec-reconstruction.md`](specs/spec-reconstruction.md)
 - **Date.** 2026-09-02.
+
+<a id="d-153"></a>
+## D-153. The gates carry search, and a faster builder is not what would lift the ceiling
+
+- **Decision.** [`D-127`](#d-127)'s open question is answered and closed: **batching construction
+  does not move the ceiling.** `build(gated=False)` ships as a **study switch** and is rejected as a
+  mode. [`D-002`](#d-002)'s gates are confirmed on a reason they were not chosen for: they carry
+  search, not only reporting.
+- **Alternatives.** Write the `CpModelProto` directly. Ship the ungated build, rebuilding gated when
+  a core is needed. Leave the question open, as [`D-127`](#d-127) left it.
+- **Reason.** Both alternatives were built and measured, and both are nulls.
+
+  **Writing the proto by hand is slower than the wrapper it bypasses**: 5.01 µs against 3.75 µs per
+  gated two-term constraint, with `protobuf` already resolving to its C implementation. The cost is
+  creating millions of objects from Python, not the loop that asks for them.
+
+  **Removing the gates halves the model and costs the proof of optimality.** On the committed set it
+  takes 15% off build and 52% off search, helping on 28 of 28 paired cases. On a tight week it fails
+  to prove optimality on three of eight, holding a roster scoring 480 for 30 s while the bound sits
+  at −7980. Eight workers close it in 19 ms, so it is the single-worker search that depends on the
+  literals, and single-worker is how [`benchmarks.md`](benchmarks.md) measures.
+
+  Why they help is measured and not explained: a bare model and one shared literal fixed true are
+  both slow, so it is not enforcement propagating weakly.
+- **Consequences.** The sentence *"that ceiling is a Python build loop, not a limit of the
+  formulation"* is corrected wherever it appears. The bound is unchanged at about 40 employees over
+  four weeks.
+
+  [`cp-sat-vs-milp.md`](studies/cp-sat-vs-milp.md)'s **21% of search is bounded to the committed
+  distribution**, and its *CP-SAT, ungated* row gains the code it never had.
+
+  **The committed set could not have found this**, for the third time
+  ([`D-105`](#d-105), [`D-127`](#d-127), [`penalty-search.md`](studies/penalty-search.md)).
+- **Study.** [`docs/studies/gate-cost.md`](studies/gate-cost.md)
+- **Spec.** [`docs/specs/gating-cost.md`](specs/gating-cost.md)
+- **Date.** 2026-09-03.
+
+<a id="d-154"></a>
+## D-154. The canonical optimum is not canonical, and the criterion is why
+
+- **Decision.** [`D-119`](#d-119)'s promise is **recorded as not held**. `Σ ordinal² · x` is not a
+  total order over rosters, so pinning the optimal value and minimising it does not determine which
+  optimum comes back. The claim in [`limits.md`](guide/limits.md) that a roster is reproducible from
+  its input, seed and profile version is true on every committed case and is not true in general.
+  Nothing is changed in the model yet.
+- **Alternatives.** Fix it now with heavier weights. Say nothing, since no committed case is
+  affected. Withdraw the reproducibility claim outright.
+- **Reason.** Sums of squares collide. On `flexi-heavy/2` the gated and ungated builds each return a
+  proved optimum, each report `canonical`, and they differ by six assignments at the identical
+  criterion value 299,796: `6² + 85² + 161²` and `7² + 83² + 162²` are both 33,182.
+
+  The committed manifest was stable because seed 7 on the shipped model landed on the same tied
+  roster every time. That is the search deciding, which is exactly what [`D-119`](#d-119) exists to
+  prevent, and it was hidden because nothing perturbed the search until something did.
+
+  It is not fixed in the same change that found it. A criterion that cannot tie needs weights no two
+  subsets can share, and a superincreasing sequence overflows int64 long before 60,000 variables, so
+  this is a design question rather than a patch. Writing the record now is what keeps the promise in
+  [`limits.md`](guide/limits.md) from standing unqualified while the question is open.
+- **Consequences.** [`limits.md`](guide/limits.md) qualifies the reproducibility guarantee, and
+  `test_suite.py`'s manifest test is understood as evidence that the *current* configuration is
+  stable rather than that the roster is determined.
+
+  This is [`reproducibility.md`](studies/reproducibility.md) one level in. That study removed the
+  degeneracy the search could see and left a smaller set the criterion cannot separate, so
+  *degeneracy measures zero* means *no tie was reached*, not *no tie exists*.
+- **Study.** [`docs/studies/gate-cost.md`](studies/gate-cost.md), which found it
+- **Date.** 2026-09-03.

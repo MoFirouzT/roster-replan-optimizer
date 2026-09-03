@@ -23,11 +23,11 @@ Work since then has been documentation and correction, not capability.
 
 | | At the declaration, 2026-08-13 | Now |
 | --- | --- | --- |
-| Tests | 567 | 937, of which 47 skip without fetched benchmark data |
-| Mutants, each naming the layer that must catch it | 59 | 137 |
+| Tests | 567 | 948, of which 47 skip without fetched benchmark data |
+| Mutants, each naming the layer that must catch it | 59 | 138 |
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 138, none open, 14 merged or retired |
-| Studies, including nulls | 8 | 18 |
+| Decision records | 94, 2 open | 140, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
+| Studies, including nulls | 8 | 19 |
 | Python | ~12,000 lines | ~24,600 lines |
 
 **The last full mutation run does not vouch for the tree it ran in.** 2026-08-21, 852 s:
@@ -55,6 +55,7 @@ in them.
 | Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing: these are deployment choices |
 | No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) and the generator takes a horizon ([`D-115`](decisions.md#d-115)) | Nothing. No committed case asks for one |
 | The last mutation verdict is `unverifiable` | Nothing: re-run the three named layers on a clean tree |
+| **The canonical optimum is not canonical** ([`D-154`](decisions.md#d-154)): sums of squared ordinals collide, so two rosters can tie and the search picks between them | Nothing, and it is a design question rather than a patch. Weights no two subsets can share overflow int64 long before 60,000 variables |
 
 The capture gap outranks the rest and the reason is unchanged: **the incumbent is solved by the
 system under test.** Every benchmark number in this repository shows a replan beats a re-solve

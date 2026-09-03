@@ -402,7 +402,7 @@ the largest foreign instance tried reaches about **8M variables and 527 s of mod
 The first genuinely hard searches this project has seen came from the same import: 7.71 s to prove optimality, against a committed-set maximum of 15.4 ms.
 
 **That ceiling is a property of this implementation, not of the formulation.**
-The 527 s is a Python loop emitting constraints one at a time; the same model handed to the same solver by a faster builder would start searching sooner. *Where it stops* means where this code stops.
+The 527 s is a Python loop emitting constraints one at a time, and **a faster builder is not available**: writing constraints straight into the `CpModelProto` costs 5.01 µs each against the wrapper's 3.75 µs, `protobuf` already resolves to its C implementation, and creating one boolean at all costs 1.35 µs ([`gate-cost.md`](../studies/gate-cost.md), [`D-153`](../decisions.md#d-153)). *Where it stops* means where this code stops, and getting past it means emitting fewer objects or leaving Python.
 Whether batching the construction moves it has not been measured, which is why the claim is scoped rather than hopeful.
 
 Build dominating search is also a statement about **one week** and not about this model in general: instance size grows linearly in the horizon, search does not.

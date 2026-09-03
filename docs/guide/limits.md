@@ -10,6 +10,8 @@ What this service promises, what it has been measured at, and what it deliberate
 
 **A roster is reproducible offline, on any machine.** Every solve's input, profile version and seed are persisted by you, and the same input returns the same roster, not merely the same objective value. That is a repaired claim rather than an assumed one: the optimum was degenerate, so the model now pins the optimal value *and* picks one point in the optimal set by a canonical criterion. CI proves it on a different `ortools` build from the one every committed artifact was recorded with.
 
+**With one qualification, and it is open** ([`D-154`](../decisions.md#d-154)). The canonical criterion is a sum of squared ordinals, and sums of squares can tie, so it does not always pick a single roster. Every committed case is stable and two rosters that tie have been produced deliberately. Treat this as *reproducible in practice on this configuration*, not as a proof.
+
 **A shortfall is priced, not hidden.** Coverage has a soft floor, so an impossible week comes back one person short with an explanation instead of coming back empty.
 
 **Nothing unlawful is offered.** Relaxing a statutory parameter with no recorded derogation basis is refused before any solve, in `what_if` and in the override recommendations alike.
@@ -39,7 +41,9 @@ What this service promises, what it has been measured at, and what it deliberate
 
 ### Where it stops
 
-About **40 employees over four weeks**. Beyond that, model construction dominates: 527 seconds to build an 8-million-variable instance. That ceiling is a Python build loop, not a limit of the formulation.
+About **40 employees over four weeks**. Beyond that, model construction dominates: 527 seconds to build an 8-million-variable instance.
+
+That is where this implementation stops rather than where the formulation does, and it is **not** a loop waiting to be written faster ([`gate-cost.md`](../studies/gate-cost.md)). Building the model by hand, straight into the solver's own data structure, is slower than the library call it replaces. The cost is creating millions of objects from Python, so lifting the ceiling means emitting fewer of them or leaving Python, not batching.
 
 Every performance figure above is a statement about a **one-week horizon**. Instance size grows linearly with the horizon; search does not.
 

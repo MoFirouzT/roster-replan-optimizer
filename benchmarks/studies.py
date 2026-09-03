@@ -286,6 +286,133 @@ def pattern_study() -> None:
             )
 
 
+# --- The tight week the gate study needs --------------------------------------------
+# The committed set cannot answer the gate question either, and for the reason `D-105`
+# already named: it is loose enough that the bound is easy to close whatever the model
+# looks like. This week is not. Eight interchangeable staff, 37 slots, 34.7 net hours
+# each against a 38-hour cap, so the weekly ceiling binds nearly everywhere.
+#
+# It is the fixture `tests/test_differential.py` builds, restated here rather than
+# imported: `benchmarks` does not import `tests`, and a study whose instance lives in a
+# test file is a study nobody can re-run from the command in its own write-up.
+
+
+def tight_week() -> Instance:
+    people = tuple(
+        Employee(
+            name=name,
+            contract="salaried",
+            skills=frozenset({"bar"}),
+            max_hours_this_week=38.0,
+            max_daily_hours=8.0,
+        )
+        for name in ("Ana", "Bram", "Chloe", "Driss", "Emma", "Finn", "Gita", "Hugo")
+    )
+    demand = {0: [2] * 7, 1: [2, 2, 2, 2, 2, 3, 3], 2: [1] * 7}
+    return Instance(
+        days=7,
+        shift_types=(
+            ShiftType("M", 7.0, 8.0, 0.5),
+            ShiftType("E", 15.0, 8.0, 0.5),
+            ShiftType("N", 23.0, 8.0, 0.5),
+        ),
+        employees=people,
+        open_shifts=tuple(
+            OpenShift(day=day, shift=shift, required=demand[shift][day])
+            for day in range(7)
+            for shift in (0, 1, 2)
+        ),
+        params=RuleParams(
+            min_rest_hours=11.0,
+            min_weekly_rest_hours=35.0,
+            min_period_hours=3.0,
+            max_consecutive_days=6,
+        ),
+        disruption=shipped_d2(metric="D3"),
+    )
+
+
+def tight_family() -> dict[str, Instance]:
+    """The tight week as a replan, plus the seven relaxations of its own rules.
+
+    The relaxations are the ones `tests/test_properties.py` uses for monotonicity. They
+    are here because each one is a legal week a tenant could ask for, and three of them
+    are where removing the gates stops proving optimality.
+    """
+    base = tight_week()
+    solution = solve(base, seed=7)
+    published = solution.roster
+    sick = next(e for (e, d, s) in sorted(published) if d == 5)
+    employees = list(base.employees)
+    employees[sick] = dataclasses.replace(
+        employees[sick], absences=(Interval(5 * 24.0, 6 * 24.0),)
+    )
+    instance = dataclasses.replace(
+        base,
+        employees=tuple(employees),
+        incumbent=published,
+        published_through=7 * 24.0,
+        now=0.0,
+    )
+
+    def with_params(**changes):
+        return dataclasses.replace(
+            instance, params=dataclasses.replace(instance.params, **changes)
+        )
+
+    def with_everyone(**changes):
+        return dataclasses.replace(
+            instance,
+            employees=tuple(dataclasses.replace(p, **changes) for p in instance.employees),
+        )
+
+    return {
+        "base": instance,
+        "shorter rest gap": with_params(min_rest_hours=instance.params.min_rest_hours - 4),
+        "less weekly rest": with_params(min_weekly_rest_hours=24.0),
+        "consecutive days off": with_params(max_consecutive_days=None),
+        "more consecutive days": with_params(max_consecutive_days=7),
+        "bigger weekly budget": with_everyone(max_hours_this_week=48.0),
+        "bigger daily maximum": with_everyone(max_daily_hours=12.0),
+        "absences lifted": with_everyone(absences=(), unavailability=()),
+    }
+
+
+def gate_study() -> None:
+    """What the per-instance assumption literals cost, and what they buy.
+
+    Two halves, and only the second one has a finding. On the committed set the ungated
+    build is cheaper on both clocks and proves optimality everywhere, which reads as an
+    overhead worth removing. On the tight week it stops proving optimality at all, so the
+    literals turn out to be carrying search rather than only reporting (`D-153`).
+
+    Reported per instance rather than as a ratio: the failures are statuses, and a median
+    over a set where three members time out is a number about the time limit.
+    """
+    print("\n" + "=" * 78)
+    print("GATES -- what the per-instance assumption literals cost, and what they buy")
+    print("=" * 78)
+
+    instances = committed()
+    control = _run(instances, lambda i: build(i))
+    treatment = _run(instances, lambda i: build(i, gated=False))
+    _guard(control, treatment)
+    lab.report("ungated, against the shipped gated build", control, treatment)
+
+    print("\n  the tight week, phase one only, single worker, 30 s limit")
+    print(f"  {'instance':<24} {'gated':>22}   {'ungated':>22}")
+    for name, instance in tight_family().items():
+        row = []
+        for gated in (True, False):
+            started = time.perf_counter()
+            outcome = solve(instance, seed=7, time_limit=30.0, built=build(instance, gated=gated))
+            elapsed = time.perf_counter() - started
+            status = outcome.status if hasattr(outcome, "status") else type(outcome).__name__
+            row.append(f"{status:>9} {elapsed:8.3f}s")
+        flag = "  <-- lost the proof" if "OPTIMAL" not in row[1] else ""
+        print(f"  {name:<24} {row[0]:>22}   {row[1]:>22}{flag}")
+
+
 def rest_gap_study() -> None:
     """Pairwise inequalities against one `add_no_overlap` per employee.
 
@@ -585,6 +712,7 @@ STUDIES = {
     "patterns": pattern_study,
     "coverage": coverage_study,
     "rest-gap": rest_gap_study,
+    "gates": gate_study,
     "horizon": horizon_study,
 }
 
