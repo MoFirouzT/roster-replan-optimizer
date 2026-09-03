@@ -127,7 +127,7 @@ fifteen minutes. Definitions live in [`model.md`](../internals/model.md#sets-and
   coarsens the gate to one literal per employee-week, losing the slot coordinate this encoding
   reports. The scaling argument for it is about the **horizon**, which is fixed at one week here, so
   it remains untested rather than disproved: see
-  [`studies/rest-gap-encoding.md`](../studies/rest-gap-encoding.md).
+  [`studies/encoding-levers.md`](../studies/encoding-levers.md#rest-gaps-as-intervals).
 - **Checker encoding.** Sort the employee's assigned instances by start time, walk consecutive pairs,
   compare each gap against the parameter. `last_shift_end_before_horizon[e]` is the predecessor of the
   first instance: **not a special case, just the zeroth element**, which is the framing that stops the
@@ -310,7 +310,7 @@ fifteen minutes. Definitions live in [`model.md`](../internals/model.md#sets-and
   **one** window per employee, so the automaton competes against a single inequality. It also gates
   only per employee-week, losing the day coordinate. It does not express `R-WEEKLY-REST` either: a
   continuous 35-hour free run is measured in hours, not days. See
-  [`studies/regular-constraint.md`](../studies/regular-constraint.md).
+  [`studies/encoding-levers.md`](../studies/encoding-levers.md#the-regular-automaton).
 - **Checker encoding.** Walk days in order tracking a streak counter initialised to
   `consecutive_days_worked_before_horizon[e]`, reset on any unworked day.
 - **Explainer text.** `Finn already worked 4 days before Monday and this roster adds 3 more: 7 consecutive, 6 allowed.`
@@ -528,7 +528,7 @@ fifteen minutes. Definitions live in [`model.md`](../internals/model.md#sets-and
   not want anyone on an early shift the day after a late one is stating a rule about the *pattern*,
   and stating it as hours would forbid other pairs they are content with.
 - **Model encoding.** One gated inequality per (employee, day, pair). Pairwise rather than an
-  automaton, for the reason [`studies/regular-constraint.md`](../studies/regular-constraint.md) gives:
+  automaton, for the reason [`studies/encoding-levers.md`](../studies/encoding-levers.md#the-regular-automaton) gives:
   the pairs are local, the expansion is small, and the day coordinate survives into the violation.
 - **Checker encoding.** Group the roster by employee and day, then check every consecutive pair. An
   employee holding two shifts on one day makes several pairs and each is checked: the rule is about

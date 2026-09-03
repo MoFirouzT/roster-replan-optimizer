@@ -206,7 +206,7 @@ own. Symbols are defined in [`model.md`](../internals/model.md#sets-and-data).
   constants at build time is cheaper and makes *pinning is not exemption* automatic, but it destroys
   the explainer's ability to name the past as the source of a conflict. CP-SAT's presolve folds these
   equalities well, so the cost is expected to be small: **measured, not assumed, in the [presolve
-  study](../studies/presolve.md).**
+  study](../studies/encoding-levers.md#presolve).**
 - **Why that matters.** Because pins are equalities, an incumbent that already violates a rule makes
   the entire solve infeasible with no repair available. This is a real production scenario: rules
   changed, or the roster was hand-edited. The assumption literals let the service distinguish **"the

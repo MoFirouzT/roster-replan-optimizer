@@ -450,7 +450,7 @@ def test_a_citation_resolves_against_the_root_then_docs():
     assert lint.citation_resolves("decisions.md")
     assert lint.citation_resolves("guide/rules.md")
     assert lint.citation_resolves("internals/model.md")
-    assert lint.citation_resolves("studies/presolve.md")
+    assert lint.citation_resolves("studies/encoding-levers.md")
 
     assert not lint.citation_resolves("rules.md")
     assert not lint.citation_resolves("replan.md")

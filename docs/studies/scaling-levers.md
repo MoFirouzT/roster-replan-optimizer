@@ -55,7 +55,7 @@ carrying search, not only reporting ([`D-153`](../decisions.md#d-153)).
 
 ### The interval rest-gap encoding wins on size and loses on time
 
-[`rest-gap-encoding.md`](rest-gap-encoding.md) rejected `rest="intervals"` at one week and said
+[`encoding-levers.md`](encoding-levers.md#rest-gaps-as-intervals) rejected `rest="intervals"` at one week and said
 plainly that the scaling claim behind it was never tested, because this project's horizon is one
 week. It is tested now.
 
@@ -117,7 +117,7 @@ factor; expect also that it buys a model whose search is still unmeasured at tha
 scoring `Z` changes at most `Z / min_change_weight` assignments, and that bound is sound because
 every objective term is a non-negative weight on a non-negative quantity. It restricts the
 *search*; restricting the *model* needs a reduced-cost argument, which is column generation, which
-[`pattern-encoding.md`](pattern-encoding.md) has already measured the enumeration form of.
+[`encoding-levers.md`](encoding-levers.md#pattern-variables) has already measured the enumeration form of.
 
 **Roll the horizon.** [`horizon.md`](horizon.md) already measured four weeks solved one at a time
 reaching identical coverage to four solved at once. It is a heuristic whose correctness lives

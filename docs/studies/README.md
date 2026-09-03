@@ -17,16 +17,29 @@ The line is a locator, not a summary: the study holds the method, the numbers an
 | [`foreign-incumbent.md`](foreign-incumbent.md) | Does the headline claim hold on a roster this project did not produce? | **Yes, by a wider margin: 4.6–37× fewer changes.** Also the first genuinely hard searches, and the model's ceiling |
 | [`cross-week-reach.md`](cross-week-reach.md) | How far does the objective reach past one week, and how badly does the gap show? | **One term of the objective has memory; everything else is a function of the payload alone.** Measured against somebody else's constraint set, cold generation breaks all seven of theirs, and not in the order this project would have guessed |
 | [`horizon.md`](horizon.md) | Does a longer horizon cost what the spec says, and buy anything? | **Rejection upheld, both its reasons wrong.** Size is linear; a longer horizon buys nothing |
-| [`presolve.md`](presolve.md) | Eliminating impossible (employee, shift) pairs before the solver | **Shipped: 28% off build, 14% off search, 28 of 28 cases.** A quarter of the model removed |
 | [`model-cache.md`](model-cache.md) | Per-tenant compiled-model caching, as [`service.md`](../guide/api.md) asks for | **0 hits in 144 solves**: a replan changes the model's own inputs. Profiling redirected the work, and the cache was later deleted ([`D-149`](../decisions.md#d-149)) |
+| [`encoding-levers.md`](encoding-levers.md) | Does any textbook alternative beat the shipped encoding: presolve, symmetry, the `regular` automaton, interval rest gaps, pattern variables? | **One ships, four rejected**, and three of the four lose the same way: a global constraint carries one literal, so a failure stops naming a rule instance |
 | [`scaling-levers.md`](scaling-levers.md) | Can the model be made to go further, by any lever that does not change what it means? | **Five levers, five nulls.** A hand-written builder is slower, dropping the gates loses the optimality proof, the interval encoding searches slower, workers do nothing, and the generator cannot reach the sizes that would justify any of it |
 | [`gate-cost.md`](gate-cost.md) | What do the per-instance assumption literals cost, and would a faster builder lift the ceiling? | **Two nulls.** Hand-writing the proto is *slower* than the wrapper; removing the gates halves the model, takes 30% off the solve, and then loses the proof of optimality on a tight week |
 | [`cp-sat-vs-milp.md`](cp-sat-vs-milp.md) | CP-SAT against branch-and-cut MILP | **CP-SAT is not the faster solver: SCIP wins 24 of 24.** It ships for assumption literals, at ~1.3 ms |
 | [`warm-start.md`](warm-start.md) | Speedup from hinting the previous solution, isolated from the objective | **9% of search time**, invisible end to end. The objective is what does the work |
-| [`symmetry-breaking.md`](symmetry-breaking.md) | Lexicographic ordering over interchangeable employees | **Null: 3 interchangeable employees across 28 cases.** The null is about the distribution, not the lever |
-| [`regular-constraint.md`](regular-constraint.md) | `regular` automaton vs. linear expansion for shift sequences | **Rejected: 19% slower, 28 of 28.** It also loses the day coordinate |
-| [`pattern-encoding.md`](pattern-encoding.md) | Pattern/column variables vs. assignment booleans | **Rejected: no proof of optimality in 30 s on 5 of 6 cold cases**, against ~20 ms |
-| [`rest-gap-encoding.md`](rest-gap-encoding.md) | `R-REST-GAP` as `no_overlap` intervals vs. pairwise inequalities | **Rejected at this horizon**: faster build, slower search, and the sign flips by instance family |
 | [`time-budget.md`](time-budget.md) | Solution quality at 1 s / 5 s / 30 s | **No curve to draw**: all 2,268 runs returned `OPTIMAL`, longest search 15.4 ms |
 | [`mutation-harness.md`](mutation-harness.md) | How is a test layer's claim to catch something checked? | **Four blind spots found behind green suites**, and five hardenings, each one the harness being confidently wrong |
 | [`nl-parse.md`](nl-parse.md) | Does the parse read a tenant's words into the right fields, and leave the rest alone? | **18/18 on three consecutive runs**, Dutch and adversarial cases included |
+
+## Merged
+
+A study is merged when its question is better answered beside others, never when its answer became
+inconvenient. The measurement travels with it and the conditions travel with the measurement.
+
+| Was | Where it went |
+| --- | --- |
+| `presolve.md` | [`encoding-levers.md`](encoding-levers.md#presolve) |
+| `symmetry-breaking.md` | [`encoding-levers.md`](encoding-levers.md#symmetry-breaking) |
+| `regular-constraint.md` | [`encoding-levers.md`](encoding-levers.md#the-regular-automaton) |
+| `rest-gap-encoding.md` | [`encoding-levers.md`](encoding-levers.md#rest-gaps-as-intervals) |
+| `pattern-encoding.md` | [`encoding-levers.md`](encoding-levers.md#pattern-variables) |
+
+Merged on 2026-09-03. All five ran through the same harness, asked the same shape of question and
+answered it the same way, and two of them turn out to explain each other: the pattern encoding
+creates exactly the symmetry the symmetry study found absent.

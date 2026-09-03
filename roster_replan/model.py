@@ -314,7 +314,7 @@ def _pin_past(built: Built, instance: Instance, incumbent: Roster) -> None:
 # --- R-REST-GAP -------------------------------------------------------------------
 # Pairwise <= 1 over the conflicting-pair set. At these sizes the pair set is small, and
 # the encoding is transparently the object the spec describes. The interval/no-overlap
-# alternative was left to be measured rather than assumed -- `studies/rest-gap-encoding.md`.
+# alternative was left to be measured rather than assumed -- `studies/encoding-levers.md`.
 
 
 def _conflicting_pairs(instance: Instance) -> list[tuple[tuple[int, int], tuple[int, int]]]:
@@ -383,7 +383,7 @@ def _rest_gap_intervals(built: Built, instance: Instance) -> None:
     `no_overlap` covers an employee's whole week, so its literal can say only *this
     employee's week has a rest violation somewhere*, where the pairwise encoding names the
     second slot of the offending pair -- the coordinate `checker.py` reports and
-    `violations()` matches on. See `studies/rest-gap-encoding.md`.
+    `violations()` matches on. See `studies/encoding-levers.md`.
     """
     model = built.model
     minutes = _minutes(instance.params.min_rest_hours)
@@ -543,7 +543,7 @@ def _max_daily(built: Built, instance: Instance) -> None:
 # Sliding-window sums over a reified worked-day indicator. Windows start at -p rather
 # than 0: an employee who worked the six days before Monday is out of days on Monday,
 # and windows beginning at 0 silently grant a fresh streak. The `regular` automaton is
-# the alternative, measured in `studies/regular-constraint.md`.
+# the alternative, measured in `studies/encoding-levers.md`.
 
 
 def _consec_days(built: Built, instance: Instance) -> None:
@@ -732,7 +732,7 @@ def _min_hours(built: Built, instance: Instance) -> None:
 
 # --- R-SUCCESSION -------------------------------------------------------------------
 # One inequality per (employee, day, forbidden pair). Pairwise rather than an automaton
-# for the reason `studies/regular-constraint.md` gives about `R-CONSEC-DAYS`: the pairs are
+# for the reason `studies/encoding-levers.md` gives about `R-CONSEC-DAYS`: the pairs are
 # local, so the expansion is small and the day coordinate survives into the violation.
 
 
@@ -779,7 +779,7 @@ def _days_off(built: Built, instance: Instance) -> None:
 
 # --- R-CONSEC-DAYS, as a `regular` automaton `[study only]` -------------------------
 # The textbook encoding of a sequence rule, and `internals/model.md` calls it a study rather than
-# an assumption precisely so it has to earn the swap. See `studies/regular-constraint.md`.
+# an assumption precisely so it has to earn the swap. See `studies/encoding-levers.md`.
 
 
 def _worked_indicators(built: Built, instance: Instance, employee: int) -> dict[int, object]:
@@ -819,7 +819,7 @@ def _consec_days_automaton(built: Built, instance: Instance) -> None:
     That is not a rounding error in reporting quality. `violations()` compares model gates
     against checker violations on the `(rule, employee, day, shift)` key, so an automaton
     gate with no day would not match its counterpart and the differential harness would
-    have to be told about the exception. See `studies/regular-constraint.md`.
+    have to be told about the exception. See `studies/encoding-levers.md`.
     """
     model = built.model
     for employee, person in enumerate(instance.employees):
@@ -868,7 +868,7 @@ def _orbits(instance: Instance) -> list[list[int]]:
     lexicographic constraint over them would cut off optima.
 
     Two employees therefore join an orbit only when every attribute the model reads matches
-    *and* their incumbent rows match. `studies/symmetry-breaking.md` reports how often that
+    *and* their incumbent rows match. `studies/encoding-levers.md` reports how often that
     happens, which is the number `internals/model.md` asks for rather than assumes.
     """
     incumbent = instance.incumbent or frozenset()

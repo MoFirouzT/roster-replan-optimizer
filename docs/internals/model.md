@@ -89,7 +89,7 @@ The conversion is arithmetic rather than a rule threshold, so it lives here rath
 
 > **Rejected, and built in full to reject it:** pattern/column variables.
 > They tie on a replan, where the pinned past leaves only 36–122 legal patterns for a whole tenant, and fail to prove optimality within 30 seconds on a cold week the assignment model answers in about 20 milliseconds.
-> Thousands of near-identical columns create exactly the symmetry this model turns out not to have. [`pattern-encoding.md`](../studies/pattern-encoding.md)
+> Thousands of near-identical columns create exactly the symmetry this model turns out not to have. [`encoding-levers.md`](../studies/encoding-levers.md#pattern-variables)
 
 ## Objective
 
@@ -310,7 +310,7 @@ The automaton is the textbook choice, which is why it was measured rather than a
 At a seven-day horizon the window count is not merely small, it is **one**, so the automaton competes against a single linear inequality over seven booleans and is 19% slower to search on 28 of 28 cases.
 It also gates only per employee, where the window encoding names the day the streak breached: the coordinate the checker reports and `violations()` matches on.
 Kept behind `build(sequence="automaton")` and worth revisiting beyond about two weeks.
-[`regular-constraint.md`](../studies/regular-constraint.md)
+[`encoding-levers.md`](../studies/encoding-levers.md#the-regular-automaton)
 
 ## Presolve
 
@@ -320,7 +320,7 @@ They are eliminated before the solver sees them.
 **Measured: a quarter of the model, 28% off build and 14% off search, on 28 of 28 paired cases.**
 Free, as claimed, because the exclusion table is computed either way.
 Not *the largest single win*, which was the earlier wording; build dominates search at these sizes, and this takes a quarter off the larger half.
-The largest single win is memoising `Instance.window`. [`presolve.md`](../studies/presolve.md)
+The largest single win is memoising `Instance.window`. [`encoding-levers.md`](../studies/encoding-levers.md#presolve)
 
 `R-AVAIL`, `R-SKILL`, `R-FLEXI-ELIG` and `R-DIMONA-FLX` are enforced *entirely* this way.
 
@@ -344,7 +344,7 @@ The incumbent does suppress symmetry, roughly halving it, but the larger effect 
 That also bounds the null:
 on a workforce built to be interchangeable the lever is worth 20% of total time.
 **The null is about the distribution, not the lever.**
-[`symmetry-breaking.md`](../studies/symmetry-breaking.md)
+[`encoding-levers.md`](../studies/encoding-levers.md#symmetry-breaking)
 
 ## Warm starting
 

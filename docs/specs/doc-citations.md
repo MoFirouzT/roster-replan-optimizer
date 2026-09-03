@@ -42,7 +42,7 @@ That gives one rule with no special cases:
 | `CLAUDE.md`, `README.md` | the repository root |
 | `decisions.md`, `benchmarks.md`, `STATE.md` | `docs/` |
 | `guide/rules.md`, `internals/model.md`, `specs/model.md` | the door that owns it |
-| `studies/presolve.md` | the measurement |
+| `studies/encoding-levers.md` | the measurement |
 
 A bare `rules.md` resolves nowhere and is therefore an error, which is what forces the
 `guide/` or `specs/` prefix exactly where the ambiguity is. Nothing needs a rule about

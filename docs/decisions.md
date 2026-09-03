@@ -423,7 +423,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   column-based formulations in general: the standard answer is column generation, which needs an LP
   relaxation CP-SAT does not expose and would be a separate project. It also does not improve with a
   longer horizon: at a four-week reference period the enumeration is `4^28` rather than `4^7`.
-- **Study.** `docs/studies/pattern-encoding.md`.
+- **Study.** `docs/studies/encoding-levers.md`.
 - **Date.** 2026-08-13.
 
 <a id="d-010"></a>
@@ -1914,7 +1914,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
 ## D-087. Symmetry breaking measured and not shipped, because the distribution has no symmetry
 
 - **Decision.** No symmetry breaking in the model. `model.md` said this was deliberate pending
-  measurement; the measurement is now in [`studies/symmetry-breaking.md`](studies/symmetry-breaking.md).
+  measurement; the measurement is now in [`studies/encoding-levers.md`](studies/encoding-levers.md#symmetry-breaking).
 - **Alternatives.** Ship lexicographic ordering over interchangeable employees.
 - **Reason.** There is almost nothing to break. Across 24 committed cases there are **3**
   interchangeable employees in total, in one case. Lexicographic ordering therefore costs about 4% of
@@ -1931,7 +1931,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   and open availability would have genuine orbits, and this distribution does not model that tenant.
   Revisit when a tenant profile shows a substantial group identical in contract, skills, budget and
   availability.
-- **Study.** `docs/studies/symmetry-breaking.md`.
+- **Study.** `docs/studies/encoding-levers.md`.
 - **Date.** 2026-08-13.
 
 <a id="d-088"></a>
@@ -1954,7 +1954,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   reference-period arithmetic is a multi-week rule ([`D-014`](#d-014), [`D-033`](#d-033)), but it is not the model that
   ships. `R-WEEKLY-REST` is not a candidate in either direction: it governs a continuous 35-hour free
   run measured in hours, which a day-level automaton cannot express.
-- **Study.** `docs/studies/regular-constraint.md`.
+- **Study.** `docs/studies/encoding-levers.md`.
 - **Date.** 2026-08-13.
 
 <a id="d-089"></a>
@@ -1982,7 +1982,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   **global constraints aggregate, and this model's gates are per rule instance**. Any encoding that
   replaces many local constraints with one global one coarsens what a failure can be attributed to,
   and that is a standing cost in a project whose T4 deliverable is an explainer.
-- **Study.** `docs/studies/rest-gap-encoding.md`.
+- **Study.** `docs/studies/encoding-levers.md`.
 - **Date.** 2026-08-13.
 
 <a id="d-090"></a>

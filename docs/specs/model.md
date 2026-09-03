@@ -111,18 +111,18 @@ call `solve`.
 - [x] Brute force agrees on the feasible set and on the optimum, on 39 committed
       micro-instances.
 - [x] Presolve removes about a quarter of the model: **28% off build and 14% off search
-      on 28 of 28 paired cases** ([`presolve.md`](../studies/presolve.md)). Free, because
+      on 28 of 28 paired cases** ([`encoding-levers.md`](../studies/encoding-levers.md#presolve)). Free, because
       the exclusion table is computed either way.
 - [x] Every committed benchmark run returns `OPTIMAL`. **2,268 of 2,268.**
 - [x] Four alternatives measured and rejected: the automaton is 19% slower to search on
-      28 of 28 ([`regular-constraint.md`](../studies/regular-constraint.md)); pattern
+      28 of 28 ([`encoding-levers.md`](../studies/encoding-levers.md#the-regular-automaton)); pattern
       variables tie on a replan and fail to prove optimality in 30 s on a cold week the
       assignment model answers in about 20 ms
-      ([`pattern-encoding.md`](../studies/pattern-encoding.md)); `no_overlap` rest gaps
+      ([`encoding-levers.md`](../studies/encoding-levers.md#pattern-variables)); `no_overlap` rest gaps
       build faster and search slower for a 2% wash
-      ([`rest-gap-encoding.md`](../studies/rest-gap-encoding.md)); symmetry breaking
+      ([`encoding-levers.md`](../studies/encoding-levers.md#rest-gaps-as-intervals)); symmetry breaking
       costs about 4% of build and returns a coin flip
-      ([`symmetry-breaking.md`](../studies/symmetry-breaking.md)).
+      ([`encoding-levers.md`](../studies/encoding-levers.md#symmetry-breaking)).
 - [!] **The reproducibility promise was false and no test could see it.** The optimum is
       degenerate: the objective value is identical every time and the roster differs on
       **24 of 84 replans and on all 84 cold weeks**. Which roster came back was decided by

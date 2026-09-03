@@ -187,7 +187,7 @@ probe had called the solver directly and skipped phase two. What it had actually
   between its points is worth doing and is not this.
 - **Coarser gates.** Reducing the literal count by widening what one literal covers trades
   away the coordinate `checker.py` matches on, which is the trade
-  [`rest-gap-encoding.md`](../studies/rest-gap-encoding.md) already refused once.
+  [`encoding-levers.md`](../studies/encoding-levers.md#rest-gaps-as-intervals) already refused once.
 - **Fixing [`D-154`](../decisions.md#d-154).** Found here, recorded here, and left open here.
 - **Any change to the feasible set**, the objective, or a rule predicate.
 
