@@ -136,7 +136,7 @@ times here, every time found by a person reading both places ([`D-158`](docs/dec
 `derived` figure is recounted from the repository; a `pinned` one is read from the owner's
 `<!-- fig:<id> -->` line, because nothing here can recount a solver status on data that is
 fetched rather than committed, or a wall-clock second. **Nothing is ever re-measured by the
-linter**: a status is assertable and a second is not, and a check treating them alike either
+linter**: a status can be asserted and a second cannot, and a check treating them alike either
 says nothing or flaps. Quoting a superseded figure on purpose takes a `<!-- lint-ok -->` with
 the reason on the line.
 

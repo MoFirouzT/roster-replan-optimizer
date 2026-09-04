@@ -3788,7 +3788,7 @@ Written in batches, one batch per spec, and ordered here by ID so a reader can l
   **Re-running is not available here.** The foreign instances are fetched rather than committed
   ([`D-125`](#d-125)), and instance 23 costs 561 s to build before any solve. The registry records
   `reproducible` and a `command` for the figures a re-run would settle, and the linter runs
-  neither: a solver status is assertable and a wall-clock second is not, so a check treating them
+  neither: a solver status can be asserted and a wall-clock second cannot, so a check treating them
   alike either says nothing or flaps.
 - **Consequences.** Replayed against the commits that carried them, all three known incidents fire,
   and three live ones were found on the way. The cost on a clean tree is 3 candidates, 2 of them

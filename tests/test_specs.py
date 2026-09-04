@@ -25,7 +25,9 @@ the reconcile beat, done by reading, and these tests do not pretend to replace i
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import pathlib
 import re
 
@@ -642,3 +644,32 @@ def test_no_registered_figure_is_stated_two_ways_in_this_tree():
     errors: list[str] = []
     lint.check_figures(errors)
     assert not errors, "figures that disagree with their owner:\n  " + "\n  ".join(errors)
+
+
+def test_the_coined_word_check_does_not_depend_on_the_host_dictionary():
+    """The lint verdict must not be a property of the machine that produced it.
+
+    `/usr/share/dict/words` is a different file on every OS: macOS ships `web2`, a 1934
+    Webster's of 236k entries, and CI's `wamerican` is a modern list about a third that
+    size. A word only the larger one has lints clean on a laptop and red in CI, which is
+    what `REPO_VOCABULARY` exists to prevent and what it silently stopped covering:
+    `assertable` reached `main` and CI is where it was caught, one commit later.
+
+    So the claim is asserted at its strongest. With no dictionary at all, only
+    `REAL_ADJECTIVES` and `REPO_VOCABULARY` remain, and any real word list is a superset
+    of that; a tree clean here is clean on every host. Regenerate by reading the failure:
+    each word it names is either real English and belongs in `REPO_VOCABULARY`, or coined
+    and the sentence is rewritten.
+    """
+    lint = _lint_module()
+    lint.WORD_LIST = set()
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        code = lint.main()
+
+    coined = re.findall(r"coined word '([^']+)'", buf.getvalue())
+    assert not coined, (
+        "these lint clean here and would fail on a smaller system dictionary: "
+        f"{sorted(set(coined))}"
+    )
+    assert code == 0, buf.getvalue()
