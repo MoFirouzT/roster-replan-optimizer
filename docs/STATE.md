@@ -30,31 +30,18 @@ Work since then has been documentation and correction, not capability.
 | Studies, including nulls | 8 | 16 |
 | Python | ~12,000 lines | ~24,600 lines |
 
-**The last full mutation run does not vouch for the tree it ran in.** 2026-08-21, 852 s:
-136 of 136 caught, and the verdict is `unverifiable` rather than `clean`, because three files
-it mutated were already modified or were written back after the restore:
-`benchmarks/weights.py`, `roster_replan/disruption.py`, `roster_replan/model.py`
-([`D-112`](decisions.md#d-112)). The catches are probably real and are not vouched for. Re-run
-those layers before trusting them, per [`CLAUDE.md`](../CLAUDE.md).
+**The last full mutation run vouches for the tree it ran in.** 2026-09-04, 863 s:
+140 of 140 caught, verdict `clean`, `unvouched_for` empty. It supersedes the `unverifiable`
+run of 2026-08-21 ([`D-112`](decisions.md#d-112)), whose 136 catches were probably real and
+were never vouched for.
 
-**Four mutants have not been in a full run.** Each was proved against its named catcher in a
-targeted run at the time it was added. This count is reviewed prose rather than a registered
-figure, because the only record of what a full run covered is `tests/mutation-report.json`,
-which is gitignored:
-
-| Mutant | Added | Standing |
-| --- | --- | --- |
-| `citation-rule-accepts-anything` | 2026-09-02 | Caught by its named catcher in a 3-mutant `-k specs` run, itself `unverifiable` because the tree was dirty ([`documentation.md`](specs/documentation.md#citations-in-source)) |
-| `model-ungated-still-gates` | 2026-09-03 | Caught by `tests/test_studies.py`, in a run whose verdict was `unverifiable` for the same reason ([`gating-cost.md`](specs/gating-cost.md)) |
-| `figure-check-accepts-a-copy-that-disagrees-with-its-owner` | 2026-09-03 | Caught in a 5-mutant `-k specs` run, `unverifiable` because `scripts/lint_docs.py` was already modified ([`figures.md`](specs/figures.md)) |
-| `figure-check-never-recounts-a-derived-figure` | 2026-09-03 | As above |
-
-**All four have been caught by their named catcher; none has been in a full run**, and every
-one of those targeted runs came back `unverifiable` rather than `clean`, because each proved
-a layer mid-change, which [`CLAUDE.md`](../CLAUDE.md) allows and prices. What is owed is one
-full run on a clean tree, which would settle the standing `unverifiable` verdict above at the
-same time. A targeted re-run must send its report elsewhere with `--report`, or a five-mutant
-report replaces the full one ([`D-130`](decisions.md#d-130)).
+It is also the first full run to cover the four mutants added on 2026-09-02 and 2026-09-03:
+`citation-rule-accepts-anything`, `model-ungated-still-gates`,
+`figure-check-accepts-a-copy-that-disagrees-with-its-owner` and
+`figure-check-never-recounts-a-derived-figure`. Each had only been proved against its named
+catcher in a targeted run, and every one of those runs returned `unverifiable` rather than
+`clean`, because each proved a layer mid-change, which [`CLAUDE.md`](../CLAUDE.md) allows and
+prices. Nothing is owed here now.
 
 ## What is still not done
 
@@ -65,11 +52,10 @@ in them.
 | Gap | Blocked on |
 | --- | --- |
 | **Capture and replay**: was the largest gap, now half of one ([`D-125`](decisions.md#d-125)) | External authorization and real vendor payloads. A Belgian horeca corpus is still what this owns |
-| The cost axis (`cost_weight` ships at 0, [`D-050`](decisions.md#d-050)) | Wage data |
+| The cost axis (`cost_weight` ships at 0, [`D-050`](decisions.md#d-050)) | The same corpus as the row above, for a different reason. What is missing is not wage rates, which are published per sector, but **the exchange rate between disruption and cost**, which [`D-050`](decisions.md#d-050) calls a tenant's business judgement rather than a fact about rostering. Real planners choosing between paying overtime and moving someone reveal their own |
 | `R-STUDENT-QUOTA`, `R-SUNDAY`, `R-BREAK`, `R-PT-MIN`, `R-PUB-NOTICE` | A named legal source each: [`rules.md`](guide/rules.md) refuses a legality claim without provenance |
 | Service `[TODO]`s: external queue store, metrics backend, interrupting a running solve | Nothing: these are deployment choices |
 | No committed benchmark case runs at **more than one week**, though the service now answers them ([`D-113`](decisions.md#d-113)) and the generator takes a horizon ([`D-115`](decisions.md#d-115)) | Nothing. No committed case asks for one |
-| The last mutation verdict is `unverifiable` | Nothing: re-run the three named layers on a clean tree |
 | **The canonical optimum is not canonical** ([`D-154`](decisions.md#d-154)): sums of squared ordinals collide, so two rosters can tie and the search picks between them | Nothing, and it is a design question rather than a patch. Weights no two subsets can share overflow int64 long before 60,000 variables |
 | **The foreign importer reads their coverage band as our ceiling** ([`D-155`](decisions.md#d-155)): their format prices over-coverage and this project prohibits it, so published rosters that overstaff legally import as illegal | Nothing. The fix is specified in [`scale-evidence.md`](specs/scale-evidence.md) and changes a shipped predicate, both readings of it, and [`D-057`](decisions.md#d-057)'s domination bound, for a benchmark's benefit |
 

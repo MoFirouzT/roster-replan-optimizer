@@ -61,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = answer(instance, seed=request.seed, budget_seconds=args.budget_seconds)
 
-    print(f"answer: {result.rung} — {result.reason}")
+    print(f"answer: {result.rung} ({result.reason})")
     if result.objective is not None:
         print(f"disruption {result.objective}, gap {100 * (result.gap or 0):.1f}%")
     print(f"solved in {1000 * result.seconds:.0f} ms\n")

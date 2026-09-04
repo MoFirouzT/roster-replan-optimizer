@@ -1,0 +1,133 @@
+# The documentation site, over the same Markdown that renders on GitHub.
+#
+# GitHub is the primary rendering. The files are written for it: its heading anchors,
+# its relative links into `roster_replan/` and `scripts/`, and `scripts/lint_docs.py`
+# checks them there. The site adds an ordered nav and a search box over them, and
+# `scripts/mkdocs_hooks.py` is what makes the source citations resolve here too.
+#
+# Nothing is generated from source and there is no API reference built from docstrings.
+# The documentation is the argument; a listing of every module would bury it.
+#
+# Build:  uv run --group docs mkdocs serve
+# Deploy: .github/workflows/docs.yml
+
+site_name: roster-replan-optimizer
+site_description: Minimum-disruption shift-roster replanning under labour constraints.
+# Where the pages workflow publishes. Material builds the sitemap and the canonical link
+# tags from this, so a wrong value is visible only to crawlers, never on the page.
+site_url: https://mofirouzt.github.io/roster-replan-optimizer/
+repo_url: https://github.com/MoFirouzT/roster-replan-optimizer
+repo_name: MoFirouzT/roster-replan-optimizer
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: build/site
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - content.code.copy
+    - search.highlight
+  palette:
+    # The site follows the reader's system theme, with a manual override.
+    - media: "(prefers-color-scheme)"
+      toggle: { icon: material/brightness-auto, name: Follow system }
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle: { icon: material/brightness-7, name: Switch to dark }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle: { icon: material/brightness-4, name: Switch to light }
+
+# The reading path `README.md` names, not the directory listing. The three record tiers
+# come last on purpose: a reader meets the service before the reasoning behind it.
+nav:
+  - Start here: README.md
+  - Guide:
+      - Quickstart: guide/quickstart.md
+      - Rules:
+          - guide/rules.md
+          - Statutory: guide/rules-statutory.md
+          - Operational: guide/rules-operational.md
+          - Eligibility: guide/rules-eligibility.md
+      - Limits: guide/limits.md
+      - Configuring: guide/configuring.md
+      - API: guide/api.md
+  - Internals:
+      - Design: internals/design.md
+      - Model: internals/model.md
+      - Testing: internals/testing.md
+      - Development: internals/development.md
+  - Results:
+      - Benchmarks: benchmarks.md
+      - Studies:
+          - studies/README.md
+          - CP-SAT against MILP: studies/cp-sat-vs-milp.md
+          - Cross-week reach: studies/cross-week-reach.md
+          - Disruption metrics: studies/disruption-metrics.md
+          - Encoding levers: studies/encoding-levers.md
+          - Foreign incumbents: studies/foreign-incumbent.md
+          - What the gates cost: studies/gate-cost.md
+          - Horizon: studies/horizon.md
+          - Model cache: studies/model-cache.md
+          - Mutation harness: studies/mutation-harness.md
+          - NL parsing: studies/nl-parse.md
+          - Penalty search: studies/penalty-search.md
+          - Reproducibility: studies/reproducibility.md
+          - Scaling levers: studies/scaling-levers.md
+          - Time budget: studies/time-budget.md
+          - Warm start: studies/warm-start.md
+          - Weight recovery: studies/weight-recovery.md
+  # One page. The records are 300 words each by design (`decisions.md` states the budget),
+  # so 144 files would put more weight in the file names than in the records. The page's
+  # own header carries the three ways in, by ID, by theme, and the merged and retired
+  # table, because MkDocs cannot put an anchor in the nav.
+  - Decisions: decisions.md
+  - Components: specs/README.md
+  - Project state: STATE.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      # GitHub's anchor dialect, so a `file.md#anchor` written for GitHub, and checked by
+      # `scripts/lint_docs.py` against GitHub's rules, resolves here too. The default
+      # MkDocs slugifier collapses runs of whitespace where GitHub does not.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+hooks:
+  # Rewrites the 85 links that leave `docs/` into repository URLs, so a source citation
+  # is a working link here and stays relative on GitHub.
+  - scripts/mkdocs_hooks.py
+
+plugins:
+  - search
+
+# The work orders are reached from the ledger, which already carries a row describing each
+# one, and the template is not a document. Listing them again in the nav would be a second
+# owner of the same ordering.
+not_in_nav: |
+  specs/*.md
+
+# The build runs `--strict`, so every warning below is an error. That is affordable here
+# only because `scripts/mkdocs_hooks.py` resolves the links that leave `docs/`: without it
+# there would be 85 warnings and strict would be impossible. It buys the check a linter
+# would otherwise have to grow, that **a document absent from `nav` and from `not_in_nav`
+# fails the build** rather than going live and unreachable.
+validation:
+  unrecognized_links: warn
+  absolute_links: warn

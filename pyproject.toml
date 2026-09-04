@@ -21,6 +21,12 @@ dev = [
     "import-linter>=2.13",
     "pytest>=9.1.1",
 ]
+# The documentation site, and nothing else needs it. `scripts/lint_docs.py` is stdlib-only
+# and stays that way: the charter's enforceable half must run without installing a site
+# generator.
+docs = [
+    "mkdocs-material>=9.6",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

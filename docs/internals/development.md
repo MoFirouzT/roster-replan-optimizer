@@ -140,6 +140,21 @@ The live documentation is [`../guide/`](../guide) for people using the service a
 
 `tests/test_specs.py` checks the mechanical half: every rule in the registry exists in both readings, every decision ID cited anywhere resolves to a record, every relative link and every fragment lands somewhere real.
 
+### The site
+
+The same files are published at
+[mofirouzt.github.io/roster-replan-optimizer](https://mofirouzt.github.io/roster-replan-optimizer/),
+built by [`docs.yml`](../../.github/workflows/docs.yml) on every push to `main`. Nothing built is committed.
+
+```bash
+uv run --group docs mkdocs serve
+```
+
+GitHub is the primary rendering and the Markdown is written for it, so a link into
+`roster_replan/` or `scripts/` is relative. [`mkdocs_hooks.py`](../../scripts/mkdocs_hooks.py) turns
+those into repository URLs at build time, which is what lets the build run `--strict`: a document
+missing from both `nav` and `not_in_nav` then fails rather than going live unreachable.
+
 ---
 
 *Prose conventions and the plain-word rule: [`CLAUDE.md`](../../CLAUDE.md).*

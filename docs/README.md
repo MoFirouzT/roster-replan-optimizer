@@ -1,5 +1,14 @@
 # Documentation
 
+**Minimum-disruption shift-roster replanning under labour constraints.** Someone calls in
+sick and the week is already published. This service reproduces that roster with the least
+deviation from what people were told, rather than re-solving the week for the cheapest legal
+answer. The case for that, with the picture and the measured results, is on the
+[repository front page](https://github.com/MoFirouzT/roster-replan-optimizer).
+
+What follows is the written record: what the service does, how it is built, what it was
+measured at, and why each choice went the way it did.
+
 **Using the service**: [`guide/`](guide)
 
 | | |
@@ -36,3 +45,14 @@ Three worth the detour:
 - [`studies/horizon.md`](studies/horizon.md): a rejection upheld on evidence that contradicted both reasons the spec gave for it.
 - [`studies/penalty-search.md`](studies/penalty-search.md): where the easy instance distribution would have produced the wrong answer.
 - [`studies/mutation-harness.md`](studies/mutation-harness.md): four blind spots found behind fully green suites, and five times the harness was confidently wrong about itself.
+
+## About this site
+
+These are the same Markdown files the repository serves on GitHub, which is the primary
+rendering. They are written for its heading anchors and for its relative links into
+`roster_replan/` and `scripts/`, and [`lint_docs.py`](../scripts/lint_docs.py) checks them
+there. The site adds an ordered nav and a search box over them, and a citation of a source
+file opens that file in the repository.
+
+Nothing here is generated from source, and there is no API reference built from docstrings:
+the documentation is the argument, and a listing of every module would bury it.
