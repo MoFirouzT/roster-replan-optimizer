@@ -150,14 +150,14 @@ and never pooled across it, per the rule above. Times are milliseconds; disrupti
 positions. **The tables report the 5 s budget**; the quality columns are identical at 1 s and 30 s:
 the time-budget null, restated on the wider set.
 
-**Weeks that could be fully staffed before the event**: 72 cases, the repair question:
+**Weeks that could be fully staffed before the event**: 72 cases, the repair question: <!-- fig:headline-fully-staffed-weeks -->
 
 | Method | p50 end-to-end | p95 end-to-end | p50 search | p95 search | Disruption | Changes | Short | Paid hours |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Cold re-solve, cost objective | 10.5 | 22.8 | 3.61 | 10.52 | 307.3 | 12.36 | 0.15 | 284.5 |
+| Cold re-solve, cost objective | 10.5 | 22.8 | 3.61 | 10.52 | 307.3 | 12.36 | 0.15 | 284.5 | <!-- fig:headline-changes-cold -->
 | Greedy nearest-eligible repair | 1.2 | 2.8 | n/a | n/a | 53.6 | 1.94 | 0.31 | 283.3 |
 | Cold solve, disruption objective | 10.4 | 22.6 | 3.58 | 10.74 | 65.3 | 2.40 | 0.15 | 284.5 |
-| **Warm-started replan** | 10.6 | 21.9 | **3.31** | **8.61** | 65.3 | 2.40 | 0.15 | 284.5 |
+| **Warm-started replan** | 10.6 | 21.9 | **3.31** | **8.61** | 65.3 | 2.40 | 0.15 | 284.5 | <!-- fig:headline-changes-replan -->
 
 **Weeks already short before the event**: 12 cases, the capacity question:
 

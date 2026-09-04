@@ -23,10 +23,10 @@ Work since then has been documentation and correction, not capability.
 
 | | At the declaration, 2026-08-13 | Now |
 | --- | --- | --- |
-| Tests | 567 | 948, of which 47 skip without fetched benchmark data |
+| Tests | 567 | 958, of which 47 skip without fetched benchmark data |
 | Mutants, each naming the layer that must catch it | 59 | 140 | <!-- fig:mutant-count -->
 | Import-linter contracts | 8 | 11 |
-| Decision records | 94, 2 open | 143, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
+| Decision records | 94, 2 open | 144, one open ([`D-154`](decisions.md#d-154)), 14 merged or retired |
 | Studies, including nulls | 8 | 16 |
 | Python | ~12,000 lines | ~24,600 lines |
 

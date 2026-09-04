@@ -36,13 +36,14 @@ The cold re-solve also moves **E01, E07 and E08**, three people whose shifts wer
 
 ---
 
-## Two doors
+## Start here
 
-**[Using it](docs/guide/quickstart.md)**: run the demo, configure a tenant, call the API, read the rule registry, and find out what it guarantees and where it stops.
+Four documents, in this order. **Everything else in this repository is reference**, and [`docs/README.md`](docs/README.md) indexes all of it.
 
-**[Working on it](docs/internals/design.md)**: why the system is shaped this way, then the formulation, the test layers, and the suite.
-
-Both are indexed at [`docs/README.md`](docs/README.md).
+1. **[`guide/quickstart.md`](docs/guide/quickstart.md)** runs the scenario above on your own machine and says what each line of the output means.
+2. **[`guide/rules.md`](docs/guide/rules.md)** is the registry: every rule a roster is checked against, each with a stable ID and a provenance.
+3. **[`guide/limits.md`](docs/guide/limits.md)** is what it was measured at and where it stops. Read it before the results below, not after.
+4. **[`internals/design.md`](docs/internals/design.md)** is why the system is shaped this way, as one argument, with the record behind each claim.
 
 ---
 

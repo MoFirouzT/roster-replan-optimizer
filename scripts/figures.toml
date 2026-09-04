@@ -128,3 +128,42 @@ one run, which is a durable measurement rather than a statement of the current c
 # artifact is the defect `D-118` and `D-121` already record: a verdict that is a property of
 # the machine that produced it. The count stays reviewed prose in `STATE.md`, beside a table
 # naming each of the four.
+
+[[figure]]
+id = "headline-changes-cold"
+owner = "docs/benchmarks.md"
+kind = "pinned"
+reproducible = "command"
+command = "uv run python -m benchmarks.run --write"
+pattern = '\|\s*307\.3\s*\|\s*(\d+\.\d+)\s*\|'
+note = """The number the front page leads with, and the one a reader remembers, so \
+it is the copy most worth checking. Anchored on the disruption column of the same row, so a \
+reworded table matches nothing and is reported rather than passing quietly. `pinned` because \
+`results.json` is not committed (`D-084`), so nothing here can recount a mean over 2,520 \
+runs."""
+
+[[figure]]
+id = "headline-changes-replan"
+owner = "docs/benchmarks.md"
+kind = "pinned"
+reproducible = "command"
+command = "uv run python -m benchmarks.run --write"
+pattern = '\|\s*65\.3\s*\|\s*(\d+\.\d+)\s*\|'
+note = """The other half of the headline. Its pattern matches two rows per document, the \
+cold disruption solve and the warm replan, which score the same and must keep saying so: \
+`D-082`'s point is that the objective does the work and the warm start does not. The \
+prose form *12.4 to 2.4* is a rounding of both and is left to review; a check cannot tell \
+a rounding from a stale copy."""
+
+[[figure]]
+id = "headline-fully-staffed-weeks"
+owner = "docs/benchmarks.md"
+kind = "pinned"
+reproducible = "computed"
+command = "uv run python -m benchmarks.run --write"
+pattern = '(?i)fully staffed before the (?:event|disruption)\**:?\s*\**(\d+)'
+note = """The segment the two headline means are taken over, and it belongs beside them \
+wherever they are quoted: a mean is not a number without the set it is a mean of. The pattern is anchored \
+on the sentence rather than on the digits, because 72 is also a case count in three other \
+claims in the same file. `pinned` for the reason its two companions are: the segmentation is \
+`results.json`'s and that file is not committed (`D-084`)."""

@@ -58,7 +58,7 @@ The **finding** column is the point of the row: what the component established, 
 where the answer was no, and including the six places a claim in this repository turned out
 to be false.
 
-Every ledger row names its spec or says why it has none: **21 of 21**. That is a coverage
+Every ledger row names its spec or says why it has none: **22 of 22**. That is a coverage
 claim rather than a measurement, so `scripts/lint_docs.py` recounts it rather than trusting
 it ([`D-158`](../decisions.md#d-158)).
 
@@ -87,6 +87,7 @@ it ([`D-158`](../decisions.md#d-158)).
 
 ---
 | **Stale duplicated figures** | [figures](figures.md) | 2026-09-03 | [`figures.toml`](../../scripts/figures.toml), [`lint_docs.py`](../../scripts/lint_docs.py) | A number copied away from the document that owns it now fails the linter ([`D-158`](../decisions.md#d-158)). The registry holds no values: a `pinned` figure's value is read from its owner, so it cannot itself go stale and it works against any commit. **All three known incidents fire when replayed against the commits that carried them**, and three live ones were found on the way: `CLAUDE.md`'s own link counts, a ledger-row coverage claim of 16 against 21, and the study that owns the illegal-past figure still heading it *Ten of thirteen*. <!-- lint-ok: the row names the figure it corrected --> **The heuristic sweep was measured and rejected**: 274 candidates a run, or 7 groups at 29% precision in its strongest form. What no check that reads documents can see is a number wrong everywhere at once, which is [`D-155`](../decisions.md#d-155)'s scale table |
+| **The landing page** | Tier 0 | 2026-09-03 | Tier 0: **built, then moved out of the repository** | A generated HTML page showing the Saturday sick call end to end, for a reader who will not clone this. It works, and it is not kept here: **GitHub renders a committed SVG and renders no committed HTML**, so the drawing's precedent ([`D-147`](../decisions.md#d-147)) lands the other way and the page earns its keep only where it is hosted, which is a decision this repository does not make. What survives is in [`figures.toml`](../../scripts/figures.toml) and [`README.md`](../../README.md): the two headline means and the segment they are means over are registered figures now, and the front page names four documents in order instead of forking into two doors. Two findings kept because they cost something to learn. **The test that checked the page's headline was circular** and a mutant is what showed it: it asked the generator what the owning document said and then checked the page agreed, which passes just as well once the generator has stopped reading the owner. And registering those figures put **twelve statements across three documents** under the check for the first time, where all twelve agreed: the null this expected to break |
 
 ## Where the detail lives
 
