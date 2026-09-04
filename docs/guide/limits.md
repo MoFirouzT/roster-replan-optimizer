@@ -41,9 +41,15 @@ What this service promises, what it has been measured at, and what it deliberate
 
 ### Where it stops
 
-About **40 employees over four weeks**. Beyond that, model construction dominates: 527 seconds to build an 8-million-variable instance.
+About **40 employees over four weeks** ([`D-127`](../decisions.md#d-127)). Beyond that, model construction dominates: 527 seconds to build an 8-million-variable instance.
 
-That is where this implementation stops rather than where the formulation does, and it is **not** a loop waiting to be written faster ([`gate-cost.md`](../studies/gate-cost.md)). Building the model by hand, straight into the solver's own data structure, is slower than the library call it replaces. The cost is creating millions of objects from Python, so lifting the ceiling means emitting fewer of them or leaving Python, not batching.
+**At the horizon this service ships, one week, that ceiling is nowhere near.** The controlled sweep in [`scaling-levers.md`](../studies/scaling-levers.md) reaches **100 employees over one week in 0.12 seconds end to end, proven optimal**, which is four times the staff of the committed set. Four weeks at 50 staff and eight weeks at 50 staff both still prove optimality; 100 over 8 is where a 60-second budget returns a feasible roster without the proof.
+
+**Headcount is the wrong unit, and quoting one is what makes the ceiling look low.** What the builder pays for is variables, and those come from staff × horizon × shift types. A hundred people over eight weeks in this domain's three shift types is 63,611 variables; a nurse-rostering instance at 120 people over four weeks is 910,608, roughly fifty times larger at a similar nominal size. Both figures belong to [`scaling-levers.md`](../studies/scaling-levers.md). So the envelope is a statement about instance shape, and a horeca week is a small one.
+
+**The ceiling is measured, its cause is identified, and five ways past it were tried and rejected on measurement** ([`scaling-levers.md`](../studies/scaling-levers.md), [`D-156`](../decisions.md#d-156)). Writing the model by hand, straight into the solver's own data structure, is slower than the library call it replaces. Dropping the gate literals halves the model and then loses the proof of optimality. The interval rest-gap encoding cuts variables by 7.1× and searches more slowly at every size measured. Parallel workers change a replan not at all, because the build is single-threaded and must finish first. The cost is creating millions of objects from Python, measured at 1.35 µs for a boolean and 3.75 µs for a constraint, so lifting the ceiling means emitting fewer objects or leaving Python, not batching or a faster loop.
+
+**What is not known is search above about a million variables.** The one instance at eight million never searched: it was refused before the solver started, and the reason was this project's own importer rather than its size ([`D-155`](../decisions.md#d-155)). Nothing here claims a result at that scale, and the claim that the search finds nothing there was withdrawn rather than left standing.
 
 Every performance figure above is a statement about a **one-week horizon**. Instance size grows linearly with the horizon; search does not.
 

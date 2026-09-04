@@ -11,12 +11,8 @@ ladder is the intricate part. It knows nothing about HTTP, jobs or queues.
 
 ## The rungs
 
-| Rung | Promise | Reached when |
-| --- | --- | --- |
-| `exact` | proven optimal, gap 0 | the solve finished inside its budget |
-| `time-boxed` | feasible, **gap reported** | the budget ran out with a solution in hand |
-| `greedy` | legal, not optimal | the model had no solution to give |
-| `incumbent` | what was already published, violations named | greedy had nothing to repair from |
+`guide/api.md` owns the table: what each rung promises, and what reaches it. This file used to
+carry a copy, and the copy had already drifted by a word.
 
 **`exact` and `time-boxed` are one solve, not two.** CP-SAT already returns the best
 solution found plus the best proven bound when a time limit stops it, so re-solving with a

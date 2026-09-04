@@ -22,9 +22,13 @@ from benchmarks import suite
 from roster_replan.demo import main
 from roster_replan.service.contracts import ReplanRequest, from_domain, to_domain
 
-SCENARIO = pathlib.Path(__file__).resolve().parent.parent / "scenarios" / (
-    "saturday_sick_call.json"
-)
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+SCENARIO = ROOT / "scenarios" / "saturday_sick_call.json"
+QUICKSTART = ROOT / "docs" / "guide" / "quickstart.md"
+
+# The one line of the demo's output that is a property of the machine rather than of the
+# model, so the transcript below cannot pin it (`D-121`).
+TIMING = "solved in"
 
 
 def test_the_readme_command_runs(capsys):
@@ -76,3 +80,41 @@ def test_the_documented_flags_exist(flag, capsys):
     with pytest.raises(SystemExit):
         main(["--help"])
     assert flag in capsys.readouterr().out
+
+
+def _blocks(markdown: str) -> list[str]:
+    """The fenced ```text blocks of a document, in order."""
+    out, collecting, current = [], False, []
+    for line in markdown.splitlines():
+        if line.startswith("```text"):
+            collecting, current = True, []
+        elif collecting and line.startswith("```"):
+            out.append("\n".join(current))
+            collecting = False
+        elif collecting:
+            current.append(line)
+    return out
+
+
+def test_the_quickstart_transcript_is_what_the_demo_prints(capsys):
+    """The transcript in `guide/quickstart.md` is the first thing the README sends a reader
+    to, and it had already drifted once: it read `answer: exact (proven optimal)` while the
+    demo printed an em dash. Nothing noticed, because a transcript in a document is prose to
+    every check this repository runs. It is not prose. It is output, and this pins it.
+
+    The wall-clock line is excluded and only that line: a millisecond is a property of the
+    machine that measured it (`D-121`), and everything else here is a function of the model.
+    """
+    main([str(SCENARIO)])
+    printed = capsys.readouterr().out
+
+    blocks = _blocks(QUICKSTART.read_text(encoding="utf-8"))
+    assert blocks, "quickstart.md should carry the demo's output in a ```text block"
+
+    def comparable(text: str) -> list[str]:
+        return [line for line in text.strip().splitlines() if not line.startswith(TIMING)]
+
+    assert comparable(blocks[0]) == comparable(printed), (
+        "the quickstart transcript and the demo disagree; regenerate it with\n"
+        "    uv run python -m roster_replan.demo scenarios/saturday_sick_call.json"
+    )

@@ -76,7 +76,7 @@ recover. Read that study before starting any performance work here.
 
 ## The documentation
 
-Six rearrangements, and they are done.
+Six rearrangements, and they are done. What came after is publication rather than movement.
 
 **2026-08-20**: the specs were rewritten as two doors ([`D-151`](decisions.md#d-151)): a
 [guide](guide) for people using the service and [internals](internals) for people changing it.
@@ -134,6 +134,28 @@ study that owns the illegal-past figure still headed it *Ten of thirteen*. <!-- 
 
 What no check that reads documents can catch is [`D-155`](decisions.md#d-155)'s scale table,
 where every document agreed and the disagreement was with reality.
+
+**2026-09-04**: the same files are published as a MkDocs site at
+[mofirouzt.github.io/roster-replan-optimizer](https://mofirouzt.github.io/roster-replan-optimizer/),
+built by [`docs.yml`](../.github/workflows/docs.yml) on every push to `main`. Nothing built is
+committed, no document moved and no claim changed. GitHub stays the primary rendering, so a link
+into `roster_replan/` or `scripts/` is still relative and
+[`lint_docs.py`](../scripts/lint_docs.py) still checks it there;
+[`mkdocs_hooks.py`](../scripts/mkdocs_hooks.py) turns the 85 that leave `docs/` into repository
+URLs at build time. That is what lets the build run `--strict`, which buys a check this repository
+did not have: **a document in neither `nav` nor `not_in_nav` fails the build** instead of going
+live with no way to reach it.
+
+Two corrections went with it. [`limits.md`](guide/limits.md) stated the scale envelope as a
+headcount and stopped there, which reads as a low ceiling and an unfinished investigation; it now
+says what binds (model construction, not search), what was tried against it (five levers, five
+nulls, [`D-156`](decisions.md#d-156)) and what is still unknown (search above about a million
+variables). The number itself is unchanged and still [`D-127`](decisions.md#d-127)'s. And the
+transcript in [`quickstart.md`](guide/quickstart.md) is now asserted against what the demo prints,
+every line but the wall-clock one: it had drifted once already, because a block of program output
+sitting in a document is prose to every check here. Proved by hand, by editing the transcript and
+watching `tests/test_demo.py` fail. It has no mutant, so it is not a layer this repository can yet
+say it has broken on purpose.
 
 ## Known blockers
 

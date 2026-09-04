@@ -79,7 +79,9 @@ Four documents, in this order. **Everything else in this repository is reference
 
 **Greedy is not the weak baseline it looks like.** It ties the optimal replan exactly on 71 of 84 cases, and its lower average disruption is bought by leaving more shifts unstaffed: the trade the shortfall weight exists to refuse. The optimiser earns its place on the 13 cases where the repair needs a chain, and on never being the one to leave a shift uncovered.
 
-Caveats, segmentation and what this set does *not* show: [`docs/guide/limits.md`](docs/guide/limits.md).
+**On scale, the number to read is variables and not headcount.** A committed case is 8 to 25 people over one week because that is the size a Belgian horeca tenant rosters, and the same model proves optimality for **100 people over one week in 0.12 seconds**. What binds above that is model construction rather than search, measured at 1.35 µs to create a boolean, and five ways past it were tried and rejected on measurement rather than left as an open guess.
+
+Caveats, segmentation, the envelope and what this set does *not* show: [`docs/guide/limits.md`](docs/guide/limits.md).
 
 ---
 
